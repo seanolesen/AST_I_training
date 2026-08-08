@@ -7,38 +7,55 @@ const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0",
   ice: "#7cc4ff", amber: "#f0812c", line: "rgba(255,255,255,0.12)" };
 const FONT = "system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
 
-function AuthBar({ session }) {
+function TopBar({ session, view, onHome }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("");
-  const row = { display: "flex", gap: 8, alignItems: "center", justifyContent: "flex-end",
+  const row = { display: "flex", gap: 8, alignItems: "center", justifyContent: "space-between",
     flexWrap: "wrap", padding: "10px 12px", background: T.bg,
     borderBottom: `1px solid ${T.line}`, fontFamily: FONT, fontSize: 12.5 };
   const chip = { padding: "7px 12px", borderRadius: 9, border: `1px solid ${T.line}`,
     background: T.panel, color: T.snow };
   const btn = { ...chip, cursor: "pointer" };
-  if (!supabase) return <div style={row}><span style={{ ...chip, opacity: 0.7 }}>Local mode</span></div>;
-  if (session && session.user) {
-    return (
-      <div style={row}>
+
+  const back = view !== "home"
+    ? <button onClick={onHome} style={{ ...btn, borderColor: T.ice, color: T.ice, fontWeight: 700 }}>← All tools</button>
+    : <span />;
+
+  let auth;
+  if (!supabase) {
+    auth = <span style={{ ...chip, opacity: 0.7 }}>Local mode</span>;
+  } else if (session && session.user) {
+    auth = (
+      <React.Fragment>
         <span style={chip}>{session.user.email}</span>
         <button style={btn} onClick={() => supabase.auth.signOut()}>Sign out</button>
-      </div>
+      </React.Fragment>
+    );
+  } else {
+    const send = async () => {
+      if (!email) { setStatus("Enter your email"); return; }
+      setStatus("Sending…");
+      const { error } = await supabase.auth.signInWithOtp({
+        email, options: { emailRedirectTo: window.location.origin },
+      });
+      setStatus(error ? ("Error: " + error.message) : "Check your email for the link");
+    };
+    auth = (
+      <React.Fragment>
+        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com"
+          style={{ ...chip, minWidth: 150, outline: "none" }} />
+        <button style={btn} onClick={send}>Sign in to sync</button>
+        {status && <span style={{ color: T.dim }}>{status}</span>}
+      </React.Fragment>
     );
   }
-  const send = async () => {
-    if (!email) { setStatus("Enter your email"); return; }
-    setStatus("Sending\u2026");
-    const { error } = await supabase.auth.signInWithOtp({
-      email, options: { emailRedirectTo: window.location.origin },
-    });
-    setStatus(error ? ("Error: " + error.message) : "Check your email for the link");
-  };
+
   return (
     <div style={row}>
-      <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com"
-        style={{ ...chip, minWidth: 150, outline: "none" }} />
-      <button style={btn} onClick={send}>Sign in to sync</button>
-      {status && <span style={{ color: T.dim }}>{status}</span>}
+      {back}
+      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+        {auth}
+      </div>
     </div>
   );
 }
@@ -61,8 +78,8 @@ function Home({ onPick, session }) {
         <h1 style={{ fontSize: 24, fontWeight: 800, margin: "6px 0 2px", letterSpacing: "-0.3px" }}>Choose a tool</h1>
         <p style={{ ...p, margin: "0 0 4px" }}>
           {session && session.user
-            ? `Signed in as ${session.user.email} \u2014 your runs sync across devices.`
-            : "Local mode \u2014 sign in above to sync your history across devices."}
+            ? `Signed in as ${session.user.email} — your runs sync across devices.`
+            : "Local mode — sign in above to sync your history across devices."}
         </p>
         <button style={tile(T.ice)} onClick={() => onPick("ast1")}>
           <div style={h}>AST 1 Practice</div>
@@ -92,7 +109,7 @@ export default function Root() {
 
   return (
     <React.Fragment>
-      <AuthBar session={session} />
+      <TopBar session={session} view={view} onHome={home} />
       {view === "home" && <Home onPick={setView} session={session} />}
       {view === "ast1" && <Ast1App onHome={home} />}
       {view === "slope" && <SlopeApp onHome={home} />}
