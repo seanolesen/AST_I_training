@@ -1,71 +1,88 @@
-# AST 1 Trainer
+# Avalanche Training — combined web app
 
-An interactive AST 1 practice-exam web app (273 questions). Built with Vite + React, with optional Supabase sign-in so each person's run history syncs across their devices.
+Two tools behind one link, chosen from a landing page:
 
-- **Not signed in →** runs save on that device only (browser localStorage).
-- **Signed in (magic link) →** runs sync to your account across devices.
-- The **guest / record** toggle still works: guest runs are never saved; recorded runs go to your account (or the device if you're not signed in).
+- **AST 1 Practice** — 273-question written-exam trainer.
+- **Slope-Angle Trainer** — train your eye on the 30-degree avalanche threshold.
 
-> This is an original study tool for the AST 1 curriculum, not official Avalanche Canada exam content. The 80% line is a self-study benchmark, not an official pass mark (AST 1 has no formal written exam).
+Built with Vite + React. Optional passwordless (magic-link) sign-in via Supabase
+syncs each person's history across their devices. Without signing in, the app still
+works fully in **local mode** (history saved on that device only). Each tool has a
+**"Back to all tools"** control to return to the landing page after a run.
 
----
-
-## What you need (all free tiers)
-
-1. A **Supabase** account — the database + sign-in.
-2. A **GitHub** account — where the code lives.
-3. A **Vercel** account — builds the code and gives you the live link.
-
-Do the steps in this order. There's one bit of ordering to respect: Vercel gives you a URL, and Supabase needs that URL for sign-in to work — so we deploy first, then point Supabase at it.
+> Original study tools for the AST 1 curriculum — not official Avalanche Canada exam content.
 
 ---
 
-## Step 1 — Supabase project
+## File layout (flat — everything at repo root)
 
-1. supabase.com → **New project**. Pick a name and a database password (save it somewhere; you won't need it for this app, but Supabase wants one).
-2. When it's ready, open **SQL Editor → New query**, paste the contents of `supabase/schema.sql`, and click **Run**. This creates the `runs` table with row-level security so each user only sees their own data.
-3. Open **Project Settings → API** and copy two values:
-   - **Project URL** → this is your `VITE_SUPABASE_URL`
-   - **anon public** key → this is your `VITE_SUPABASE_ANON_KEY`
-   (The anon key is safe to expose in a browser; row-level security is what protects the data.)
+index.html, Root.jsx, App.jsx, SlopeApp.jsx, main.jsx, questions.js, storage.js,
+supabaseClient.js, vite.config.js, package.json, schema.sql, README.md
 
-## Step 2 — GitHub repo
-
-1. github.com → **New repository** → name it e.g. `ast1-trainer` → **Create**.
-2. On the new repo page, click **uploading an existing file**.
-3. Unzip the project, then drag the **contents** of the folder (the `src` folder, `index.html`, `package.json`, `vite.config.js`, `supabase` folder, `.gitignore`, etc.) into the upload area. Do **not** include `node_modules` or `dist`.
-4. **Commit changes.**
-
-## Step 3 — Vercel deploy
-
-1. vercel.com → **Add New… → Project** → import your `ast1-trainer` repo. Vercel auto-detects Vite; leave the build settings as-is.
-2. Before deploying, open **Environment Variables** and add the two from Step 1:
-   - `VITE_SUPABASE_URL` = your Project URL
-   - `VITE_SUPABASE_ANON_KEY` = your anon public key
-3. Click **Deploy**. After a minute you'll get a live URL like `https://ast1-trainer-xxxx.vercel.app`. Copy it.
-
-## Step 4 — Point Supabase auth at your site
-
-1. In Supabase: **Authentication → URL Configuration**.
-2. Set **Site URL** to your Vercel URL.
-3. Under **Redirect URLs**, add the same Vercel URL (and `http://localhost:5173` if you also want local sign-in). Save.
-
-That's it. Open the Vercel URL, click **Sign in to sync**, enter your email, and click the magic link it sends. Your runs now follow you across devices.
-
-> If you change env vars later, redeploy from Vercel's **Deployments** tab (⋯ → Redeploy) so the new values take effect.
+- main.jsx -> mounts Root (inside an error boundary).
+- Root.jsx -> sign-in bar + landing page; routes to a tool and back.
+- App.jsx -> the AST 1 trainer (Ast1App).
+- SlopeApp.jsx -> the slope trainer (SlopeApp).
+- storage.js -> history persistence: Supabase when signed in, else localStorage.
+- questions.js -> the 273-question bank.
 
 ---
 
-## Run it locally (optional)
+## First-time setup
 
-```bash
-npm install
-cp .env.example .env.local   # then paste your two Supabase values into .env.local
-npm run dev                  # opens http://localhost:5173
-```
+### 1. Supabase
+1. supabase.com -> New project.
+2. SQL Editor -> New query -> paste all of schema.sql -> Run. Creates two tables:
+   runs (AST 1) and docs (slope history), each protected by row-level security.
+   Safe to re-run.
+3. Project Settings -> API -> copy the Project URL and the anon public key.
 
-Without a `.env.local`, the app still runs — just in local-only mode (no sign-in, history saved per-device).
+### 2. GitHub
+Create a repo and upload the project files (see "Deploying updates" for steps).
 
-## Updating questions
+### 3. Vercel
+1. Import the repo (Vite is auto-detected).
+2. Environment Variables -> add:
+   - VITE_SUPABASE_URL = your Project URL
+   - VITE_SUPABASE_ANON_KEY = your anon public key
+3. Deploy, then copy the live URL.
 
-The question bank lives in `src/questions.js` as `export const BANK`. Edit there (or regenerate it from the master spreadsheet) and redeploy. The app reads difficulty (`easy`/`moderate`/`hard`), topic, and question type from that file.
+### 4. Point Supabase auth at the site
+Supabase -> Authentication -> URL Configuration -> set Site URL and add a Redirect
+URL = your Vercel URL. (Add http://localhost:5173 too for local dev.)
+
+---
+
+## Deploying updates (from an existing deployment)
+
+1. Database: run schema.sql again in the Supabase SQL Editor (adds the new docs
+   table used by the slope trainer; safe to re-run).
+2. Code: upload the project files to GitHub, overwriting the old ones
+   (Add file -> Upload files -> drag files in -> Commit). A computer is much
+   easier than a phone for this.
+3. Vercel redeploys automatically on commit. Confirm the two env vars are still set.
+
+---
+
+## Using it (for browser users)
+
+Share the Vercel link. No install; works on phone or desktop.
+
+- The landing page offers the two tools; tap one to start.
+- Sign in (optional): enter your email in the top bar -> click the magic link that
+  arrives -> history syncs across devices. Without signing in, everything still
+  works; history is saved on that one device/browser ("Local mode").
+- Guest toggle (in each tool's setup): let someone else practice without affecting
+  your recorded history. Resets to "recording" next time.
+- Back to all tools: after a run (or from a tool's setup), return to the landing
+  page and switch tools.
+
+---
+
+## Local development
+
+  npm install
+  cp .env.example .env.local   # paste your two Supabase values
+  npm run dev                  # http://localhost:5173
+
+Without .env.local it runs in local-only mode.

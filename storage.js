@@ -72,3 +72,50 @@ export async function saveRecordPref(v) {
     /* ignore */
   }
 }
+
+// ---- Per-user document store (a single JSON blob per app namespace) ----
+// Used by tools that keep one history object (e.g. the slope trainer).
+function localDocGet(app, fallback) {
+  try {
+    const v = localStorage.getItem("doc:" + app);
+    return v == null ? fallback : JSON.parse(v);
+  } catch {
+    return fallback;
+  }
+}
+function localDocSet(app, obj) {
+  try {
+    localStorage.setItem("doc:" + app, JSON.stringify(obj));
+  } catch {
+    /* ignore */
+  }
+}
+
+export async function loadDoc(app, fallback) {
+  const uid = await currentUserId();
+  if (uid) {
+    const { data, error } = await supabase
+      .from("docs")
+      .select("data")
+      .eq("app", app)
+      .maybeSingle();
+    if (!error) return data ? data.data : fallback;
+    // on error, fall through to local
+  }
+  return localDocGet(app, fallback);
+}
+
+export async function saveDoc(app, obj) {
+  const uid = await currentUserId();
+  if (uid) {
+    const { error } = await supabase
+      .from("docs")
+      .upsert(
+        { user_id: uid, app, data: obj, updated_at: new Date().toISOString() },
+        { onConflict: "user_id,app" }
+      );
+    if (!error) return;
+    // fall through to local if it failed
+  }
+  localDocSet(app, obj);
+}

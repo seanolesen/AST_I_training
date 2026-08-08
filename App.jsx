@@ -177,7 +177,7 @@ function RecordSwitch({ recording, onToggle }) {
   );
 }
 
-function Setup({ settings, setSettings, recording, setRecording, onStart, maxCount }) {
+function Setup({ settings, setSettings, recording, setRecording, onStart, maxCount, onHome }) {
   const set = (k, v) => setSettings((s) => ({ ...s, [k]: v }));
   const shell = { minHeight: "100%", background: C.slate, color: C.snow,
     fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif", padding: "18px 14px 32px", boxSizing: "border-box" };
@@ -190,6 +190,9 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
   return (
     <div style={shell}>
       <div style={card}>
+        {onHome && (
+          <button onClick={onHome} style={{ background: "transparent", border: "none", color: C.textDim, cursor: "pointer", fontSize: 13, padding: "2px 0 10px", fontWeight: 600 }}>← All tools</button>
+        )}
         <Eyebrow>AST 1 · Written-exam practice</Eyebrow>
         <h1 style={{ fontSize: 23, fontWeight: 700, margin: "6px 0 4px", letterSpacing: "-0.3px" }}>Set up your exam</h1>
         <p style={{ color: C.textDim, fontSize: 13.5, lineHeight: 1.5, margin: "0 0 20px" }}>
@@ -468,7 +471,7 @@ function MatchBody({ q, value, revealed, onChange }) {
 // ==================== RESULTS SCREEN =================================
 const PRACTICE_TARGET = 0.8;
 
-function Results({ graded, settings, recording, onRetry, onNew }) {
+function Results({ graded, settings, recording, onRetry, onNew, onHome }) {
   const [history, setHistory] = useState(undefined); // undefined = loading
   const [openReview, setOpenReview] = useState(false);
   const correct = graded.filter((g) => g.correct).length;
@@ -615,6 +618,9 @@ function Results({ graded, settings, recording, onRetry, onNew }) {
             New setup
           </button>
         </div>
+        {onHome && (
+          <button onClick={onHome} style={{ width: "100%", marginTop: 10, padding: "13px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.14)", background: "transparent", color: C.textDim, fontWeight: 700, fontSize: 14, cursor: "pointer" }}>← Back to all tools</button>
+        )}
       </div>
     </div>
   );
@@ -672,57 +678,12 @@ function ReviewItem({ n, g }) {
 }
 
 // ==================== ROOT ==========================================
-function AuthBar({ session }) {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState("");
-  const wrap = { position: "fixed", top: 10, right: 10, zIndex: 50, display: "flex", gap: 8,
-    alignItems: "center", fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif", fontSize: 12.5 };
-  const chip = { padding: "7px 12px", borderRadius: 9, border: "1px solid rgba(255,255,255,0.18)",
-    background: "rgba(20,28,38,0.88)", color: C.snow, backdropFilter: "blur(4px)" };
-  const btn = { ...chip, cursor: "pointer" };
-  if (!supabase) {
-    return <div style={wrap}><span style={{ ...chip, opacity: 0.7 }}>Local mode</span></div>;
-  }
-  if (session && session.user) {
-    return (
-      <div style={wrap}>
-        <span style={chip}>{session.user.email}</span>
-        <button style={btn} onClick={() => supabase.auth.signOut()}>Sign out</button>
-      </div>
-    );
-  }
-  const send = async () => {
-    if (!email) { setStatus("Enter your email"); return; }
-    setStatus("Sending\u2026");
-    const { error } = await supabase.auth.signInWithOtp({
-      email, options: { emailRedirectTo: window.location.origin },
-    });
-    setStatus(error ? ("Error: " + error.message) : "Check your email for the link");
-  };
-  return (
-    <div style={wrap}>
-      <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com"
-        style={{ ...chip, minWidth: 150, outline: "none" }} />
-      <button style={btn} onClick={send}>Sign in to sync</button>
-      {status && <span style={{ color: "#9fb0c0" }}>{status}</span>}
-    </div>
-  );
-}
-
-export default function App() {
+export function Ast1App({ onHome }) {
   const [phase, setPhase] = useState("setup"); // setup | quiz | results
   const [settings, setSettings] = useState(DEFAULTS);
   const [recording, setRecording] = useState(true);
   const [questions, setQuestions] = useState([]);
   const [graded, setGraded] = useState([]);
-  const [session, setSession] = useState(undefined); // undefined = still loading
-
-  useEffect(() => {
-    if (!supabase) { setSession(null); return; }
-    supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => { try { sub.subscription.unsubscribe(); } catch (e) {} };
-  }, []);
 
   // load persisted record/guest preference
   useEffect(() => {
@@ -748,23 +709,13 @@ export default function App() {
 
   const finish = useCallback((g) => { setGraded(g); setPhase("results"); }, []);
 
-  if (session === undefined) {
-    return <div style={{ minHeight: "100vh", background: C.slate }} />;
-  }
-  let screen;
   if (phase === "setup") {
-    screen = <Setup settings={settings} setSettings={setSettings}
-      recording={recording} setRecording={setRecording} onStart={start} maxCount={maxCount} />;
-  } else if (phase === "quiz") {
-    screen = <Quiz questions={questions} settings={settings} recording={recording} onFinish={finish} />;
-  } else {
-    screen = <Results graded={graded} settings={settings} recording={recording}
-      onRetry={start} onNew={() => setPhase("setup")} />;
+    return <Setup settings={settings} setSettings={setSettings}
+      recording={recording} setRecording={setRecording} onStart={start} maxCount={maxCount} onHome={onHome} />;
   }
-  return (
-    <React.Fragment>
-      {phase !== "quiz" && <AuthBar session={session} />}
-      {screen}
-    </React.Fragment>
-  );
+  if (phase === "quiz") {
+    return <Quiz questions={questions} settings={settings} recording={recording} onFinish={finish} />;
+  }
+  return <Results graded={graded} settings={settings} recording={recording}
+    onRetry={start} onNew={() => setPhase("setup")} onHome={onHome} />;
 }
