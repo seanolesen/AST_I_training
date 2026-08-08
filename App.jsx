@@ -585,11 +585,7 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome }) {
             This is your first recorded run — trends appear once you have a couple saved.
           </div>
         )}
-        {history !== undefined && !STORE && (
-          <div style={{ fontSize: 12, color: C.textMute, marginBottom: 20 }}>
-            History isn't available in this preview context, so trends won't persist — everything else works.
-          </div>
-        )}
+    
 
         {/* Review toggle */}
         <button onClick={() => setOpenReview((o) => !o)}
