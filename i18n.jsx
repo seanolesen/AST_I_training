@@ -625,6 +625,15 @@ export const STRINGS = {
     "account.lb.removed": "Removed from the leaderboard.",
     "account.lb.needName": "Enter a display name first.",
     "account.lb.error": "Couldn’t save ({error}). Make sure the leaderboard SQL has been run.",
+
+    "account.import.label": "Import local history",
+    "account.import.desc": "We found practice history saved on this device that isn’t in your account yet. Import it to fold those reps into your synced trend and leaderboard. Safe to run again — nothing is duplicated.",
+    "account.import.reps": "{n} reps",
+    "account.import.runsLabel": "Exam sessions",
+    "account.import.btn": "Import to my account",
+    "account.import.done": "Imported {n} records into your account.",
+    "account.import.none": "Nothing new to import — this device’s history is already in your account.",
+    "account.import.error": "Import failed ({error}). Make sure you’re signed in and the Supabase tables exist.",
   },
   fr: {
     "lang.en": "EN", "lang.fr": "FR",
@@ -1243,6 +1252,15 @@ export const STRINGS = {
     "account.lb.removed": "Retiré du classement.",
     "account.lb.needName": "Entrez d’abord un nom d’affichage.",
     "account.lb.error": "Échec ({error}). Assurez-vous que le SQL du classement a été exécuté.",
+
+    "account.import.label": "Importer l’historique local",
+    "account.import.desc": "Nous avons trouvé un historique d’entraînement enregistré sur cet appareil qui n’est pas encore dans votre compte. Importez-le pour intégrer ces essais à votre tendance synchronisée et au classement. Sans risque de le refaire — rien n’est dupliqué.",
+    "account.import.reps": "{n} essais",
+    "account.import.runsLabel": "Séances d’examen",
+    "account.import.btn": "Importer dans mon compte",
+    "account.import.done": "{n} enregistrements importés dans votre compte.",
+    "account.import.none": "Rien de nouveau à importer — l’historique de cet appareil est déjà dans votre compte.",
+    "account.import.error": "Échec de l’importation ({error}). Assurez-vous d’être connecté et que les tables Supabase existent.",
   },
 };
 

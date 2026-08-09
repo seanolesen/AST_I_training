@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { exportAllData, deleteAllData } from "./storage";
+import { exportAllData, deleteAllData, scanLocalHistory, importLocalHistory } from "./storage";
 import { getMyLeaderboard, upsertMyLeaderboard, deleteMyLeaderboard } from "./leaderboard.js";
 import { useLang } from "./i18n.jsx";
 
@@ -33,6 +33,9 @@ export function AccountApp({ onHome, session, onSignOut }) {
   const [lbOptIn, setLbOptIn] = useState(false);
   const [lbBusy, setLbBusy] = useState(false);
   const [lbNote, setLbNote] = useState("");
+  const [impScan, setImpScan] = useState(null);
+  const [impBusy, setImpBusy] = useState(false);
+  const [impNote, setImpNote] = useState("");
 
   useEffect(() => {
     let alive = true;
@@ -40,6 +43,24 @@ export function AccountApp({ onHome, session, onSignOut }) {
     (async () => { const row = await getMyLeaderboard(); if (alive && row) { setLbName(row.display_name || ""); setLbOptIn(true); } })();
     return () => { alive = false; };
   }, [signedIn]);
+
+  useEffect(() => {
+    let alive = true;
+    if (!signedIn) return;
+    (async () => { const s = await scanLocalHistory(); if (alive) setImpScan(s); })();
+    return () => { alive = false; };
+  }, [signedIn]);
+
+  const doImport = async () => {
+    setImpBusy(true); setImpNote("");
+    try {
+      const res = await importLocalHistory();
+      if (!res.ok) setImpNote(t("account.import.error", { error: res.error }));
+      else if (res.total === 0) setImpNote(t("account.import.none"));
+      else setImpNote(t("account.import.done", { n: res.total }));
+    } catch (e) { setImpNote(t("account.import.error", { error: e && e.message ? e.message : String(e) })); }
+    setImpBusy(false);
+  };
 
   const saveLb = async () => {
     setLbBusy(true); setLbNote("");
@@ -137,6 +158,28 @@ export function AccountApp({ onHome, session, onSignOut }) {
             </div>
             <button style={btn(T.ice, "#0c1218")} disabled={lbBusy} onClick={saveLb}>{t("account.lb.save")}</button>
             {lbNote && <div style={{ fontSize: 12.5, color: T.dim, marginTop: 10 }}>{lbNote}</div>}
+          </Card>
+        )}
+
+        {/* Import local history */}
+        {signedIn && impScan && impScan.total > 0 && (
+          <Card accent={T.ice}>
+            <Eyebrow>{t("account.import.label")}</Eyebrow>
+            <div style={{ fontSize: 13, color: T.dim, lineHeight: 1.55, marginBottom: 12 }}>{t("account.import.desc")}</div>
+            <div style={{ background: T.bg, border: `1px solid ${T.line}`, borderRadius: 10, padding: "10px 12px", marginBottom: 12 }}>
+              {Object.entries(impScan.docs).map(([k, n]) => (
+                <div key={k} style={{ fontSize: 12.5, color: T.snow, display: "flex", justifyContent: "space-between", padding: "2px 0" }}>
+                  <span>{t("tool." + k + ".name")}</span><span style={{ color: T.dim }}>{t("account.import.reps", { n })}</span>
+                </div>
+              ))}
+              {impScan.runs > 0 && (
+                <div style={{ fontSize: 12.5, color: T.snow, display: "flex", justifyContent: "space-between", padding: "2px 0" }}>
+                  <span>{t("account.import.runsLabel")}</span><span style={{ color: T.dim }}>{impScan.runs}</span>
+                </div>
+              )}
+            </div>
+            <button style={btn(T.ice, "#0c1218")} disabled={impBusy} onClick={doImport}>{t("account.import.btn")}</button>
+            {impNote && <div style={{ fontSize: 12.5, color: T.dim, marginTop: 10 }}>{impNote}</div>}
           </Card>
         )}
 

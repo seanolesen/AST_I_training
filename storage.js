@@ -159,3 +159,53 @@ export async function deleteAllData() {
   }
   return { ok: !serverError, error: serverError ? (serverError.message || String(serverError)) : null };
 }
+
+// ---- Migration: fold device-local history into the signed-in account -------
+// Guest/pre-sync reps live in localStorage; this merges them into Supabase,
+// de-duplicating by timestamp so it is safe to run more than once.
+function localDocAttempts(app) {
+  const d = localDocGet(app, null);
+  return d && Array.isArray(d.attempts) ? d.attempts : [];
+}
+
+export async function scanLocalHistory() {
+  const docs = {};
+  let docTotal = 0;
+  for (const a of DOC_APPS) {
+    const n = localDocAttempts(a).length;
+    if (n) { docs[a] = n; docTotal += n; }
+  }
+  const runs = localLoadRuns().length;
+  return { docs, docTotal, runs, total: docTotal + runs };
+}
+
+export async function importLocalHistory() {
+  const uid = await currentUserId();
+  if (!uid || !supabase) return { ok: false, error: "not signed in" };
+  const imported = { docs: {}, runs: 0 };
+  for (const a of DOC_APPS) {
+    const local = localDocAttempts(a);
+    if (!local.length) continue;
+    let remote;
+    try { remote = await loadDoc(a, { attempts: [] }); } catch (e) { remote = { attempts: [] }; }
+    const rem = remote && Array.isArray(remote.attempts) ? remote.attempts : [];
+    const seen = new Set(rem.map((x) => x && x.ts));
+    const added = local.filter((x) => x && x.ts != null && !seen.has(x.ts));
+    if (added.length) {
+      const merged = { ...(remote || {}), attempts: [...rem, ...added].sort((p, q) => (p.ts || 0) - (q.ts || 0)) };
+      try { await saveDoc(a, merged); imported.docs[a] = added.length; } catch (e) { /* skip this app */ }
+    }
+  }
+  const localRuns = localLoadRuns();
+  if (localRuns.length) {
+    let remoteRuns = [];
+    try { remoteRuns = await loadRuns(); } catch (e) { remoteRuns = []; }
+    const seen = new Set(remoteRuns.map((r) => r && r.ts).filter((x) => x != null));
+    const toAdd = localRuns.filter((r) => r && r.ts != null && !seen.has(r.ts));
+    for (const r of toAdd) {
+      try { const { error } = await supabase.from("runs").insert({ user_id: uid, payload: r }); if (!error) imported.runs += 1; } catch (e) { /* skip */ }
+    }
+  }
+  const total = Object.values(imported.docs).reduce((s, n) => s + n, 0) + imported.runs;
+  return { ok: true, imported, total };
+}
