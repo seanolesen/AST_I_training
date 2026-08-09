@@ -3,7 +3,7 @@ import React, { useState, useMemo, useCallback, useEffect } from "react";
 const ExamCfg = React.createContext(null);
 const useCfg = () => React.useContext(ExamCfg);
 import { supabase } from "./supabaseClient";
-import { loadRuns, saveRun, loadRecordPref, saveRecordPref } from "./storage";
+import { loadRuns, saveRun, loadDoc, saveDoc, loadRecordPref, saveRecordPref } from "./storage";
 
 /* ------------------------------------------------------------------ *
  * AST 1 Written-Exam Practice Trainer  (Avalanche Skills Training 1)
@@ -136,7 +136,7 @@ function Segmented({ label, sub, options, value, onChange }) {
 }
 
 // ==================== SETUP SCREEN ===================================
-const DEFAULTS = { difficulty: "moderate", topic: "all", count: 25, feedback: "immediate", mode: "test" };
+const DEFAULTS = { difficulty: "moderate", topic: "all", count: 25, feedback: "immediate", mode: "test", timed: false };
 
 function RecordSwitch({ recording, onToggle }) {
   return (
@@ -163,7 +163,7 @@ function RecordSwitch({ recording, onToggle }) {
   );
 }
 
-function Setup({ settings, setSettings, recording, setRecording, onStart, maxCount, onHome }) {
+function Setup({ settings, setSettings, recording, setRecording, onStart, maxCount, source, setSource, counts, poolLen, onHome }) {
   const cfg = useCfg();
   const set = (k, v) => setSettings((s) => ({ ...s, [k]: v }));
   const shell = { minHeight: "100%", background: C.slate, color: C.snow,
@@ -188,6 +188,11 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
 
         <RecordSwitch recording={recording} onToggle={() => setRecording((r) => !r)} />
 
+        <Segmented label="Practice set"
+          sub="Review only your recent misses, only your bookmarked questions, or draw from the whole bank."
+          value={source} onChange={setSource}
+          options={[{ value: "all", label: "All questions" }, { value: "missed", label: `Misses (${counts.missed})` }, { value: "bookmarked", label: `Saved (${counts.bookmarked})` }]} />
+
         <Segmented label="Session type"
           sub="Study shows the explanation after every question and drops the pass/fail framing. Test grades you against the study target."
           value={settings.mode} onChange={(v) => set("mode", v)}
@@ -199,6 +204,7 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
           options={[{ value: "easy", label: "Easy" }, { value: "moderate", label: "Moderate" }, { value: "hard", label: "Hard" }]} />
 
         {/* Count slider */}
+        {source === "all" && (
         <div style={{ marginBottom: 18 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: C.snow }}>Number of questions</div>
@@ -216,6 +222,15 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
             <span>5</span><span>{maxCount}</span>
           </div>
         </div>
+        )}
+        {source !== "all" && (
+          <div style={{ marginBottom: 18, fontSize: 12.5, color: C.textDim, background: C.slate2,
+            border: `1px solid ${C.line}`, borderRadius: 10, padding: "10px 12px" }}>
+            {poolLen === 0
+              ? (source === "missed" ? "No missed questions yet — finish a recorded exam first." : "No bookmarked questions yet — tap the star on a question during a quiz.")
+              : `Reviewing all ${poolLen} ${source === "missed" ? "recently-missed" : "bookmarked"} question${poolLen === 1 ? "" : "s"}${settings.topic === "all" ? "" : " in this topic"}.`}
+          </div>
+        )}
 
         {/* Topic focus */}
         <div style={{ marginBottom: 18 }}>
@@ -237,18 +252,29 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
           </div>
         </div>
 
-        {settings.mode !== "study" && (
+        {settings.mode !== "study" && !settings.timed && (
           <Segmented label="Feedback"
             sub="Immediate grades each question as you answer it. At end hides results until the review screen — closer to a real sitting."
             value={settings.feedback} onChange={(v) => set("feedback", v)}
             options={[{ value: "immediate", label: "Immediate" }, { value: "end", label: "At end" }]} />
         )}
 
-        <button onClick={onStart}
-          style={{ width: "100%", padding: "16px", borderRadius: 14, border: "none", cursor: "pointer",
-            background: C.ice, color: C.slate, fontSize: 16, fontWeight: 800, letterSpacing: "0.2px",
-            marginTop: 6 }}>
-          {settings.mode === "study" ? "Start study set →" : "Start exam →"}
+        {settings.mode !== "study" && (
+          <Segmented label="Timed exam"
+            sub="Adds a countdown (about a minute per question) and hides per-question feedback until the end — a mock-sitting feel. When time runs out it grades whatever you've answered."
+            value={settings.timed ? "on" : "off"} onChange={(v) => set("timed", v === "on")}
+            options={[{ value: "off", label: "Off" }, { value: "on", label: "Timed" }]} />
+        )}
+
+        <button onClick={onStart} disabled={poolLen === 0}
+          style={{ width: "100%", padding: "16px", borderRadius: 14, border: "none",
+            cursor: poolLen === 0 ? "default" : "pointer",
+            background: poolLen === 0 ? C.slate2 : C.ice, color: poolLen === 0 ? C.textMute : C.slate,
+            fontSize: 16, fontWeight: 800, letterSpacing: "0.2px", marginTop: 6 }}>
+          {poolLen === 0 ? "Nothing to practice yet"
+            : source === "missed" ? `Review ${poolLen} miss${poolLen === 1 ? "" : "es"} →`
+            : source === "bookmarked" ? `Practice ${poolLen} saved →`
+            : settings.mode === "study" ? "Start study set →" : "Start exam →"}
         </button>
 
         <p style={{ color: C.textMute, fontSize: 11, lineHeight: 1.5, margin: "18px 0 0", textAlign: "center" }}>
@@ -277,15 +303,17 @@ function ChoiceBtn({ children, onClick, disabled, state }) {
   );
 }
 
-function Quiz({ questions, settings, recording, onFinish }) {
+function Quiz({ questions, settings, source, recording, bookmarks, onToggleBookmark, onFinish }) {
   const cfg = useCfg();
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState({});   // id -> user answer
   const [revealed, setRevealed] = useState({}); // id -> bool (immediate mode)
   const [conf, setConf] = useState({});           // id -> "low"|"med"|"high"
+  const [remaining, setRemaining] = useState(() => (settings.mode === "test" && settings.timed) ? questions.length * 60 : 0);
   const q = questions[idx];
   const study = settings.mode === "study";
-  const immediate = study || settings.feedback === "immediate";
+  const timed = settings.mode === "test" && settings.timed;
+  const immediate = !timed && (study || settings.feedback === "immediate");
   const isRevealed = immediate && revealed[q.id];
 
   const shell = { minHeight: "100%", background: C.slate, color: C.snow,
@@ -306,16 +334,23 @@ function Quiz({ questions, settings, recording, onFinish }) {
 
   const reveal = () => setRevealed((r) => ({ ...r, [q.id]: true }));
 
+  const buildGraded = () => questions.map((question) => ({
+    question, ans: answers[question.id] ?? null, correct: grade(question, answers[question.id]),
+    conf: conf[question.id] ?? null,
+  }));
+
   const next = () => {
     if (idx + 1 < questions.length) { setIdx(idx + 1); }
-    else {
-      const graded = questions.map((question) => ({
-        question, ans: answers[question.id] ?? null, correct: grade(question, answers[question.id]),
-        conf: conf[question.id] ?? null,
-      }));
-      onFinish(graded);
-    }
+    else { onFinish(buildGraded()); }
   };
+
+  useEffect(() => {
+    if (!timed) return;
+    if (remaining <= 0) { onFinish(buildGraded()); return; }
+    const t = setTimeout(() => setRemaining((r) => r - 1), 1000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line
+  }, [remaining, timed]);
 
   const progress = (idx) / questions.length;
   const topicLabel = cfg.topics[q.topic];
@@ -327,6 +362,17 @@ function Quiz({ questions, settings, recording, onFinish }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           <Eyebrow>{topicLabel}</Eyebrow>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {timed && (
+              <span style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 13, fontWeight: 700,
+                color: remaining <= 30 ? C.threshold : C.ice }}>
+                {String(Math.floor(remaining / 60)).padStart(2, "0")}:{String(remaining % 60).padStart(2, "0")}
+              </span>
+            )}
+            <button onClick={() => onToggleBookmark && onToggleBookmark(q.id)} aria-label="Bookmark"
+              style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 17, lineHeight: 1, padding: 0,
+                color: bookmarks && bookmarks.has(q.id) ? C.warn : C.textMute }}>
+              {bookmarks && bookmarks.has(q.id) ? "★" : "☆"}
+            </button>
             {!recording && (
               <span style={{ fontSize: 10.5, fontWeight: 700, color: C.threshold, letterSpacing: "0.5px",
                 border: `1px solid ${C.threshold}`, borderRadius: 6, padding: "2px 6px" }}>GUEST</span>
@@ -422,7 +468,7 @@ function Quiz({ questions, settings, recording, onFinish }) {
             </button>
           )}
           {(!immediate || isRevealed || (immediate && q.type !== "match" && answered)) && (
-            <button onClick={next} disabled={!answered && !isRevealed}
+            <button onClick={next} disabled={!answered && !isRevealed && !timed}
               style={{ flex: 1, padding: "14px", borderRadius: 12, border: "none",
                 background: (answered || isRevealed) ? C.ice : C.slate2,
                 color: (answered || isRevealed) ? C.slate : C.textMute,
@@ -482,7 +528,7 @@ function MatchBody({ q, value, revealed, onChange }) {
 
 // ==================== RESULTS SCREEN =================================
 
-function Results({ graded, settings, recording, onRetry, onNew, onHome }) {
+function Results({ graded, settings, source, recording, onRetry, onNew, onHome }) {
   const cfg = useCfg();
   const study = settings.mode === "study";
   const [history, setHistory] = useState(undefined); // undefined = loading
@@ -505,7 +551,7 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome }) {
       if (recording) {
         await saveRun({ ts: Date.now(), app: cfg.appKey, mode: settings.mode, difficulty: settings.difficulty, topic: settings.topic,
           correct, total, byTopic,
-          questions: graded.map((g) => ({ topic: g.question.topic, type: g.question.type, diff: g.question.diff, correct: !!g.correct, conf: g.conf ?? null })) });
+          questions: graded.map((g) => ({ id: g.question.id, topic: g.question.topic, type: g.question.type, diff: g.question.diff, correct: !!g.correct, conf: g.conf ?? null })) });
       }
       const runs = await loadRuns(cfg.appKey);
       if (alive) setHistory(runs);
@@ -702,6 +748,9 @@ export function ExamApp({ onHome, config }) {
   const [recording, setRecording] = useState(true);
   const [questions, setQuestions] = useState([]);
   const [graded, setGraded] = useState([]);
+  const [source, setSource] = useState("all");     // all | missed | bookmarked
+  const [missedIds, setMissedIds] = useState(null);
+  const [bookmarks, setBookmarks] = useState(null);
 
   // load persisted record/guest preference
   useEffect(() => {
@@ -711,31 +760,73 @@ export function ExamApp({ onHome, config }) {
   }, []);
   useEffect(() => { saveRecordPref(recording); }, [recording]);
 
-  const pool = poolFor(settings.topic, config.bank);
-  const maxCount = Math.max(5, Math.floor(pool.length / 5) * 5);
+  // load "misses" (last result per question) and bookmarks for this app
+  const loadSets = useCallback(async () => {
+    const bankIds = new Set(config.bank.map((q) => q.id));
+    try {
+      const runs = await loadRuns(config.appKey);
+      const last = new Map();
+      for (const r of runs || []) for (const q of (r.questions || [])) if (q && q.id && bankIds.has(q.id)) last.set(q.id, q.correct);
+      const miss = new Set();
+      for (const [id, ok] of last) if (ok === false) miss.add(id);
+      setMissedIds(miss);
+    } catch (e) { setMissedIds(new Set()); }
+    try {
+      const doc = await loadDoc("bookmarks:" + config.appKey, { ids: [] });
+      const ids = (doc && doc.ids) ? doc.ids : [];
+      setBookmarks(new Set(ids.filter((id) => bankIds.has(id))));
+    } catch (e) { setBookmarks(new Set()); }
+  }, [config]);
+  useEffect(() => { loadSets(); }, [loadSets]);
 
-  // keep count within bounds when topic changes
+  const toggleBookmark = useCallback((id) => {
+    setBookmarks((prev) => {
+      const next = new Set(prev || []);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      saveDoc("bookmarks:" + config.appKey, { ids: [...next] });
+      return next;
+    });
+  }, [config.appKey]);
+
+  const currentPool = () => {
+    let base = poolFor(settings.topic, config.bank);
+    if (source === "missed") base = base.filter((q) => missedIds && missedIds.has(q.id));
+    else if (source === "bookmarked") base = base.filter((q) => bookmarks && bookmarks.has(q.id));
+    return base;
+  };
+  const pool = currentPool();
+  const maxCount = pool.length >= 5 ? Math.floor(pool.length / 5) * 5 : pool.length;
+  const counts = { missed: missedIds ? missedIds.size : 0, bookmarked: bookmarks ? bookmarks.size : 0 };
+
+  // keep count within bounds when topic / source changes
   useEffect(() => {
-    setSettings((s) => (s.count > maxCount ? { ...s, count: maxCount } : s));
+    setSettings((s) => (maxCount >= 5 && s.count > maxCount ? { ...s, count: maxCount } : s));
     // eslint-disable-next-line
-  }, [settings.topic]);
+  }, [settings.topic, source, missedIds, bookmarks]);
 
   const start = useCallback(() => {
-    const qs = weightedSample(poolFor(settings.topic, config.bank), settings.count, settings.difficulty);
+    const p = currentPool();
+    if (p.length === 0) return;
+    const n = source === "all" ? settings.count : p.length;
+    const qs = weightedSample(p, n, settings.difficulty);
     setQuestions(qs); setPhase("quiz");
-  }, [settings]);
+    // eslint-disable-next-line
+  }, [settings, source, missedIds, bookmarks]);
 
   const finish = useCallback((g) => { setGraded(g); setPhase("results"); }, []);
+  const backToSetup = useCallback(() => { setPhase("setup"); loadSets(); }, [loadSets]);
 
   let screen;
   if (phase === "setup") {
     screen = <Setup settings={settings} setSettings={setSettings}
-      recording={recording} setRecording={setRecording} onStart={start} maxCount={maxCount} onHome={onHome} />;
+      recording={recording} setRecording={setRecording} onStart={start} maxCount={maxCount}
+      source={source} setSource={setSource} counts={counts} poolLen={pool.length} onHome={onHome} />;
   } else if (phase === "quiz") {
-    screen = <Quiz questions={questions} settings={settings} recording={recording} onFinish={finish} />;
+    screen = <Quiz questions={questions} settings={settings} source={source} recording={recording}
+      bookmarks={bookmarks} onToggleBookmark={toggleBookmark} onFinish={finish} />;
   } else {
-    screen = <Results graded={graded} settings={settings} recording={recording}
-      onRetry={start} onNew={() => setPhase("setup")} onHome={onHome} />;
+    screen = <Results graded={graded} settings={settings} source={source} recording={recording}
+      onRetry={start} onNew={backToSetup} onHome={onHome} />;
   }
   return <ExamCfg.Provider value={config}>{screen}</ExamCfg.Provider>;
 }
