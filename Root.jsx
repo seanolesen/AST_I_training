@@ -9,82 +9,88 @@ const SUPER_ADMIN = "sean.olesen@gmail.com";
 
 const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0",
   ice: "#7cc4ff", amber: "#f0812c", line: "rgba(255,255,255,0.12)" };
-const FONT = "system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
 
 function TopBar({ session, view, onHome }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("");
-  const row = { display: "flex", gap: 8, alignItems: "center", justifyContent: "space-between",
-    flexWrap: "wrap", padding: "10px 12px", background: T.bg,
-    borderBottom: `1px solid ${T.line}`, fontFamily: FONT, fontSize: 12.5 };
-  const chip = { padding: "7px 12px", borderRadius: 9, border: `1px solid ${T.line}`,
-    background: T.panel, color: T.snow };
-  const btn = { ...chip, cursor: "pointer" };
+  const btn = { padding: "7px 12px", borderRadius: 9, border: `1px solid ${T.line}`,
+    background: "transparent", color: T.dim, fontSize: 13, cursor: "pointer", fontWeight: 600 };
+  const chip = { fontSize: 12.5, color: T.dim, maxWidth: 180, overflow: "hidden",
+    textOverflow: "ellipsis", whiteSpace: "nowrap" };
+  const bar = { display: "flex", alignItems: "center", justifyContent: "space-between",
+    gap: 10, padding: "8px 14px", background: T.panel, borderBottom: `1px solid ${T.line}`,
+    position: "sticky", top: 0, zIndex: 10 };
 
-  const back = view !== "home"
-    ? <button onClick={onHome} style={{ ...btn, borderColor: T.ice, color: T.ice, fontWeight: 700 }}>← All tools</button>
-    : <span />;
-
-  let auth;
+  let right;
   if (!supabase) {
-    auth = <span style={{ ...chip, opacity: 0.7 }}>Local mode</span>;
+    right = <span style={chip}>Local mode</span>;
   } else if (session && session.user) {
-    auth = (
-      <React.Fragment>
+    right = (
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <span style={chip}>{session.user.email}</span>
         <button style={btn} onClick={() => supabase.auth.signOut()}>Sign out</button>
-      </React.Fragment>
+      </div>
     );
   } else {
     const send = async () => {
-      if (!email) { setStatus("Enter your email"); return; }
-      setStatus("Sending…");
+      if (!email) return;
+      setStatus("sending");
       const { error } = await supabase.auth.signInWithOtp({
-        email, options: { emailRedirectTo: window.location.origin },
+        email,
+        options: { emailRedirectTo: window.location.origin },
       });
-      setStatus(error ? ("Error: " + error.message) : "Check your email for the link");
+      setStatus(error ? "error" : "sent");
     };
-    auth = (
-      <React.Fragment>
+    right = (
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com"
-          style={{ ...chip, minWidth: 150, outline: "none" }} />
-        <button style={btn} onClick={send}>Sign in to sync</button>
-        {status && <span style={{ color: T.dim }}>{status}</span>}
-      </React.Fragment>
+          style={{ padding: "7px 10px", borderRadius: 9, border: `1px solid ${T.line}`,
+            background: T.bg, color: T.snow, fontSize: 13, width: 150 }} />
+        <button style={{ ...btn, borderColor: T.ice, color: T.ice }} onClick={send}>
+          {status === "sending" ? "…" : status === "sent" ? "Check email" : status === "error" ? "Retry" : "Sign in"}
+        </button>
+      </div>
     );
   }
 
   return (
-    <div style={row}>
-      {back}
-      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
-        {auth}
-      </div>
+    <div style={bar}>
+      {view !== "home"
+        ? <button onClick={onHome} style={{ ...btn, borderColor: T.ice, color: T.ice, fontWeight: 700 }}>← All tools</button>
+        : <span style={{ fontSize: 14, fontWeight: 800, color: T.snow }}>Avalanche Training</span>}
+      {right}
     </div>
   );
 }
 
 function Home({ onPick, session, isAdmin }) {
+  const h = { fontSize: 16, fontWeight: 800, color: T.snow };
+  const p = { fontSize: 13, color: T.dim, margin: "4px 0 0", lineHeight: 1.45 };
+  const tile = (accent) => ({
+    display: "block", width: "100%", textAlign: "left", cursor: "pointer",
+    background: T.panel, border: `1px solid ${T.line}`, borderLeft: `4px solid ${accent}`,
+    borderRadius: 14, padding: "16px 16px", marginBottom: 12,
+  });
   const wrap = { minHeight: "calc(100vh - 44px)", background: T.bg, color: T.snow,
-    fontFamily: FONT, padding: "30px 16px 44px", boxSizing: "border-box" };
-  const inner = { maxWidth: 540, margin: "0 auto" };
-  const tile = (accent) => ({ display: "block", width: "100%", textAlign: "left", background: T.panel,
-    border: `1px solid ${T.line}`, borderLeft: `4px solid ${accent}`, borderRadius: 14,
-    padding: "18px", marginTop: 14, color: T.snow, cursor: "pointer" });
-  const h = { margin: "0 0 4px", fontSize: 17, fontWeight: 800 };
-  const p = { margin: 0, fontSize: 13.5, color: T.dim, lineHeight: 1.5 };
+    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
+    padding: "22px 14px 44px", boxSizing: "border-box" };
+  const inner = { maxWidth: 560, margin: "0 auto" };
+
   return (
     <div style={wrap}>
       <div style={inner}>
-        <div style={{ fontSize: 12, letterSpacing: "1.6px", textTransform: "uppercase", color: T.dim }}>
-          Avalanche training
-        </div>
-        <h1 style={{ fontSize: 24, fontWeight: 800, margin: "6px 0 2px", letterSpacing: "-0.3px" }}>Choose a tool</h1>
-        <p style={{ ...p, margin: "0 0 4px" }}>
+        <div style={{ fontSize: 12, letterSpacing: "1.6px", textTransform: "uppercase", color: T.dim }}>Avalanche safety training</div>
+        <h1 style={{ fontSize: 24, fontWeight: 800, margin: "6px 0 4px" }}>Choose a tool</h1>
+        <p style={{ fontSize: 13, color: T.dim, margin: "0 0 18px", lineHeight: 1.5 }}>
           {session && session.user
             ? `Signed in as ${session.user.email} — your runs sync across devices.`
-            : "Local mode — sign in above to sync your history across devices."}
+            : "Practice tools for AST 1 and AST 2 prep. Sign in (top right) to sync your history and see analytics."}
         </p>
+
+        <button style={tile(T.amber)} onClick={() => onPick("slope")}>
+          <div style={h}>Slope-Angle Trainer</div>
+          <p style={p}>Train your eye to call above vs. below the 30-degree avalanche threshold.</p>
+        </button>
         <button style={tile(T.ice)} onClick={() => onPick("ast1")}>
           <div style={h}>AST 1 Practice</div>
           <p style={p}>273 questions across terrain, snowpack, weather, forecasting, trip planning, companion rescue, and human factors.</p>
@@ -93,20 +99,16 @@ function Home({ onPick, session, isAdmin }) {
           <div style={h}>AST 2 Practice</div>
           <p style={p}>Advanced curriculum — snowpack tests, avalanche problems, terrain &amp; ATES, decision-making, and more.</p>
         </button>
-        <button style={tile(T.amber)} onClick={() => onPick("slope")}>
-          <div style={h}>Slope-Angle Trainer</div>
-          <p style={p}>Train your eye to call above vs. below the 30-degree avalanche threshold.</p>
-        </button>
-        {isAdmin && (
-          <button style={tile("#E0B93C")} onClick={() => onPick("admin")}>
-            <div style={h}>Site analytics</div>
-            <p style={p}>Admin: all users, engagement stats, and click-into performance.</p>
-          </button>
-        )}
         {session && session.user && (
           <button style={tile("#3FA372")} onClick={() => onPick("perf")}>
             <div style={h}>Performance analysis</div>
             <p style={p}>Accuracy across every tool — broken down by subject, format, and difficulty, with filters.</p>
+          </button>
+        )}
+        {isAdmin && (
+          <button style={tile("#E0B93C")} onClick={() => onPick("admin")}>
+            <div style={h}>Site analytics</div>
+            <p style={p}>Admin: all users, engagement stats, and click-into performance.</p>
           </button>
         )}
       </div>
@@ -123,7 +125,7 @@ export default function Root() {
     if (!supabase) return;
     supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => { try { sub.subscription.unsubscribe(); } catch (e) {} };
+    return () => sub.subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -144,7 +146,7 @@ export default function Root() {
   const home = () => setView("home");
 
   return (
-    <React.Fragment>
+    <div style={{ background: T.bg, minHeight: "100vh" }}>
       <TopBar session={session} view={view} onHome={home} />
       {view === "home" && <Home onPick={setView} session={session} isAdmin={isAdmin} />}
       {view === "ast1" && <Ast1App onHome={home} />}
@@ -152,6 +154,6 @@ export default function Root() {
       {view === "slope" && <SlopeApp onHome={home} />}
       {view === "perf" && <Performance onHome={home} session={session} />}
       {view === "admin" && isAdmin && <SiteAnalytics onHome={home} session={session} />}
-    </React.Fragment>
+    </div>
   );
 }
