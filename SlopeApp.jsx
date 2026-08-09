@@ -9,13 +9,15 @@ import { loadDoc, saveDoc } from "./storage";
  * ------------------------------------------------------------------ */
 
 // ---- Avalanche slope-shading bands (real convention) ----------------
+import { useLang } from "./i18n.jsx";
+
 const BANDS = [
-  { max: 27, color: "#3FA372", name: "Low angle", note: "Slab avalanches uncommon" },
-  { max: 30, color: "#E0B93C", name: "Approaching", note: "Just under the threshold" },
-  { max: 35, color: "#F0812C", name: "Avalanche terrain", note: "30°+ — be on alert" },
-  { max: 46, color: "#D6483B", name: "Prime avalanche terrain", note: "35–45° — most slides release here" },
-  { max: 51, color: "#9E2B22", name: "Very steep", note: "Frequent sluffing" },
-  { max: 91, color: "#7A4FB0", name: "Extreme", note: "Snow often sheds continuously" },
+  { max: 27, color: "#3FA372", key: "low", name: "Low angle", note: "Slab avalanches uncommon" },
+  { max: 30, color: "#E0B93C", key: "approaching", name: "Approaching", note: "Just under the threshold" },
+  { max: 35, color: "#F0812C", key: "terrain", name: "Avalanche terrain", note: "30°+ — be on alert" },
+  { max: 46, color: "#D6483B", key: "prime", name: "Prime avalanche terrain", note: "35–45° — most slides release here" },
+  { max: 51, color: "#9E2B22", key: "steep", name: "Very steep", note: "Frequent sluffing" },
+  { max: 91, color: "#7A4FB0", key: "extreme", name: "Extreme", note: "Snow often sheds continuously" },
 ];
 const bandFor = (a) => BANDS.find((b) => a < b.max) || BANDS[BANDS.length - 1];
 
@@ -76,6 +78,7 @@ const newSet = (settings) => Array.from({ length: settings.count }, () => makeQu
 // ---- Profile scene (side view) -------------------------------------
 const PX = 240;
 function ProfileScene({ q, revealed, realistic }) {
+  const { t: tr } = useLang();
   const rad = (q.angle * Math.PI) / 180, rad30 = (30 * Math.PI) / 180;
   const t = Math.tan(rad);
   const surfaceY = (x) => q.py - q.facing * t * (x - PX);
@@ -103,7 +106,7 @@ function ProfileScene({ q, revealed, realistic }) {
 
   return (
     <svg viewBox="0 0 480 320" width="100%" style={{ display: "block", borderRadius: 12 }} role="img"
-      aria-label="A snow slope in side profile. Judge whether it is steeper or shallower than 30 degrees.">
+      aria-label={tr("slope.aria.profile")}>
       <defs>
         <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
           {realistic
@@ -177,6 +180,7 @@ function ProfileScene({ q, revealed, realistic }) {
 
 // ---- Field scene (first-person, foreshortened) ---------------------
 function FieldScene({ q, revealed, realistic }) {
+  const { t: tr } = useLang();
   const th = (q.angle * Math.PI) / 180;
   const focal = 250, eye = 1.7, horizonY = 252, cx = 240;
   const cosT = Math.cos(th);
@@ -210,7 +214,7 @@ function FieldScene({ q, revealed, realistic }) {
 
   return (
     <svg viewBox="0 0 480 320" width="100%" style={{ display: "block", borderRadius: 12 }} role="img"
-      aria-label="A snow slope seen looking up the fall line. Judge whether the true angle is steeper or shallower than 30 degrees.">
+      aria-label={tr("slope.aria.field")}>
       <defs>
         <linearGradient id="fsky" x1="0" y1="0" x2="0" y2="1">
           {realistic
@@ -320,13 +324,14 @@ function TrendTile({ label, v, warn }) {
 }
 
 function DiffChips({ byDiff }) {
+  const { t } = useLang();
   if (!byDiff || byDiff.length < 2) return null;
   return (
     <div style={{ display: "flex", gap: 14, marginTop: 10, alignItems: "baseline", flexWrap: "wrap" }}>
-      <span style={{ fontSize: 10.5, color: C.textMute, letterSpacing: "0.4px" }}>BY DIFFICULTY</span>
+      <span style={{ fontSize: 10.5, color: C.textMute, letterSpacing: "0.4px" }}>{t("slope.byDifficulty")}</span>
       {byDiff.map((d) => (
         <span key={d.k} style={{ fontSize: 12, color: C.textDim }}>
-          {d.label}{" "}
+          {t("slope.diff." + d.k)}{" "}
           <b style={{ fontFamily: "ui-monospace, Menlo, monospace", color: d.acc != null && d.acc < 60 ? "#F0812C" : C.snow }}>{d.acc == null ? "—" : d.acc + "%"}</b>
         </span>
       ))}
@@ -396,11 +401,11 @@ function buildInsights(answers) {
   const out = [];
   const misses = answers.filter((a) => !a.correct);
   if (misses.length === 0) {
-    out.push({ tone: "good", title: "Clean sweep", body: "No misses. Push it: Hard difficulty, Field or Mix view, or a longer set to keep your eye honest under fatigue." });
+    out.push({ tone: "good", titleKey: "slope.ins.clean.title", bodyKey: "slope.ins.clean.body", vars: {} });
     return out;
   }
-  const under = misses.filter((a) => a.angle > 30 && !a.guessOver); // called mellow, was steep — dangerous
-  const over = misses.filter((a) => a.angle < 30 && a.guessOver);   // called steep, was mellow — cautious
+  const under = misses.filter((a) => a.angle > 30 && !a.guessOver);
+  const over = misses.filter((a) => a.angle < 30 && a.guessOver);
   const near = answers.filter((a) => Math.abs(a.angle - 30) <= 5);
   const nearMiss = near.filter((a) => !a.correct);
   const gross = misses.filter((a) => Math.abs(a.angle - 30) >= 8);
@@ -411,27 +416,21 @@ function buildInsights(answers) {
   const bothViews = pAns.length && fAns.length;
 
   if (under.length >= 2 && under.length > over.length) {
-    out.push({ tone: "warn", title: "You under-call steepness",
-      body: `You read ${under.length} slopes as mellow that were actually 30°+ (${listAngles(under)}). That's the dangerous direction — when a call is close in the field, default to steeper, not flatter.` });
+    out.push({ tone: "warn", titleKey: "slope.ins.under.title", bodyKey: "slope.ins.under.body", vars: { n: under.length, list: listAngles(under) } });
   } else if (over.length >= 2 && over.length > under.length) {
-    out.push({ tone: "info", title: "You over-call steepness",
-      body: `You flagged ${over.length} slopes as avalanche terrain that were actually below 30° (${listAngles(over)}). A safe bias, but you may be writing off usable low-angle terrain — trust flatter-looking slopes a little more.` });
+    out.push({ tone: "info", titleKey: "slope.ins.over.title", bodyKey: "slope.ins.over.body", vars: { n: over.length, list: listAngles(over) } });
   }
 
   if (bothViews && fMiss > pMiss) {
-    out.push({ tone: "info", title: "Field view is fooling you",
-      body: `Missed ${fMiss}/${fAns.length} looking up the slope vs ${pMiss}/${pAns.length} in profile. Foreshortening makes a face read shallower than it is — a slope that "looks 25°" from below is often 30–35°.` });
+    out.push({ tone: "info", titleKey: "slope.ins.field.title", bodyKey: "slope.ins.field.body", vars: { fMiss, fTot: fAns.length, pMiss, pTot: pAns.length } });
   } else if (bothViews && pMiss > fMiss + 1) {
-    out.push({ tone: "info", title: "Slow down on profiles",
-      body: `More misses in profile (${pMiss}/${pAns.length}) than field (${fMiss}/${fAns.length}), where the angle is exact. Compare the slope line against an imagined 30° wedge before committing.` });
+    out.push({ tone: "info", titleKey: "slope.ins.profile.title", bodyKey: "slope.ins.profile.body", vars: { pMiss, pTot: pAns.length, fMiss, fTot: fAns.length } });
   }
 
   if (nearMiss.length === misses.length) {
-    out.push({ tone: "good", title: "Only the close ones got you",
-      body: `Every miss sat within 5° of the line (${listAngles(nearMiss, 5)}) — the genuinely hard zone that pros settle with an inclinometer. Your calibration away from 30° is solid.` });
+    out.push({ tone: "good", titleKey: "slope.ins.close.title", bodyKey: "slope.ins.close.body", vars: { list: listAngles(nearMiss, 5) } });
   } else if (gross.length) {
-    out.push({ tone: "warn", title: "A few big misreads",
-      body: `${listAngles(gross, 5)} sit well clear of 30°, so these are calibration gaps, not close calls. Anchor your eye to references you know: a groomed black-diamond run is right about 30°, and 38° is a steep couloir.` });
+    out.push({ tone: "warn", titleKey: "slope.ins.gross.title", bodyKey: "slope.ins.gross.body", vars: { list: listAngles(gross, 5) } });
   }
 
   return out.slice(0, 3);
@@ -533,6 +532,7 @@ function Sparkline({ sessions }) {
 const DEFAULTS = { record: true, difficulty: "standard", mode: "mix", count: 10, feedback: "full", easyWeight: 0.5, render: "standard" };
 
 export function SlopeApp({ onHome }) {
+  const { t } = useLang();
   const [phase, setPhase] = useState("setup"); // setup | quiz | done
   const [settings, setSettings] = useState(DEFAULTS);
   const [questions, setQuestions] = useState([]);
@@ -583,7 +583,7 @@ export function SlopeApp({ onHome }) {
           {onHome && (
             <button onClick={onHome} style={{ background: "transparent", border: "none", color: C.textDim, cursor: "pointer", fontSize: 13, padding: "0 0 10px", fontWeight: 600 }}>← All tools</button>
           )}
-          <Eyebrow>Slope-angle trainer</Eyebrow>
+          <Eyebrow>{t("slope.setup.eyebrow")}</Eyebrow>
           <h1 style={{ fontSize: 22, fontWeight: 700, margin: "6px 0 14px" }}>Set up your session</h1>
 
           <button onClick={() => setRecord(!settings.record)}
@@ -593,10 +593,10 @@ export function SlopeApp({ onHome }) {
               background: settings.record ? C.slate2 : "rgba(240,129,44,0.14)" }}>
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color: settings.record ? C.snow : "#F0812C" }}>
-                {settings.record ? "Recording to your history" : "Guest run — NOT recorded"}
+                {settings.record ? t("slope.record.on") : t("slope.record.off")}
               </div>
               <div style={{ fontSize: 11.5, color: C.textDim, marginTop: 3, lineHeight: 1.4 }}>
-                {settings.record ? "This session counts toward your trend." : "Someone else can play; their calls won't affect your data. Resets to recording when you reopen the trainer."}
+                {settings.record ? t("slope.record.onSub") : t("slope.record.offSub")}
               </div>
             </div>
             <div style={{ width: 46, height: 27, borderRadius: 14, flexShrink: 0, position: "relative", transition: "background 140ms",
@@ -618,14 +618,14 @@ export function SlopeApp({ onHome }) {
               <div style={{ display: "flex", gap: 14, alignItems: "center", marginTop: 8 }}>
                 <div>
                   <div style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 34, fontWeight: 700, lineHeight: 1, color: C.ice }}>{trends.acc == null ? "—" : trends.acc + "%"}</div>
-                  <div style={{ fontSize: 10.5, color: C.textDim, marginTop: 3 }}>{trends.sessions.length} sessions · {trends.n} slopes</div>
+                  <div style={{ fontSize: 10.5, color: C.textDim, marginTop: 3 }}>{t("slope.results.sessionsSlopes", { sessions: trends.sessions.length, n: trends.n })}</div>
                 </div>
                 <div style={{ flex: 1 }}><Sparkline sessions={trends.sessions} /></div>
               </div>
               <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                <TrendTile label="Near 30°" v={trends.near} />
-                {trends.hasBoth ? <TrendTile label="Profile" v={trends.profile} /> : null}
-                {trends.hasBoth ? <TrendTile label="Field" v={trends.field} warn={trends.field < trends.profile} /> : null}
+                <TrendTile label={t("slope.trend.near")} v={trends.near} />
+                {trends.hasBoth ? <TrendTile label={t("slope.trend.profile")} v={trends.profile} /> : null}
+                {trends.hasBoth ? <TrendTile label={t("slope.trend.field")} v={trends.field} warn={trends.field < trends.profile} /> : null}
               </div>
               <DiffChips byDiff={trends.byDiff} />
             </div>
@@ -633,36 +633,36 @@ export function SlopeApp({ onHome }) {
             <p style={{ color: C.textMute, fontSize: 12, margin: "-8px 0 22px" }}>No history yet — finish a set to start tracking. Recent sessions count most.</p>
           )}
 
-          <Slider label="Difficulty weighting"
+          <Slider label={t("slope.slider.diffWeight")}
             value={settings.easyWeight} min={0} max={1} step={0.1}
             onChange={(v) => set("easyWeight", Math.round(v * 10) / 10)}
             readout={`${settings.easyWeight.toFixed(1)} · 1.0 · ${(2 - settings.easyWeight).toFixed(1)}`}
-            hint="Multiplier for easy · standard · hard calls when computing your trend (standard fixed at 1.0; hard mirrors easy about 2.0). Recomputes live from past runs." />
+            hint={t("slope.slider.diffWeightHint")} />
 
-          <Segmented label="Difficulty" hint="how close to 30°"
+          <Segmented label={t("slope.seg.difficulty")} hint={t("slope.seg.difficultyHint")}
             value={settings.difficulty} onChange={(v) => set("difficulty", v)}
-            options={[{ label: "Easy", value: "easy" }, { label: "Standard", value: "standard" }, { label: "Hard", value: "hard" }]} />
+            options={[{ label: t("slope.diff.easy"), value: "easy" }, { label: t("slope.diff.standard"), value: "standard" }, { label: t("slope.diff.hard"), value: "hard" }]} />
 
-          <Segmented label="Image style" hint={settings.render === "realistic" ? "lifelike render" : "clean & technical"}
+          <Segmented label={t("slope.seg.imageStyle")} hint={settings.render === "realistic" ? t("slope.seg.imageHintRealistic") : t("slope.seg.imageHintStandard")}
             value={settings.render} onChange={(v) => set("render", v)}
-            options={[{ label: "Standard", value: "standard" }, { label: "Realistic", value: "realistic" }]} />
+            options={[{ label: t("slope.img.standard"), value: "standard" }, { label: t("slope.img.realistic"), value: "realistic" }]} />
 
-          <Segmented label="View"
-            hint={settings.mode === "field" ? "foreshortened, like the field" : settings.mode === "mix" ? "random each slope" : "clean side profile"}
+          <Segmented label={t("slope.seg.view")}
+            hint={settings.mode === "field" ? t("slope.viewHint.field") : settings.mode === "mix" ? t("slope.viewHint.mix") : t("slope.viewHint.profile")}
             value={settings.mode} onChange={(v) => set("mode", v)}
-            options={[{ label: "Profile", value: "profile" }, { label: "Mix", value: "mix" }, { label: "Field", value: "field" }]} />
+            options={[{ label: t("slope.view.profile"), value: "profile" }, { label: t("slope.view.mix"), value: "mix" }, { label: t("slope.view.field"), value: "field" }]} />
 
-          <Segmented label="Slopes per set"
+          <Segmented label={t("slope.seg.perSet")}
             value={settings.count} onChange={(v) => set("count", v)}
             options={[{ label: "5", value: 5 }, { label: "10", value: 10 }, { label: "15", value: 15 }, { label: "20", value: 20 }]} />
 
-          <Segmented label="Feedback detail" hint={settings.feedback === "full" ? "exact angle + gauge" : "result only, no numbers"}
+          <Segmented label={t("slope.seg.feedback")} hint={settings.feedback === "full" ? t("slope.fbHint.full") : t("slope.fbHint.minimal")}
             value={settings.feedback} onChange={(v) => set("feedback", v)}
-            options={[{ label: "Minimal", value: "minimal" }, { label: "Full", value: "full" }]} />
+            options={[{ label: t("slope.fb.minimal"), value: "minimal" }, { label: t("slope.fb.full"), value: "full" }]} />
 
-          <button onClick={begin} style={primaryBtn}>Start {settings.count} slopes</button>
+          <button onClick={begin} style={primaryBtn}>{t("slope.start", { count: settings.count })}</button>
           <p style={{ color: C.textMute, fontSize: 11.5, lineHeight: 1.6, marginTop: 16 }}>
-            Practice only — always confirm in the field with an inclinometer, and account for what sits above you.
+            {t("slope.setup.footer")}
           </p>
         </div>
       </div>
@@ -675,7 +675,7 @@ export function SlopeApp({ onHome }) {
   // ---------- DONE ----------
   if (done) {
     const pct = Math.round((score / questions.length) * 100);
-    const verdict = pct >= 90 ? "Sharp eye" : pct >= 70 ? "Solid — keep drilling" : pct >= 50 ? "Getting there" : "Worth more reps";
+    const verdict = pct >= 90 ? t("slope.verdict.sharp") : pct >= 70 ? t("slope.verdict.solid") : pct >= 50 ? t("slope.verdict.getting") : t("slope.verdict.reps");
     const insights = buildInsights(answers);
     const accOf = (arr) => (arr.length ? Math.round((arr.filter((a) => a.correct).length / arr.length) * 100) : null);
     const nearZone = answers.filter((a) => Math.abs(a.angle - 30) <= 5);
@@ -686,15 +686,15 @@ export function SlopeApp({ onHome }) {
     let trendNote = null;
     if (trends && trends.n >= 8 && trends.acc != null) {
       const diff = pct - trends.acc;
-      if (diff >= 8) trendNote = `This set (${pct}%) beat your recent-weighted average of ${trends.acc}% — trending up.`;
-      else if (diff <= -8) trendNote = `This set (${pct}%) fell below your recent average of ${trends.acc}%. Could be fatigue or a hard draw — watch the next run.`;
-      else trendNote = `Right around your recent-weighted average of ${trends.acc}%.`;
+      if (diff >= 8) trendNote = t("slope.trendNote.up", { pct, acc: trends.acc });
+      else if (diff <= -8) trendNote = t("slope.trendNote.down", { pct, acc: trends.acc });
+      else trendNote = t("slope.trendNote.around", { acc: trends.acc });
       if (trends.hasBoth && trends.field != null && trends.profile != null && trends.field <= trends.profile - 10)
-        trendNote += ` Field view is still your weak spot across recent sessions (${trends.field}% vs ${trends.profile}% profile) — foreshortening keeps biasing you low.`;
+        trendNote += t("slope.trendNote.fieldWeak", { field: trends.field, profile: trends.profile });
       const hardD = trends.byDiff.find((d) => d.k === "hard");
       const easyD = trends.byDiff.find((d) => d.k === "easy");
       if (hardD && easyD && hardD.acc != null && easyD.acc != null && hardD.acc <= easyD.acc - 12)
-        trendNote += ` Hard slopes (${hardD.acc}%) trail Easy (${easyD.acc}%) — expected near the threshold, and where the reps pay off. Your weighted score leans on the Hard ones.`;
+        trendNote += t("slope.trendNote.hardTrail", { hard: hardD.acc, easy: easyD.acc });
     }
     const Tile = ({ label, value, accent }) => (
       <div style={{ flex: 1, background: C.slate2, border: `1px solid ${C.line}`, borderRadius: 12, padding: "10px 12px" }}>
@@ -705,60 +705,60 @@ export function SlopeApp({ onHome }) {
     return (
       <div style={shell}>
         <div style={card}>
-          <Eyebrow>Session complete</Eyebrow>
+          <Eyebrow>{t("slope.results.eyebrow")}</Eyebrow>
           <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginTop: 6 }}>
             <div style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 56, fontWeight: 700, lineHeight: 1 }}>
               {score}<span style={{ color: C.textMute, fontSize: 30 }}>/{questions.length}</span>
             </div>
             <div>
               <div style={{ fontSize: 15, fontWeight: 600 }}>{verdict}</div>
-              <div style={{ color: C.textDim, fontSize: 13 }}>{pct}% called correctly</div>
+              <div style={{ color: C.textDim, fontSize: 13 }}>{t("slope.results.calledCorrectly", { pct })}</div>
             </div>
           </div>
           {!settings.record && (
             <div style={{ marginTop: 12, border: "1px solid #F0812C", background: "rgba(240,129,44,0.12)", borderRadius: 12, padding: "10px 14px", fontSize: 12.5, color: "#F0812C", fontWeight: 600 }}>
-              Guest run — this session was not saved to your history.
+              {t("slope.results.guestNote")}
             </div>
           )}
-          <div style={{ fontSize: 12, letterSpacing: "0.6px", textTransform: "uppercase", color: C.textDim, margin: "22px 0 8px" }}>Where your calls landed</div>
+          <div style={{ fontSize: 12, letterSpacing: "0.6px", textTransform: "uppercase", color: C.textDim, margin: "22px 0 8px" }}>{t("slope.results.whereLanded")}</div>
           <div style={{ border: `1px solid ${C.line}`, borderRadius: 14, background: C.slate2, padding: "12px 14px 14px" }}>
             <MissMap answers={answers} />
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center", fontSize: 11, color: C.textDim, marginTop: 2 }}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><span style={{ width: 9, height: 9, borderRadius: "50%", background: "#3FA372", display: "inline-block" }} />hit</span>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><span style={{ width: 9, height: 9, borderRadius: "50%", background: "#D6483B", display: "inline-block" }} />miss</span>
-              <span style={{ color: C.textMute }}>● profile · ▲ field</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><span style={{ width: 9, height: 9, borderRadius: "50%", background: "#3FA372", display: "inline-block" }} />{t("slope.legend.hit")}</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><span style={{ width: 9, height: 9, borderRadius: "50%", background: "#D6483B", display: "inline-block" }} />{t("slope.legend.miss")}</span>
+              <span style={{ color: C.textMute }}>{t("slope.legend.shapes")}</span>
             </div>
             <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-              <Tile label="Near 30° (±5°)" value={nearAcc} accent={nearAcc != null && nearAcc < 60 ? "#F0812C" : "#3FA372"} />
-              {bothViews ? <Tile label="Profile calls" value={accOf(pAns)} /> : null}
-              {bothViews ? <Tile label="Field calls" value={accOf(fAns)} accent={accOf(fAns) < accOf(pAns) ? "#F0812C" : undefined} /> : null}
+              <Tile label={t("slope.tile.near")} value={nearAcc} accent={nearAcc != null && nearAcc < 60 ? "#F0812C" : "#3FA372"} />
+              {bothViews ? <Tile label={t("slope.tile.profileCalls")} value={accOf(pAns)} /> : null}
+              {bothViews ? <Tile label={t("slope.tile.fieldCalls")} value={accOf(fAns)} accent={accOf(fAns) < accOf(pAns) ? "#F0812C" : undefined} /> : null}
             </div>
           </div>
 
           <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
             {insights.map((ins, i) => (
               <div key={i} style={{ borderLeft: `3px solid ${TONE[ins.tone]}`, background: C.slate2, borderRadius: "0 12px 12px 0", padding: "11px 14px" }}>
-                <div style={{ fontSize: 13.5, fontWeight: 700, color: TONE[ins.tone] }}>{ins.title}</div>
-                <div style={{ fontSize: 12.5, color: C.textDim, lineHeight: 1.5, marginTop: 3 }}>{ins.body}</div>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: TONE[ins.tone] }}>{t(ins.titleKey)}</div>
+                <div style={{ fontSize: 12.5, color: C.textDim, lineHeight: 1.5, marginTop: 3 }}>{t(ins.bodyKey, ins.vars)}</div>
               </div>
             ))}
           </div>
 
           {trends && trends.n > 0 ? (
             <>
-              <div style={{ fontSize: 12, letterSpacing: "0.6px", textTransform: "uppercase", color: C.textDim, margin: "22px 0 8px" }}>Across your sessions · recent + difficulty weighted</div>
+              <div style={{ fontSize: 12, letterSpacing: "0.6px", textTransform: "uppercase", color: C.textDim, margin: "22px 0 8px" }}>{t("slope.results.acrossSessions")}</div>
               <div style={{ border: `1px solid ${C.line}`, borderRadius: 14, background: C.slate2, padding: "12px 14px" }}>
                 <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
                   <div>
                     <div style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 30, fontWeight: 700, color: C.ice, lineHeight: 1 }}>{trends.acc == null ? "—" : trends.acc + "%"}</div>
-                    <div style={{ fontSize: 10.5, color: C.textDim, marginTop: 3 }}>{trends.sessions.length} sessions · {trends.n} slopes</div>
+                    <div style={{ fontSize: 10.5, color: C.textDim, marginTop: 3 }}>{t("slope.results.sessionsSlopes", { sessions: trends.sessions.length, n: trends.n })}</div>
                   </div>
                   <div style={{ flex: 1 }}><Sparkline sessions={trends.sessions} /></div>
                 </div>
                 <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                  <TrendTile label="Near 30°" v={trends.near} />
-                  {trends.hasBoth ? <TrendTile label="Profile" v={trends.profile} /> : null}
-                  {trends.hasBoth ? <TrendTile label="Field" v={trends.field} warn={trends.field < trends.profile} /> : null}
+                  <TrendTile label={t("slope.trend.near")} v={trends.near} />
+                  {trends.hasBoth ? <TrendTile label={t("slope.trend.profile")} v={trends.profile} /> : null}
+                  {trends.hasBoth ? <TrendTile label={t("slope.trend.field")} v={trends.field} warn={trends.field < trends.profile} /> : null}
                 </div>
                 <DiffChips byDiff={trends.byDiff} />
                 {trendNote ? <div style={{ fontSize: 12.5, color: C.textDim, lineHeight: 1.5, marginTop: 10 }}>{trendNote}</div> : null}
@@ -766,11 +766,11 @@ export function SlopeApp({ onHome }) {
             </>
           ) : null}
 
-          <div style={{ fontSize: 12, letterSpacing: "0.6px", textTransform: "uppercase", color: C.textDim, margin: "22px 0 8px" }}>Slope by slope</div>
+          <div style={{ fontSize: 12, letterSpacing: "0.6px", textTransform: "uppercase", color: C.textDim, margin: "22px 0 8px" }}>{t("slope.results.slopeBySlope")}</div>
           <div style={{ border: `1px solid ${C.line}`, borderRadius: 14, overflow: "hidden" }}>
             <div style={{ display: "flex", padding: "9px 14px", background: C.slate2, fontSize: 11, color: C.textDim, letterSpacing: "0.6px", textTransform: "uppercase" }}>
-              <div style={{ width: 34 }}>#</div><div style={{ flex: 1 }}>Your call</div>
-              <div style={{ width: 78, textAlign: "right" }}>Actual</div><div style={{ width: 30 }} />
+              <div style={{ width: 34 }}>#</div><div style={{ flex: 1 }}>{t("slope.table.yourCall")}</div>
+              <div style={{ width: 78, textAlign: "right" }}>{t("slope.table.actual")}</div><div style={{ width: 30 }} />
             </div>
             {answers.map((a, i) => {
               const b = bandFor(a.angle);
@@ -784,9 +784,9 @@ export function SlopeApp({ onHome }) {
               );
             })}
           </div>
-          <button onClick={begin} style={primaryBtn}>Run {questions.length} more</button>
-          <button onClick={() => setPhase("setup")} style={ghostBtn}>Change settings</button>
-          {onHome && <button onClick={onHome} style={ghostBtn}>← Back to all tools</button>}
+          <button onClick={begin} style={primaryBtn}>{t("slope.results.runMore", { n: questions.length })}</button>
+          <button onClick={() => setPhase("setup")} style={ghostBtn}>{t("slope.results.changeSettings")}</button>
+          {onHome && <button onClick={onHome} style={ghostBtn}>{t("slope.results.back")}</button>}
         </div>
       </div>
     );
@@ -808,12 +808,12 @@ export function SlopeApp({ onHome }) {
       <div style={card}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Eyebrow>{settings.mode === "mix" ? "Mix · " : ""}{q.view === "field" ? "Field view" : "Profile"} · {settings.difficulty}</Eyebrow>
-            {!settings.record && <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.6px", color: "#F0812C", border: "1px solid #F0812C", borderRadius: 5, padding: "1px 5px" }}>GUEST</span>}
+            <Eyebrow>{settings.mode === "mix" ? t("slope.quiz.mixPrefix") : ""}{q.view === "field" ? t("slope.quiz.fieldView") : t("slope.quiz.profile")} · {t("slope.diff." + settings.difficulty)}</Eyebrow>
+            {!settings.record && <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.6px", color: "#F0812C", border: "1px solid #F0812C", borderRadius: 5, padding: "1px 5px" }}>{t("slope.guest")}</span>}
           </div>
           <div style={{ display: "flex", gap: 16, fontFamily: "ui-monospace, Menlo, monospace", fontSize: 13 }}>
-            <span style={{ color: C.textDim }}>Q <span style={{ color: C.snow }}>{idx + 1}</span>/{questions.length}</span>
-            <span style={{ color: C.textDim }}>Score <span style={{ color: C.ice }}>{score}</span></span>
+            <span style={{ color: C.textDim }}>{t("slope.q.qLabel")} <span style={{ color: C.snow }}>{idx + 1}</span>/{questions.length}</span>
+            <span style={{ color: C.textDim }}>{t("slope.q.score")} <span style={{ color: C.ice }}>{score}</span></span>
           </div>
         </div>
 
@@ -828,13 +828,13 @@ export function SlopeApp({ onHome }) {
         <Scene q={q} revealed={pick !== null} mode={q.view} realistic={settings.render === "realistic"} />
 
         <div style={{ marginTop: 6, color: C.textDim, fontSize: 12.5, textAlign: "center", minHeight: 18 }}>
-          {pick === null && (q.view === "field" ? "How steep is the true slope — over or under 30°?" : "Steeper or shallower than 30°?")}
+          {pick === null && (q.view === "field" ? t("slope.prompt.field") : t("slope.prompt.profile"))}
         </div>
 
         <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-          <ChoiceButton label="< 30°" sub="Lower angle" onClick={() => answer(false)} disabled={pick !== null}
+          <ChoiceButton label="< 30°" sub={t("slope.choice.underSub")} onClick={() => answer(false)} disabled={pick !== null}
             state={pick === null ? null : !isOver ? "right" : pick === false ? "wrong" : "dim"} />
-          <ChoiceButton label="> 30°" sub="Avalanche terrain" onClick={() => answer(true)} disabled={pick !== null}
+          <ChoiceButton label="> 30°" sub={t("slope.choice.overSub")} onClick={() => answer(true)} disabled={pick !== null}
             state={pick === null ? null : isOver ? "right" : pick === true ? "wrong" : "dim"} />
         </div>
 
@@ -844,10 +844,10 @@ export function SlopeApp({ onHome }) {
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                 <div style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 40, fontWeight: 700, color: band.color, lineHeight: 1 }}>{q.angle}°</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: pick === isOver ? "#3FA372" : "#D6483B" }}>{pick === isOver ? "Correct" : "Missed"}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: pick === isOver ? "#3FA372" : "#D6483B" }}>{pick === isOver ? t("slope.reveal.correct") : t("slope.reveal.missed")}</div>
               </div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: band.color, marginTop: 5 }}>{band.name}</div>
-              <div style={{ fontSize: 12.5, color: C.textDim, marginTop: 2, lineHeight: 1.45 }}>{close ? "Close call — right at the threshold. " : ""}{band.note}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: band.color, marginTop: 5 }}>{t("slope.band." + band.key + ".name")}</div>
+              <div style={{ fontSize: 12.5, color: C.textDim, marginTop: 2, lineHeight: 1.45 }}>{close ? t("slope.reveal.close") : ""}{t("slope.band." + band.key + ".note")}</div>
             </div>
           </div>
         )}
@@ -857,14 +857,14 @@ export function SlopeApp({ onHome }) {
             background: pick === isOver ? "rgba(63,163,114,0.12)" : "rgba(214,72,59,0.10)", padding: "13px 16px",
             display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{ fontWeight: 700, fontSize: 15, color: pick === isOver ? "#3FA372" : "#D6483B" }}>
-              {pick === isOver ? "Correct" : "Missed"}
+              {pick === isOver ? t("slope.reveal.correct") : t("slope.reveal.missed")}
             </span>
-            <span style={{ fontSize: 13, color: C.textDim }}>It was {isOver ? "over" : "under"} 30°</span>
+            <span style={{ fontSize: 13, color: C.textDim }}>{isOver ? t("slope.reveal.wasOver") : t("slope.reveal.wasUnder")}</span>
           </div>
         )}
 
         {pick !== null && (
-          <button onClick={next} style={primaryBtn}>{idx === questions.length - 1 ? "See score" : "Next slope"}</button>
+          <button onClick={next} style={primaryBtn}>{idx === questions.length - 1 ? t("slope.next.score") : t("slope.next.slope")}</button>
         )}
       </div>
     </div>
