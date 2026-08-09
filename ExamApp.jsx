@@ -136,7 +136,7 @@ function Segmented({ label, sub, options, value, onChange }) {
 }
 
 // ==================== SETUP SCREEN ===================================
-const DEFAULTS = { difficulty: "moderate", topic: "all", count: 25, feedback: "immediate" };
+const DEFAULTS = { difficulty: "moderate", topic: "all", count: 25, feedback: "immediate", mode: "test" };
 
 function RecordSwitch({ recording, onToggle }) {
   return (
@@ -188,6 +188,11 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
 
         <RecordSwitch recording={recording} onToggle={() => setRecording((r) => !r)} />
 
+        <Segmented label="Session type"
+          sub="Study shows the explanation after every question and drops the pass/fail framing. Test grades you against the study target."
+          value={settings.mode} onChange={(v) => set("mode", v)}
+          options={[{ value: "test", label: "Test" }, { value: "study", label: "Study" }]} />
+
         <Segmented label="Difficulty"
           sub="Scales both recall depth and scenario complexity — Easy leans on definitions, Hard on multi-factor judgment calls."
           value={settings.difficulty} onChange={(v) => set("difficulty", v)}
@@ -232,16 +237,18 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
           </div>
         </div>
 
-        <Segmented label="Feedback"
-          sub="Immediate grades each question as you answer it. At end hides results until the review screen — closer to a real sitting."
-          value={settings.feedback} onChange={(v) => set("feedback", v)}
-          options={[{ value: "immediate", label: "Immediate" }, { value: "end", label: "At end" }]} />
+        {settings.mode !== "study" && (
+          <Segmented label="Feedback"
+            sub="Immediate grades each question as you answer it. At end hides results until the review screen — closer to a real sitting."
+            value={settings.feedback} onChange={(v) => set("feedback", v)}
+            options={[{ value: "immediate", label: "Immediate" }, { value: "end", label: "At end" }]} />
+        )}
 
         <button onClick={onStart}
           style={{ width: "100%", padding: "16px", borderRadius: 14, border: "none", cursor: "pointer",
             background: C.ice, color: C.slate, fontSize: 16, fontWeight: 800, letterSpacing: "0.2px",
             marginTop: 6 }}>
-          Start exam →
+          {settings.mode === "study" ? "Start study set →" : "Start exam →"}
         </button>
 
         <p style={{ color: C.textMute, fontSize: 11, lineHeight: 1.5, margin: "18px 0 0", textAlign: "center" }}>
@@ -275,8 +282,10 @@ function Quiz({ questions, settings, recording, onFinish }) {
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState({});   // id -> user answer
   const [revealed, setRevealed] = useState({}); // id -> bool (immediate mode)
+  const [conf, setConf] = useState({});           // id -> "low"|"med"|"high"
   const q = questions[idx];
-  const immediate = settings.feedback === "immediate";
+  const study = settings.mode === "study";
+  const immediate = study || settings.feedback === "immediate";
   const isRevealed = immediate && revealed[q.id];
 
   const shell = { minHeight: "100%", background: C.slate, color: C.snow,
@@ -302,6 +311,7 @@ function Quiz({ questions, settings, recording, onFinish }) {
     else {
       const graded = questions.map((question) => ({
         question, ans: answers[question.id] ?? null, correct: grade(question, answers[question.id]),
+        conf: conf[question.id] ?? null,
       }));
       onFinish(graded);
     }
@@ -337,7 +347,21 @@ function Quiz({ questions, settings, recording, onFinish }) {
           <Tag>{q.diff}</Tag>
         </div>
 
-        <div style={{ fontSize: 17, fontWeight: 600, lineHeight: 1.4, marginBottom: 18 }}>{q.q}</div>
+        <div style={{ fontSize: 17, fontWeight: 600, lineHeight: 1.4, marginBottom: 14 }}>{q.q}</div>
+
+        {/* confidence (optional; feeds calibration later) */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 11.5, color: C.textMute }}>Confidence</span>
+          {[["low", "Low"], ["med", "Med"], ["high", "High"]].map(([v, l]) => {
+            const on = conf[q.id] === v;
+            return (
+              <button key={v} onClick={() => setConf((c) => ({ ...c, [q.id]: on ? null : v }))}
+                style={{ fontSize: 12, fontWeight: 700, cursor: "pointer", borderRadius: 20, padding: "4px 11px",
+                  border: `1px solid ${on ? C.ice : C.line}`, background: on ? "rgba(124,196,255,0.14)" : "transparent",
+                  color: on ? C.ice : C.textDim }}>{l}</button>
+            );
+          })}
+        </div>
 
         {/* body by type */}
         {q.type === "mc" && q.options.map((opt, i) => {
@@ -460,6 +484,7 @@ function MatchBody({ q, value, revealed, onChange }) {
 
 function Results({ graded, settings, recording, onRetry, onNew, onHome }) {
   const cfg = useCfg();
+  const study = settings.mode === "study";
   const [history, setHistory] = useState(undefined); // undefined = loading
   const [openReview, setOpenReview] = useState(false);
   const correct = graded.filter((g) => g.correct).length;
@@ -478,9 +503,9 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome }) {
     let alive = true;
     (async () => {
       if (recording) {
-        await saveRun({ ts: Date.now(), app: cfg.appKey, difficulty: settings.difficulty, topic: settings.topic,
+        await saveRun({ ts: Date.now(), app: cfg.appKey, mode: settings.mode, difficulty: settings.difficulty, topic: settings.topic,
           correct, total, byTopic,
-          questions: graded.map((g) => ({ topic: g.question.topic, type: g.question.type, diff: g.question.diff, correct: !!g.correct })) });
+          questions: graded.map((g) => ({ topic: g.question.topic, type: g.question.type, diff: g.question.diff, correct: !!g.correct, conf: g.conf ?? null })) });
       }
       const runs = await loadRuns(cfg.appKey);
       if (alive) setHistory(runs);
@@ -503,7 +528,7 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome }) {
         {/* Score */}
         <div style={{ display: "flex", alignItems: "baseline", gap: 12, margin: "8px 0 4px" }}>
           <div style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 52, fontWeight: 800,
-            color: hitTarget ? C.good : C.threshold, lineHeight: 1 }}>{Math.round(pct * 100)}%</div>
+            color: study ? C.ice : hitTarget ? C.good : C.threshold, lineHeight: 1 }}>{Math.round(pct * 100)}%</div>
           <div style={{ fontSize: 18, color: C.textDim, fontWeight: 600 }}>{correct} / {total}</div>
         </div>
         <div style={{ fontSize: 12.5, color: C.textMute, marginBottom: 4 }}>
@@ -511,14 +536,22 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome }) {
           {!recording && " · guest run (not saved)"}
         </div>
 
-        {/* Practice-target line */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 13px", borderRadius: 10,
-          background: C.slate2, border: `1px solid ${C.line}`, marginBottom: 20 }}>
-          <span style={{ fontSize: 13, color: hitTarget ? C.good : C.textDim }}>
-            {hitTarget ? "Above" : "Below"} the 80% self-study target
-          </span>
-          <span style={{ fontSize: 11, color: C.textMute }}>· a study benchmark, not an official AST 1 pass mark</span>
-        </div>
+        {/* Practice-target / study line */}
+        {study ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 13px", borderRadius: 10,
+            background: C.slate2, border: `1px solid ${C.line}`, marginBottom: 20 }}>
+            <span style={{ fontSize: 13, color: C.ice }}>Study session</span>
+            <span style={{ fontSize: 11, color: C.textMute }}>· explanations shown per question; no pass/fail</span>
+          </div>
+        ) : (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 13px", borderRadius: 10,
+            background: C.slate2, border: `1px solid ${C.line}`, marginBottom: 20 }}>
+            <span style={{ fontSize: 13, color: hitTarget ? C.good : C.textDim }}>
+              {hitTarget ? "Above" : "Below"} the 80% self-study target
+            </span>
+            <span style={{ fontSize: 11, color: C.textMute }}>· a study benchmark, not an official AST pass mark</span>
+          </div>
+        )}
 
         {/* By-topic this run */}
         <div style={{ fontSize: 13, fontWeight: 700, color: C.snow, marginBottom: 10 }}>This run, by topic</div>
