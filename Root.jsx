@@ -81,7 +81,7 @@ function Home({ onPick, session, isAdmin }) {
     <div style={wrap}>
       <div style={inner}>
         <div style={{ fontSize: 12, letterSpacing: "1.6px", textTransform: "uppercase", color: T.dim }}>
-          Avalanche training
+          Avalanche Safety Training Prep
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, margin: "6px 0 2px", letterSpacing: "-0.3px" }}>Choose a tool</h1>
         <p style={{ ...p, margin: "0 0 4px" }}>
