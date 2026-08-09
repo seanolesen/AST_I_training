@@ -2,7 +2,6 @@ import React, { useState, useMemo, useCallback, useEffect } from "react";
 
 const ExamCfg = React.createContext(null);
 const useCfg = () => React.useContext(ExamCfg);
-import { supabase } from "./supabaseClient";
 import { loadRuns, saveRun, loadRecordPref, saveRecordPref } from "./storage";
 import { useLang } from "./i18n.jsx";
 import { ax, useAcronyms } from "./glossary.jsx";

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { loadDoc, saveDoc } from "./storage";
 import { useLang } from "./i18n.jsx";
 
