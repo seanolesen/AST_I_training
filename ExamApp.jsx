@@ -591,6 +591,7 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome, onRecomm
   const [openReview, setOpenReview] = useState(false);
   const correct = graded.filter((g) => g.correct).length;
   const total = graded.length;
+  const [reviewFilter, setReviewFilter] = useState(total - correct > 0 ? "missed" : "all");
   const pct = total ? correct / total : 0;
 
   // per-topic this run
@@ -728,9 +729,24 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome, onRecomm
         </button>
         {openReview && (
           <div style={{ marginBottom: 14 }}>
-            {graded.map((g, i) => (
-              <ReviewItem key={g.question.id} n={i + 1} g={g} />
-            ))}
+            <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+              {[["all", t("exam.review.filterAll")], ["missed", `${t("exam.review.filterMissed")} · ${total - correct}`]].map(([v, lab]) => {
+                const onSel = reviewFilter === v;
+                return (
+                  <button key={v} onClick={() => setReviewFilter(v)}
+                    style={{ flex: 1, padding: "8px", borderRadius: 9, cursor: "pointer", fontSize: 12.5,
+                      fontWeight: onSel ? 700 : 500, background: onSel ? C.ice : C.slate2,
+                      color: onSel ? C.slate : C.textDim, border: `1px solid ${onSel ? C.ice : C.line}` }}>
+                    {lab}
+                  </button>
+                );
+              })}
+            </div>
+            {(() => {
+              const items = graded.map((g, i) => ({ g, n: i + 1 })).filter(({ g }) => reviewFilter === "all" || !g.correct);
+              if (!items.length) return <div style={{ fontSize: 12.5, color: C.textMute, textAlign: "center", padding: "10px 0" }}>{t("exam.review.noMisses")}</div>;
+              return items.map(({ g, n }) => <ReviewItem key={g.question.id} n={n} g={g} />);
+            })()}
           </div>
         )}
 

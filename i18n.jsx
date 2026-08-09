@@ -154,6 +154,9 @@ export const STRINGS = {
     "exam.review.matchRows": "see rows below",
     "exam.review.yourAnswer": "Your answer: ",
     "exam.review.shouldBeLabel": "should be:",
+    "exam.review.filterAll": "All",
+    "exam.review.filterMissed": "Missed",
+    "exam.review.noMisses": "No misses — every answer was correct.",
 
     "slope.setup.eyebrow": "Slope-angle trainer",
     "slope.setup.title": "Set up your session",
@@ -568,6 +571,9 @@ export const STRINGS = {
     "exam.review.matchRows": "voir les lignes ci-dessous",
     "exam.review.yourAnswer": "Votre réponse : ",
     "exam.review.shouldBeLabel": "devrait être :",
+    "exam.review.filterAll": "Toutes",
+    "exam.review.filterMissed": "Manquées",
+    "exam.review.noMisses": "Aucune erreur — toutes les réponses étaient correctes.",
 
     "slope.setup.eyebrow": "Entraîneur d’angle de pente",
     "slope.setup.title": "Configurez votre séance",
