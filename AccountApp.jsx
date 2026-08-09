@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { exportAllData, deleteAllData } from "./storage";
+import { useLang } from "./i18n.jsx";
 
 const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0",
   ice: "#7cc4ff", amber: "#f0812c", good: "#3FA372", bad: "#D6483B",
@@ -19,6 +20,7 @@ function Eyebrow({ children }) {
 }
 
 export function AccountApp({ onHome, session, onSignOut }) {
+  const { t } = useLang();
   const signedIn = !!(session && session.user);
   const email = signedIn ? session.user.email : null;
 
@@ -48,9 +50,9 @@ export function AccountApp({ onHome, session, onSignOut }) {
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 2000);
       const n = Array.isArray(data.runs) ? data.runs.length : 0;
-      setNote(`Exported ${n} recorded run${n === 1 ? "" : "s"} plus trainer history.`);
+      setNote(t(n === 1 ? "account.exportedOne" : "account.exportedMany", { n }));
     } catch (e) {
-      setNote("Export failed: " + (e && e.message ? e.message : String(e)));
+      setNote(t("account.exportFail", { msg: e && e.message ? e.message : String(e) }));
     }
     setBusy(false);
   };
@@ -59,10 +61,10 @@ export function AccountApp({ onHome, session, onSignOut }) {
     setBusy(true); setNote("");
     try {
       const res = await deleteAllData();
-      if (res.ok) { setDone(true); setNote("Your practice data has been deleted."); }
-      else setNote("Some data could not be deleted: " + res.error + " — if you're signed in, make sure the updated schema.sql (with delete policies) has been run in Supabase.");
+      if (res.ok) { setDone(true); setNote(t("account.deletedMsg")); }
+      else setNote(t("account.deletePartial", { error: res.error }));
     } catch (e) {
-      setNote("Delete failed: " + (e && e.message ? e.message : String(e)));
+      setNote(t("account.deleteFail", { msg: e && e.message ? e.message : String(e) }));
     }
     setConfirming(false); setBusy(false);
   };
@@ -71,71 +73,65 @@ export function AccountApp({ onHome, session, onSignOut }) {
     <div style={wrap}>
       <div style={inner}>
         {onHome && <button onClick={onHome} style={{ background: "transparent", border: "none", color: T.dim,
-          cursor: "pointer", fontSize: 13, padding: "0 0 12px", fontWeight: 600 }}>← All tools</button>}
-        <div style={{ fontSize: 12, letterSpacing: "1.6px", textTransform: "uppercase", color: T.dim }}>Account &amp; privacy</div>
-        <h1 style={{ fontSize: 23, fontWeight: 800, margin: "6px 0 16px" }}>Your account and your data</h1>
+          cursor: "pointer", fontSize: 13, padding: "0 0 12px", fontWeight: 600 }}>{t("nav.allTools")}</button>}
+        <div style={{ fontSize: 12, letterSpacing: "1.6px", textTransform: "uppercase", color: T.dim }}>{t("account.title")}</div>
+        <h1 style={{ fontSize: 23, fontWeight: 800, margin: "6px 0 16px" }}>{t("account.h1")}</h1>
 
         {/* Account */}
         <Card accent={T.ice}>
-          <Eyebrow>Account</Eyebrow>
+          <Eyebrow>{t("account.accountLabel")}</Eyebrow>
           {signedIn ? (
             <div>
-              <div style={{ fontSize: 14, color: T.snow }}>Signed in as <b>{email}</b></div>
+              <div style={{ fontSize: 14, color: T.snow }}>{t("account.signedInAs", { email })}</div>
               <div style={{ fontSize: 12.5, color: T.dim, margin: "6px 0 12px", lineHeight: 1.5 }}>
-                Your practice history syncs to this account across devices.
+                {t("account.syncNote")}
               </div>
-              {onSignOut && <button style={ghost} onClick={onSignOut}>Sign out</button>}
+              {onSignOut && <button style={ghost} onClick={onSignOut}>{t("auth.signOut")}</button>}
             </div>
           ) : (
-            <div style={{ fontSize: 13.5, color: T.dim, lineHeight: 1.5 }}>
-              You&rsquo;re in guest / local mode — history is stored only on this device. Sign in from the top bar to sync across devices.
-            </div>
+            <div style={{ fontSize: 13.5, color: T.dim, lineHeight: 1.5 }}>{t("account.guest")}</div>
           )}
         </Card>
 
         {/* What we store */}
         <Card>
-          <Eyebrow>What&rsquo;s stored</Eyebrow>
+          <Eyebrow>{t("account.storedLabel")}</Eyebrow>
           <div style={{ fontSize: 13, color: T.dim, lineHeight: 1.6 }}>
-            {signedIn
-              ? "Your email address, used only to send magic sign-in links, and your practice history (exam runs and trainer attempts), so your progress and analytics follow you across devices."
-              : "Only your practice history, kept in this browser&rsquo;s local storage on this device. Nothing is sent to a server while you&rsquo;re in guest mode."}
+            {signedIn ? t("account.storedSignedIn") : t("account.storedGuest")}
             <br /><br />
-            No ads, no trackers, and your data is never sold. This is a personal study project.
+            {t("account.storedFooter")}
           </div>
         </Card>
 
         {/* Export */}
         <Card accent={T.good}>
-          <Eyebrow>Export my data</Eyebrow>
-          <div style={{ fontSize: 13, color: T.dim, lineHeight: 1.55, marginBottom: 12 }}>
-            Download everything stored for you — every recorded run and all trainer history — as a JSON file you keep.
-          </div>
-          <button style={btn(T.good, "#0c1218")} disabled={busy} onClick={doExport}>Export my data (JSON)</button>
+          <Eyebrow>{t("account.exportLabel")}</Eyebrow>
+          <div style={{ fontSize: 13, color: T.dim, lineHeight: 1.55, marginBottom: 12 }}>{t("account.exportDesc")}</div>
+          <button style={btn(T.good, "#0c1218")} disabled={busy} onClick={doExport}>{t("account.exportBtn")}</button>
         </Card>
 
         {/* Delete */}
         <Card accent={T.bad}>
-          <Eyebrow>Delete my data</Eyebrow>
+          <Eyebrow>{t("account.deleteLabel")}</Eyebrow>
           <div style={{ fontSize: 13, color: T.dim, lineHeight: 1.55, marginBottom: 12 }}>
-            Permanently remove all of your practice history{signedIn ? " from this account and this device" : " from this device"}. This can&rsquo;t be undone.
-            {signedIn && <span> Your sign-in email itself stays with the login provider; deleting it entirely isn&rsquo;t something the app can do from here.</span>}
+            {signedIn ? t("account.deleteDescSignedIn") : t("account.deleteDescGuest")}
+            {signedIn && <span> {t("account.deleteEmailNote")}</span>}
           </div>
           {done ? (
-            <div style={{ fontSize: 13.5, color: T.good, fontWeight: 700 }}>✓ Deleted. You may want to reload the app.</div>
+            <div style={{ fontSize: 13.5, color: T.good, fontWeight: 700 }}>{t("account.deletedDone")}</div>
           ) : !confirming ? (
             <button style={btn("transparent", T.bad)} onClick={() => { setNote(""); setConfirming(true); }}>
-              Delete all my practice data
+              {t("account.deleteBtn")}
             </button>
           ) : (
             <div>
               <div style={{ fontSize: 13, color: T.snow, lineHeight: 1.5, marginBottom: 10,
                 padding: "10px 12px", background: "rgba(214,72,59,0.12)", border: `1px solid ${T.bad}`, borderRadius: 10 }}>
-                This will permanently erase your entire practice history. Consider exporting first. Continue?
+                {t("account.confirmWarn")}
               </div>
               <div style={{ display: "flex", gap: 10 }}>
-                <button style={{ ...btn(T.bad, "#fff"), flex: 1 }} disabled={busy} onClick={doDelete}>Yes, delete everything</button>
-                <button style={{ ...ghost, flex: 1 }} disabled={busy} onClick={() => setConfirming(false)}>Cancel</button>
+                <button style={{ ...btn(T.bad, "#fff"), flex: 1 }} disabled={busy} onClick={doDelete}>{t("account.confirmYes")}</button>
+                <button style={{ ...ghost, flex: 1 }} disabled={busy} onClick={() => setConfirming(false)}>{t("common.cancel")}</button>
               </div>
             </div>
           )}

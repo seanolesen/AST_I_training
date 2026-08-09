@@ -7,6 +7,7 @@ import { Performance } from "./Performance.jsx";
 import { SiteAnalytics } from "./SiteAnalytics.jsx";
 import { AccountApp } from "./AccountApp.jsx";
 import { ExpandToggle, ax, useAcronyms } from "./glossary.jsx";
+import { useLang, LangToggle } from "./i18n.jsx";
 
 const SUPER_ADMIN = "sean.olesen@gmail.com";
 
@@ -15,6 +16,7 @@ const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0",
 const FONT = "system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
 
 function TopBar({ session, view, onHome, onAccount }) {
+  const { t } = useLang();
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("");
   const row = { display: "flex", gap: 8, alignItems: "center", justifyContent: "space-between",
@@ -25,33 +27,33 @@ function TopBar({ session, view, onHome, onAccount }) {
   const btn = { ...chip, cursor: "pointer" };
 
   const back = view !== "home"
-    ? <button onClick={onHome} style={{ ...btn, borderColor: T.ice, color: T.ice, fontWeight: 700 }}>← All tools</button>
+    ? <button onClick={onHome} style={{ ...btn, borderColor: T.ice, color: T.ice, fontWeight: 700 }}>{t("nav.allTools")}</button>
     : <span />;
 
   let auth;
   if (!supabase) {
-    auth = <span style={{ ...chip, opacity: 0.7 }}>Local mode</span>;
+    auth = <span style={{ ...chip, opacity: 0.7 }}>{t("auth.localMode")}</span>;
   } else if (session && session.user) {
     auth = (
       <React.Fragment>
         <button style={btn} onClick={onAccount} title="Account & privacy">{session.user.email}</button>
-        <button style={btn} onClick={() => supabase.auth.signOut()}>Sign out</button>
+        <button style={btn} onClick={() => supabase.auth.signOut()}>{t("auth.signOut")}</button>
       </React.Fragment>
     );
   } else {
     const send = async () => {
-      if (!email) { setStatus("Enter your email"); return; }
-      setStatus("Sending…");
+      if (!email) { setStatus(t("auth.enterEmail")); return; }
+      setStatus(t("auth.sending"));
       const { error } = await supabase.auth.signInWithOtp({
         email, options: { emailRedirectTo: window.location.origin },
       });
-      setStatus(error ? ("Error: " + error.message) : "Check your email for the link");
+      setStatus(error ? (t("auth.errorPrefix") + error.message) : t("auth.checkEmail"));
     };
     auth = (
       <React.Fragment>
-        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com"
+        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("auth.emailPlaceholder")}
           style={{ ...chip, minWidth: 150, outline: "none" }} />
-        <button style={btn} onClick={send}>Sign in to sync</button>
+        <button style={btn} onClick={send}>{t("auth.signIn")}</button>
         {status && <span style={{ color: T.dim }}>{status}</span>}
       </React.Fragment>
     );
@@ -61,6 +63,7 @@ function TopBar({ session, view, onHome, onAccount }) {
     <div style={row}>
       {back}
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+        <LangToggle />
         <ExpandToggle />
         {auth}
       </div>
@@ -70,6 +73,7 @@ function TopBar({ session, view, onHome, onAccount }) {
 
 function Home({ onPick, session, isAdmin }) {
   const on = useAcronyms();
+  const { t, lang } = useLang();
   const wrap = { minHeight: "calc(100vh - 44px)", background: T.bg, color: T.snow,
     fontFamily: FONT, padding: "30px 16px 44px", boxSizing: "border-box" };
   const inner = { maxWidth: 540, margin: "0 auto" };
@@ -84,44 +88,44 @@ function Home({ onPick, session, isAdmin }) {
         <div style={{ fontSize: 12, letterSpacing: "1.6px", textTransform: "uppercase", color: T.dim }}>
           Avalanche Safety Training Prep
         </div>
-        <h1 style={{ fontSize: 24, fontWeight: 800, margin: "6px 0 2px", letterSpacing: "-0.3px" }}>Choose a tool</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 800, margin: "6px 0 2px", letterSpacing: "-0.3px" }}>{t("home.choose")}</h1>
         <p style={{ ...p, margin: "0 0 4px" }}>
           {session && session.user
-            ? `Signed in as ${session.user.email} — your runs sync across devices.`
-            : "Local mode — sign in above to sync your history across devices."}
+            ? t("home.signedIn", { email: session.user.email })
+            : t("home.localSub")}
         </p>
         <button style={tile(T.amber)} onClick={() => onPick("slope")}>
-          <div style={h}>Slope-Angle Trainer</div>
-          <p style={p}>Train your eye to call above vs. below the 30-degree avalanche threshold.</p>
+          <div style={h}>{t("tool.slope.name")}</div>
+          <p style={p}>{t("tool.slope.desc")}</p>
         </button>
         <button style={tile("#5AD1CF")} onClick={() => onPick("card")}>
-          <div style={h}>Crystal Card Trainer</div>
-          <p style={p}>Read snow grains off a to-scale BCA card — size crystals against the grid and classify grain type, from new snow to surface hoar.</p>
+          <div style={h}>{t("tool.card.name")}</div>
+          <p style={p}>{t("tool.card.desc")}</p>
         </button>
         <button style={tile(T.ice)} onClick={() => onPick("ast1")}>
-          <div style={h}>AST 1 Practice</div>
-          <p style={p}>273 questions across terrain, snowpack, weather, forecasting, trip planning, companion rescue, and human factors.</p>
+          <div style={h}>{t("tool.ast1.name")}</div>
+          <p style={p}>{t("tool.ast1.desc")}</p>
         </button>
         <button style={tile("#b98cff")} onClick={() => onPick("ast2")}>
-          <div style={h}>AST 2 Practice</div>
-          <p style={p}>{ax("Advanced curriculum — snowpack tests, avalanche problems, terrain & ATES, decision-making, and more.", on)}</p>
+          <div style={h}>{t("tool.ast2.name")}</div>
+          <p style={p}>{lang === "en" ? ax(t("tool.ast2.desc"), on) : t("tool.ast2.desc")}</p>
         </button>
         {session && session.user && (
           <button style={tile("#3FA372")} onClick={() => onPick("perf")}>
-            <div style={h}>Performance analysis</div>
-            <p style={p}>Accuracy across every tool — broken down by subject, format, and difficulty, with filters.</p>
+            <div style={h}>{t("tool.perf.name")}</div>
+            <p style={p}>{t("tool.perf.desc")}</p>
           </button>
         )}
         {isAdmin && (
           <button style={tile("#E0B93C")} onClick={() => onPick("admin")}>
-            <div style={h}>Site analytics</div>
-            <p style={p}>Admin: all users, engagement stats, and click-into performance.</p>
+            <div style={h}>{t("tool.admin.name")}</div>
+            <p style={p}>{t("tool.admin.desc")}</p>
           </button>
         )}
         <button onClick={() => onPick("account")}
           style={{ display: "block", width: "100%", textAlign: "left", background: "transparent", border: "none",
             color: T.dim, cursor: "pointer", fontSize: 13, padding: "20px 2px 0", textDecoration: "underline" }}>
-          Account &amp; privacy
+          {t("account.title")}
         </button>
       </div>
     </div>
@@ -131,6 +135,7 @@ function Home({ onPick, session, isAdmin }) {
 export default function Root() {
   const [session, setSession] = useState(null);
   const on = useAcronyms();
+  const { t, lang } = useLang();
   const [view, setView] = useState("home"); // home | ast1 | ast2 | slope | card | perf | admin | account
   const [isAdmin, setIsAdmin] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
@@ -171,18 +176,18 @@ export default function Root() {
           <div style={{ maxWidth: 440, width: "100%", background: T.panel, border: `1px solid ${T.line}`,
             borderRadius: 16, padding: "22px 20px", color: T.snow,
             fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif" }}>
-            <div style={{ fontSize: 12, letterSpacing: "1.4px", textTransform: "uppercase", color: T.dim }}>Before you start</div>
-            <h2 style={{ fontSize: 20, fontWeight: 800, margin: "6px 0 10px" }}>A study aid, not the real thing</h2>
+            <div style={{ fontSize: 12, letterSpacing: "1.4px", textTransform: "uppercase", color: T.dim }}>{t("intro.eyebrow")}</div>
+            <h2 style={{ fontSize: 20, fontWeight: 800, margin: "6px 0 10px" }}>{t("intro.title")}</h2>
             <p style={{ fontSize: 13.5, color: T.dim, lineHeight: 1.55, margin: "0 0 10px" }}>
-              {ax("These tools help you prepare for AST 1 and AST 2, but they are not a substitute for a certified course or for real-world judgment. Questions are original study material, not official exam content, and the 80% figure is a self-study benchmark, not a pass mark.", on)}
+              {lang === "en" ? ax(t("intro.p1"), on) : t("intro.p1")}
             </p>
             <p style={{ fontSize: 13.5, color: T.dim, lineHeight: 1.55, margin: "0 0 16px" }}>
-              Avalanche terrain is dangerous. Take a course, carry a transceiver, probe, and shovel, check the local bulletin, and make decisions with trained partners.
+              {t("intro.p2")}
             </p>
             <button onClick={() => { try { localStorage.setItem("avy_onboarded", "1"); } catch (e) {} setShowIntro(false); }}
               style={{ width: "100%", padding: "13px", borderRadius: 12, border: "none", cursor: "pointer",
                 background: T.ice, color: T.bg, fontSize: 15, fontWeight: 800 }}>
-              I understand
+              {t("intro.ok")}
             </button>
           </div>
         </div>

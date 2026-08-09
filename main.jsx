@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import Root from "./Root.jsx";
+import { LangProvider } from "./i18n.jsx";
 
 class ErrorBoundary extends React.Component {
   constructor(p) { super(p); this.state = { error: null }; }
@@ -23,6 +24,8 @@ class ErrorBoundary extends React.Component {
 
 createRoot(document.getElementById("root")).render(
   <ErrorBoundary>
-    <Root />
+    <LangProvider>
+      <Root />
+    </LangProvider>
   </ErrorBoundary>
 );
