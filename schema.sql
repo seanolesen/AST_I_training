@@ -35,3 +35,24 @@ create policy "update own docs" on public.docs for update using (auth.uid() = us
 
 drop policy if exists "delete own docs" on public.docs;
 create policy "delete own docs" on public.docs for delete using (auth.uid() = user_id);
+
+-- 3) Opt-in practice leaderboard.
+-- Only a summary row (display name + per-tool accuracy) is published here;
+-- raw runs/docs remain private under their own policies above.
+create table if not exists public.leaderboard (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  display_name text not null,
+  stats jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+alter table public.leaderboard enable row level security;
+-- Any signed-in user may read the board...
+drop policy if exists "read leaderboard" on public.leaderboard;
+create policy "read leaderboard" on public.leaderboard for select using (auth.role() = 'authenticated');
+-- ...but may only write their own row.
+drop policy if exists "insert own leaderboard" on public.leaderboard;
+create policy "insert own leaderboard" on public.leaderboard for insert with check (auth.uid() = user_id);
+drop policy if exists "update own leaderboard" on public.leaderboard;
+create policy "update own leaderboard" on public.leaderboard for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "delete own leaderboard" on public.leaderboard;
+create policy "delete own leaderboard" on public.leaderboard for delete using (auth.uid() = user_id);
