@@ -5,6 +5,7 @@ import { SlopeApp } from "./SlopeApp.jsx";
 import { CardApp } from "./CardApp.jsx";
 import { Performance } from "./Performance.jsx";
 import { SiteAnalytics } from "./SiteAnalytics.jsx";
+import { AccountApp } from "./AccountApp.jsx";
 import { ExpandToggle, ax, useAcronyms } from "./glossary.jsx";
 
 const SUPER_ADMIN = "sean.olesen@gmail.com";
@@ -13,7 +14,7 @@ const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0",
   ice: "#7cc4ff", amber: "#f0812c", line: "rgba(255,255,255,0.12)" };
 const FONT = "system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
 
-function TopBar({ session, view, onHome }) {
+function TopBar({ session, view, onHome, onAccount }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("");
   const row = { display: "flex", gap: 8, alignItems: "center", justifyContent: "space-between",
@@ -33,7 +34,7 @@ function TopBar({ session, view, onHome }) {
   } else if (session && session.user) {
     auth = (
       <React.Fragment>
-        <span style={chip}>{session.user.email}</span>
+        <button style={btn} onClick={onAccount} title="Account & privacy">{session.user.email}</button>
         <button style={btn} onClick={() => supabase.auth.signOut()}>Sign out</button>
       </React.Fragment>
     );
@@ -117,6 +118,11 @@ function Home({ onPick, session, isAdmin }) {
             <p style={p}>Admin: all users, engagement stats, and click-into performance.</p>
           </button>
         )}
+        <button onClick={() => onPick("account")}
+          style={{ display: "block", width: "100%", textAlign: "left", background: "transparent", border: "none",
+            color: T.dim, cursor: "pointer", fontSize: 13, padding: "20px 2px 0", textDecoration: "underline" }}>
+          Account &amp; privacy
+        </button>
       </div>
     </div>
   );
@@ -125,7 +131,7 @@ function Home({ onPick, session, isAdmin }) {
 export default function Root() {
   const [session, setSession] = useState(null);
   const on = useAcronyms();
-  const [view, setView] = useState("home"); // home | ast1 | ast2 | slope | card | perf | admin
+  const [view, setView] = useState("home"); // home | ast1 | ast2 | slope | card | perf | admin | account
   const [isAdmin, setIsAdmin] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
 
@@ -181,7 +187,7 @@ export default function Root() {
           </div>
         </div>
       )}
-      <TopBar session={session} view={view} onHome={home} />
+      <TopBar session={session} view={view} onHome={home} onAccount={() => setView("account")} />
       {view === "home" && <Home onPick={setView} session={session} isAdmin={isAdmin} />}
       {view === "ast1" && <Ast1App onHome={home} />}
       {view === "ast2" && <Ast2App onHome={home} />}
@@ -189,6 +195,7 @@ export default function Root() {
       {view === "card" && <CardApp onHome={home} />}
       {view === "perf" && <Performance onHome={home} session={session} />}
       {view === "admin" && isAdmin && <SiteAnalytics onHome={home} session={session} />}
+      {view === "account" && <AccountApp onHome={home} session={session} onSignOut={() => { try { supabase && supabase.auth.signOut(); } catch (e) {} home(); }} />}
     </React.Fragment>
   );
 }

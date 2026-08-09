@@ -13,6 +13,8 @@ drop policy if exists "read own runs" on public.runs;
 create policy "read own runs" on public.runs for select using (auth.uid() = user_id);
 drop policy if exists "insert own runs" on public.runs;
 create policy "insert own runs" on public.runs for insert with check (auth.uid() = user_id);
+drop policy if exists "delete own runs" on public.runs;
+create policy "delete own runs" on public.runs for delete using (auth.uid() = user_id);
 create index if not exists runs_user_created_idx on public.runs (user_id, created_at);
 
 -- 2) Per-user document store (used by the slope trainer's history blob)
@@ -30,3 +32,6 @@ drop policy if exists "insert own docs" on public.docs;
 create policy "insert own docs" on public.docs for insert with check (auth.uid() = user_id);
 drop policy if exists "update own docs" on public.docs;
 create policy "update own docs" on public.docs for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "delete own docs" on public.docs;
+create policy "delete own docs" on public.docs for delete using (auth.uid() = user_id);

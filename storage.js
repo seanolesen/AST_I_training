@@ -123,3 +123,39 @@ export async function saveDoc(app, obj) {
   }
   localDocSet(app, obj);
 }
+
+// ---- Account & privacy: export / delete everything for the current identity ----
+const DOC_APPS = ["slope", "card"];
+
+export async function exportAllData() {
+  const runs = await loadRuns(); // all apps
+  const docs = {};
+  for (const a of DOC_APPS) docs[a] = await loadDoc(a, null);
+  const recordPref = await loadRecordPref();
+  const uid = await currentUserId();
+  return {
+    app: "Avalanche Safety Training Prep",
+    exportedAt: new Date().toISOString(),
+    account: uid ? "signed-in" : "guest/local",
+    runs,
+    docs,
+    recordPref,
+  };
+}
+
+export async function deleteAllData() {
+  const uid = await currentUserId();
+  let serverError = null;
+  if (uid && supabase) {
+    const r1 = await supabase.from("runs").delete().eq("user_id", uid);
+    const r2 = await supabase.from("docs").delete().eq("user_id", uid);
+    serverError = (r1 && r1.error) || (r2 && r2.error) || null;
+  }
+  try {
+    localStorage.removeItem(RUNS_KEY);
+    for (const a of DOC_APPS) localStorage.removeItem("doc:" + a);
+  } catch {
+    /* ignore */
+  }
+  return { ok: !serverError, error: serverError ? (serverError.message || String(serverError)) : null };
+}
