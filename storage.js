@@ -125,7 +125,7 @@ export async function saveDoc(app, obj) {
 }
 
 // ---- Account & privacy: export / delete everything for the current identity ----
-const DOC_APPS = ["slope", "card", "danger"];
+const DOC_APPS = ["slope", "card", "danger", "terrain"];
 
 export async function exportAllData() {
   const runs = await loadRuns(); // all apps
