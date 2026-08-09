@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { loadRuns, loadDoc } from "./storage";
+import { useLang } from "./i18n.jsx";
 
 const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0", ice: "#7cc4ff",
   amber: "#f0812c", good: "#3FA372", warn: "#E0B93C", bad: "#D6483B", line: "rgba(255,255,255,0.12)" };
@@ -86,8 +87,8 @@ function readinessScore(timed, nTopics) {
   const score = Math.round(100 * base * (0.5 + 0.5 * volume));
   return { score, acc, covered: covered.length, nTopics, volume, n: logged.length };
 }
-const readinessLabel = (s) => s >= 85 ? "Exam-ready (self-study)" : s >= 70 ? "Approaching ready"
-  : s >= 50 ? "Developing" : "Building foundation";
+const readinessLabel = (s) => s >= 85 ? "perf.readiness.ready" : s >= 70 ? "perf.readiness.approaching"
+  : s >= 50 ? "perf.readiness.developing" : "perf.readiness.building";
 
 function masteryGrid(timed) {
   const rows = {};
@@ -120,6 +121,7 @@ function SubHead({ children, note }) {
 }
 
 function LearnerAnalytics({ timed, nTopics, accent }) {
+  const { t } = useLang();
   const rd = readinessScore(timed, nTopics);
   const grid = masteryGrid(timed);
   const cal = calibration(timed);
@@ -127,30 +129,30 @@ function LearnerAnalytics({ timed, nTopics, accent }) {
   return (
     <div style={{ marginTop: 14, borderTop: `1px solid ${T.line}`, paddingTop: 4 }}>
       {/* Readiness */}
-      <SubHead note="Self-study heuristic from accuracy, topic breadth, and volume — not an official readiness measure.">Readiness</SubHead>
+      <SubHead note={t("perf.readiness.note")}>{t("perf.readiness.title")}</SubHead>
       {rd ? (
         <div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
             <div style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 30, fontWeight: 800, color: colorFor(rd.score), lineHeight: 1 }}>{rd.score}</div>
-            <div style={{ fontSize: 13, color: T.snow, fontWeight: 700 }}>{readinessLabel(rd.score)}</div>
+            <div style={{ fontSize: 13, color: T.snow, fontWeight: 700 }}>{t(readinessLabel(rd.score))}</div>
           </div>
           <div style={{ height: 7, background: "#0d141d", borderRadius: 4, overflow: "hidden", margin: "8px 0 6px" }}>
             <div style={{ height: "100%", width: `${rd.score}%`, background: colorFor(rd.score) }} />
           </div>
           <div style={{ fontSize: 11.5, color: T.dim, lineHeight: 1.5 }}>
-            {Math.round(rd.acc * 100)}% accuracy · {rd.covered}/{rd.nTopics} topics with enough data · {rd.n} question{rd.n === 1 ? "" : "s"} logged
-            {rd.volume < 1 && <span> · score is capped until you’ve logged more (~150)</span>}
+            {t("perf.readiness.detail", { acc: Math.round(rd.acc * 100), covered: rd.covered, nTopics: rd.nTopics, n: rd.n })}
+            {rd.volume < 1 && <span>{t("perf.readiness.capped")}</span>}
           </div>
         </div>
-      ) : <div style={{ fontSize: 12.5, color: T.dim }}>Run a recorded set with per-question logging to unlock a readiness score.</div>}
+      ) : <div style={{ fontSize: 12.5, color: T.dim }}>{t("perf.readiness.empty")}</div>}
 
       {/* Mastery map */}
-      <SubHead note="Accuracy by topic × difficulty. Cells with under 3 seen stay muted.">Mastery map</SubHead>
+      <SubHead note={t("perf.mastery.note")}>{t("perf.mastery.title")}</SubHead>
       {grid.length ? (
         <div>
           <div style={{ display: "grid", gridTemplateColumns: "1.4fr repeat(3, 1fr)", gap: 3, fontSize: 10.5 }}>
             <div />
-            {DIFF_COLS.map((d) => <div key={d} style={{ textAlign: "center", color: T.dim, fontWeight: 700, paddingBottom: 2 }}>{d}</div>)}
+            {DIFF_COLS.map((d) => <div key={d} style={{ textAlign: "center", color: T.dim, fontWeight: 700, paddingBottom: 2 }}>{t("exam.diff." + d.toLowerCase())}</div>)}
             {grid.map((row) => (
               <React.Fragment key={row.topic}>
                 <div style={{ color: T.snow, fontSize: 11, alignSelf: "center", paddingRight: 4, lineHeight: 1.2 }}>{row.topic}</div>
@@ -170,21 +172,21 @@ function LearnerAnalytics({ timed, nTopics, accent }) {
             ))}
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 8, fontSize: 10.5, color: T.dim }}>
-            <span><span style={{ display: "inline-block", width: 9, height: 9, background: T.good, borderRadius: 2, marginRight: 4 }} />Mastered 85%+</span>
-            <span><span style={{ display: "inline-block", width: 9, height: 9, background: T.warn, borderRadius: 2, marginRight: 4 }} />Developing 50–69%</span>
-            <span><span style={{ display: "inline-block", width: 9, height: 9, background: T.bad, borderRadius: 2, marginRight: 4 }} />Weak &lt;50%</span>
+            <span><span style={{ display: "inline-block", width: 9, height: 9, background: T.good, borderRadius: 2, marginRight: 4 }} />{t("perf.mastery.legendMastered")}</span>
+            <span><span style={{ display: "inline-block", width: 9, height: 9, background: T.warn, borderRadius: 2, marginRight: 4 }} />{t("perf.mastery.legendDeveloping")}</span>
+            <span><span style={{ display: "inline-block", width: 9, height: 9, background: T.bad, borderRadius: 2, marginRight: 4 }} />{t("perf.mastery.legendWeak")}</span>
           </div>
         </div>
-      ) : <div style={{ fontSize: 12.5, color: T.dim }}>Topic × difficulty mastery appears once you’ve logged some questions.</div>}
+      ) : <div style={{ fontSize: 12.5, color: T.dim }}>{t("perf.mastery.empty")}</div>}
 
       {/* Calibration */}
-      <SubHead note="Are you right as often as you feel? Set confidence on questions to build this.">Calibration</SubHead>
+      <SubHead note={t("perf.cal.note")}>{t("perf.cal.title")}</SubHead>
       {cal.totalTagged >= 8 ? (
         <div>
           {cal.buckets.map((b) => (
             <div key={b.key} style={{ marginBottom: 6 }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 3 }}>
-                <span style={{ color: T.snow }}>{b.label} confidence <span style={{ color: T.dim }}>· {b.n}</span></span>
+                <span style={{ color: T.snow }}>{t("perf.cal." + b.key)} <span style={{ color: T.dim }}>· {b.n}</span></span>
                 <span style={{ color: b.acc == null ? T.dim : colorFor(b.acc * 100), fontWeight: 700, fontFamily: "ui-monospace, Menlo, monospace" }}>{b.acc == null ? "—" : Math.round(b.acc * 100) + "%"}</span>
               </div>
               <div style={{ height: 6, background: "#0d141d", borderRadius: 4, overflow: "hidden" }}>
@@ -196,15 +198,15 @@ function LearnerAnalytics({ timed, nTopics, accent }) {
             const hi = cal.buckets[2], lo = cal.buckets[0];
             let msg = null;
             if (hi.acc != null && lo.acc != null) {
-              if (hi.acc - lo.acc >= 0.1) msg = "Well calibrated — you're right more often when you feel confident.";
-              else if (hi.acc < lo.acc) msg = "Inverted — you're missing more of the questions you felt sure about. Slow down on “High” answers.";
-              else msg = "Confidence isn't tracking accuracy yet — your hit rate is similar regardless of how sure you feel.";
+              if (hi.acc - lo.acc >= 0.1) msg = t("perf.cal.wellCalibrated");
+              else if (hi.acc < lo.acc) msg = t("perf.cal.inverted");
+              else msg = t("perf.cal.notTracking");
             }
-            if (hi.acc != null && hi.acc < 0.7 && hi.n >= 4) msg = (msg ? msg + " " : "") + "You're overconfident on “High” answers.";
+            if (hi.acc != null && hi.acc < 0.7 && hi.n >= 4) msg = (msg ? msg + " " : "") + t("perf.cal.overconfident");
             return msg ? <div style={{ fontSize: 11.5, color: T.dim, lineHeight: 1.5, marginTop: 6 }}>{msg}</div> : null;
           })()}
         </div>
-      ) : <div style={{ fontSize: 12.5, color: T.dim }}>Tap Low / Med / High on questions as you answer — once you’ve tagged ~8, your confidence-vs-accuracy calibration shows here.</div>}
+      ) : <div style={{ fontSize: 12.5, color: T.dim }}>{t("perf.cal.empty")}</div>}
     </div>
   );
 }
@@ -247,6 +249,7 @@ function Bar({ label, n, pct, active, onClick }) {
   );
 }
 function ToolPanel({ tool, attempts }) {
+  const { t } = useLang();
   const [range, setRange] = useState("all");
   const [filters, setFilters] = useState({});
   const cardBase = { background: T.panel, border: `1px solid ${T.line}`, borderLeft: `4px solid ${tool.accent}`,
@@ -254,8 +257,8 @@ function ToolPanel({ tool, attempts }) {
   if (!attempts || !attempts.length) {
     return (
       <div style={cardBase}>
-        <div style={{ fontSize: 16, fontWeight: 800 }}>{tool.name}</div>
-        <div style={{ fontSize: 13, color: T.dim, marginTop: 6 }}>No recorded runs yet.</div>
+        <div style={{ fontSize: 16, fontWeight: 800 }}>{t("tool." + tool.key + ".name")}</div>
+        <div style={{ fontSize: 13, color: T.dim, marginTop: 6 }}>{t("perf.noRuns")}</div>
       </div>
     );
   }
@@ -274,21 +277,21 @@ function ToolPanel({ tool, attempts }) {
   return (
     <div style={cardBase}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8 }}>
-        <div style={{ fontSize: 16, fontWeight: 800 }}>{tool.name}</div>
-        <div style={{ display: "flex", gap: 6 }}>{rangeChip("all", "All time")}{rangeChip("30", "30d")}{rangeChip("7", "7d")}</div>
+        <div style={{ fontSize: 16, fontWeight: 800 }}>{t("tool." + tool.key + ".name")}</div>
+        <div style={{ display: "flex", gap: 6 }}>{rangeChip("all", t("perf.range.all"))}{rangeChip("30", t("perf.range.30"))}{rangeChip("7", t("perf.range.7"))}</div>
       </div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 8 }}>
         <div style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 34, fontWeight: 800, color: colorFor(overall), lineHeight: 1 }}>{overall == null ? "—" : overall + "%"}</div>
-        <div style={{ fontSize: 12.5, color: T.dim }}>{filtered.length} question{filtered.length === 1 ? "" : "s"}{active.length ? " (filtered)" : ""}</div>
+        <div style={{ fontSize: 12.5, color: T.dim }}>{t(filtered.length === 1 ? "perf.qOne" : "perf.qMany", { n: filtered.length })}{active.length ? t("perf.filtered") : ""}</div>
       </div>
       <div style={{ marginTop: 4 }}><Sparkline attempts={filtered} /></div>
       {active.length > 0 && (
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", margin: "6px 0 2px" }}>
           {active.map(([d, v]) => (
             <span key={d} onClick={() => toggle(d, v)} style={{ fontSize: 11.5, color: T.snow, background: "rgba(124,196,255,0.12)",
-              border: `1px solid ${T.ice}`, borderRadius: 20, padding: "3px 9px", cursor: "pointer" }}>{d}: {v} \u2715</span>
+              border: `1px solid ${T.ice}`, borderRadius: 20, padding: "3px 9px", cursor: "pointer" }}>{t("perf.dim." + d)}: {v} \u2715</span>
           ))}
-          <button onClick={() => setFilters({})} style={{ fontSize: 11.5, color: T.dim, background: "none", border: "none", cursor: "pointer" }}>Clear all</button>
+          <button onClick={() => setFilters({})} style={{ fontSize: 11.5, color: T.dim, background: "none", border: "none", cursor: "pointer" }}>{t("perf.clearAll")}</button>
         </div>
       )}
       {tool.dims.map((d) => {
@@ -300,7 +303,7 @@ function ToolPanel({ tool, attempts }) {
         if (!rows.length) return null;
         return (
           <div key={d} style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 11, letterSpacing: "0.8px", textTransform: "uppercase", color: T.dim, marginBottom: 6 }}>{d}</div>
+            <div style={{ fontSize: 11, letterSpacing: "0.8px", textTransform: "uppercase", color: T.dim, marginBottom: 6 }}>{t("perf.dim." + d)}</div>
             {rows.map((r) => <Bar key={r.val} label={r.val} n={r.n} pct={r.pct} active={filters[d] === r.val} onClick={() => toggle(d, r.val)} />)}
           </div>
         );
@@ -316,6 +319,7 @@ export function AnalyticsPanels({ attemptsByTool }) {
 }
 
 export function Performance({ onHome, session }) {
+  const { t } = useLang();
   const [data, setData] = useState(null);
   useEffect(() => {
     let alive = true;
@@ -331,14 +335,14 @@ export function Performance({ onHome, session }) {
   return (
     <div style={wrap}>
       <div style={inner}>
-        {onHome && <button onClick={onHome} style={{ background: "transparent", border: "none", color: T.dim, cursor: "pointer", fontSize: 13, padding: "0 0 12px", fontWeight: 600 }}>\u2190 All tools</button>}
-        <div style={{ fontSize: 12, letterSpacing: "1.6px", textTransform: "uppercase", color: T.dim }}>Performance analysis</div>
-        <h1 style={{ fontSize: 23, fontWeight: 800, margin: "6px 0 2px" }}>Your accuracy across every tool</h1>
-        <p style={{ fontSize: 13, color: T.dim, margin: "0 0 16px", lineHeight: 1.5 }}>Tap any bar to filter, and combine filters across categories. Exam runs recorded before per-question logging appear as "Unlogged" for format and difficulty.</p>
+        {onHome && <button onClick={onHome} style={{ background: "transparent", border: "none", color: T.dim, cursor: "pointer", fontSize: 13, padding: "0 0 12px", fontWeight: 600 }}>{t("nav.allTools")}</button>}
+        <div style={{ fontSize: 12, letterSpacing: "1.6px", textTransform: "uppercase", color: T.dim }}>{t("perf.eyebrow")}</div>
+        <h1 style={{ fontSize: 23, fontWeight: 800, margin: "6px 0 2px" }}>{t("perf.h1")}</h1>
+        <p style={{ fontSize: 13, color: T.dim, margin: "0 0 16px", lineHeight: 1.5 }}>{t("perf.intro")}</p>
         {!signedIn ? (
-          <div style={{ background: T.panel, border: `1px solid ${T.line}`, borderRadius: 14, padding: 16, fontSize: 13.5, color: T.dim }}>Sign in from the top bar to see your synced performance across devices.</div>
+          <div style={{ background: T.panel, border: `1px solid ${T.line}`, borderRadius: 14, padding: 16, fontSize: 13.5, color: T.dim }}>{t("perf.signIn")}</div>
         ) : data == null ? (
-          <div style={{ fontSize: 13, color: T.dim }}>Loading your history…</div>
+          <div style={{ fontSize: 13, color: T.dim }}>{t("perf.loading")}</div>
         ) : (
           <AnalyticsPanels attemptsByTool={data} />
         )}
