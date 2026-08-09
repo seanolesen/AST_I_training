@@ -491,7 +491,8 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome }) {
     (async () => {
       if (recording) {
         await saveRun({ ts: Date.now(), difficulty: settings.difficulty, topic: settings.topic,
-          correct, total, byTopic });
+          correct, total, byTopic,
+          questions: graded.map((g) => ({ topic: g.question.topic, type: g.question.type, diff: g.question.diff, correct: !!g.correct })) });
       }
       const runs = await loadRuns();
       if (alive) setHistory(runs);
@@ -585,7 +586,6 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome }) {
             This is your first recorded run — trends appear once you have a couple saved.
           </div>
         )}
-    
 
         {/* Review toggle */}
         <button onClick={() => setOpenReview((o) => !o)}

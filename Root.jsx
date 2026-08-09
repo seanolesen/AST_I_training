@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient";
 import { Ast1App } from "./App.jsx";
 import { SlopeApp } from "./SlopeApp.jsx";
+import { Performance } from "./Performance.jsx";
 
 const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0",
   ice: "#7cc4ff", amber: "#f0812c", line: "rgba(255,255,255,0.12)" };
@@ -89,6 +90,12 @@ function Home({ onPick, session }) {
           <div style={h}>Slope-Angle Trainer</div>
           <p style={p}>Train your eye to call above vs. below the 30-degree avalanche threshold.</p>
         </button>
+        {session && session.user && (
+          <button style={tile("#3FA372")} onClick={() => onPick("perf")}>
+            <div style={h}>Performance analysis</div>
+            <p style={p}>Accuracy across every tool — broken down by subject, format, and difficulty, with filters.</p>
+          </button>
+        )}
       </div>
     </div>
   );
@@ -113,6 +120,7 @@ export default function Root() {
       {view === "home" && <Home onPick={setView} session={session} />}
       {view === "ast1" && <Ast1App onHome={home} />}
       {view === "slope" && <SlopeApp onHome={home} />}
+      {view === "perf" && <Performance onHome={home} session={session} />}
     </React.Fragment>
   );
 }
