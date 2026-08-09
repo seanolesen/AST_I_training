@@ -52,6 +52,22 @@ function poolFor(topic, bank) {
   return topic === "all" ? bank : bank.filter((q) => q.topic === topic);
 }
 
+// ---- Adaptive selection: step difficulty with performance ------------
+const LV = { easy: 0, moderate: 1, hard: 2 };
+const LNAME = ["easy", "moderate", "hard"];
+function prep(q) { return q && q.type === "match" ? { ...q, _rights: shuffle(q.pairs.map((p) => p.r)) } : q; }
+function pickAdaptive(pool, level, used) {
+  const avail = pool.filter((x) => !used.has(x.id));
+  if (avail.length === 0) return null;
+  for (const L of [level, level - 1, level + 1, level - 2, level + 2]) {
+    const name = LNAME[L];
+    if (!name) continue;
+    const band = avail.filter((x) => x.diff === name);
+    if (band.length) return prep(band[Math.floor(Math.random() * band.length)]);
+  }
+  return prep(avail[Math.floor(Math.random() * avail.length)]);
+}
+
 function weightedSample(pool, n, diff) {
   const w = DIFF_WEIGHTS[diff] || DIFF_WEIGHTS.moderate;
   const picked = [];
@@ -157,7 +173,7 @@ function Segmented({ label, sub, options, value, onChange }) {
 }
 
 // ==================== SETUP SCREEN ===================================
-const DEFAULTS = { difficulty: "moderate", topic: "all", count: 25, feedback: "immediate", mode: "test" };
+const DEFAULTS = { difficulty: "moderate", topic: "all", count: 25, feedback: "immediate", mode: "test", adaptive: false };
 
 function RecordSwitch({ recording, onToggle }) {
   return (
@@ -235,6 +251,11 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
           sub="Scales both recall depth and scenario complexity — Easy leans on definitions, Hard on multi-factor judgment calls."
           value={settings.difficulty} onChange={(v) => set("difficulty", v)}
           options={[{ value: "easy", label: "Easy" }, { value: "moderate", label: "Moderate" }, { value: "hard", label: "Hard" }]} />
+
+        <Segmented label="Question selection"
+          sub="Adaptive starts at your chosen difficulty, then steps harder after a correct answer and easier after a miss — the set tracks your level as you go. Fixed keeps the difficulty mix constant."
+          value={settings.adaptive ? "adaptive" : "fixed"} onChange={(v) => set("adaptive", v === "adaptive")}
+          options={[{ value: "fixed", label: "Fixed" }, { value: "adaptive", label: "Adaptive" }]} />
 
         {/* Count slider */}
         <div style={{ marginBottom: 18 }}>
@@ -315,17 +336,28 @@ function ChoiceBtn({ children, onClick, disabled, state }) {
   );
 }
 
-function Quiz({ questions, settings, recording, onFinish }) {
+function Quiz({ questions, settings, recording, onFinish, pool, targetCount }) {
   const cfg = useCfg();
   const on = useAcronyms();
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState({});   // id -> user answer
   const [revealed, setRevealed] = useState({}); // id -> bool (immediate mode)
   const [conf, setConf] = useState({});           // id -> "low"|"med"|"high"
-  const q = questions[idx];
+  const adaptive = !!(settings.adaptive && Array.isArray(pool));
+  const usedRef = React.useRef(new Set());
+  const levelRef = React.useRef(LV[settings.difficulty] ?? 1);
+  const [served, setServed] = useState(() => {
+    if (!adaptive) return null;
+    const first = pickAdaptive(pool, levelRef.current, usedRef.current);
+    if (first) usedRef.current.add(first.id);
+    return first ? [first] : [];
+  });
+  const seq = adaptive ? (served || []) : questions;
+  const total = adaptive ? targetCount : questions.length;
+  const q = seq[idx];
   const study = settings.mode === "study";
   const immediate = study || settings.feedback === "immediate";
-  const isRevealed = immediate && revealed[q.id];
+  const isRevealed = immediate && q && revealed[q.id];
 
   const shell = { minHeight: "100%", background: C.slate, color: C.snow,
     fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif", padding: "16px 14px 28px", boxSizing: "border-box" };
@@ -339,24 +371,37 @@ function Quiz({ questions, settings, recording, onFinish }) {
     return false;
   }, []);
 
+  if (!q) return null;
+
   const setAns = (val) => setAnswers((a) => ({ ...a, [q.id]: val }));
   const answered = answers[q.id] != null &&
     (q.type !== "match" || Object.keys(answers[q.id] || {}).length === q.pairs.length);
 
   const reveal = () => setRevealed((r) => ({ ...r, [q.id]: true }));
 
+  const finalize = (list) => {
+    const graded = list.map((question) => ({
+      question, ans: answers[question.id] ?? null, correct: grade(question, answers[question.id]),
+      conf: conf[question.id] ?? null,
+    }));
+    onFinish(graded);
+  };
   const next = () => {
-    if (idx + 1 < questions.length) { setIdx(idx + 1); }
-    else {
-      const graded = questions.map((question) => ({
-        question, ans: answers[question.id] ?? null, correct: grade(question, answers[question.id]),
-        conf: conf[question.id] ?? null,
-      }));
-      onFinish(graded);
+    if (adaptive) {
+      const wasCorrect = grade(q, answers[q.id]);
+      levelRef.current = Math.max(0, Math.min(2, levelRef.current + (wasCorrect ? 1 : -1)));
+      if (served.length < total) {
+        const nx = pickAdaptive(pool, levelRef.current, usedRef.current);
+        if (nx) { usedRef.current.add(nx.id); setServed((s) => [...s, nx]); setIdx(idx + 1); return; }
+      }
+      finalize(served);
+      return;
     }
+    if (idx + 1 < questions.length) { setIdx(idx + 1); }
+    else { finalize(questions); }
   };
 
-  const progress = (idx) / questions.length;
+  const progress = total ? idx / total : 0;
   const topicLabel = cfg.topics[q.topic];
 
   return (
@@ -371,7 +416,7 @@ function Quiz({ questions, settings, recording, onFinish }) {
                 border: `1px solid ${C.threshold}`, borderRadius: 6, padding: "2px 6px" }}>GUEST</span>
             )}
             <span style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 13, color: C.textDim }}>
-              {idx + 1} / {questions.length}
+              {idx + 1} / {total}
             </span>
           </div>
         </div>
@@ -471,7 +516,7 @@ function Quiz({ questions, settings, recording, onFinish }) {
                 background: (answered || isRevealed) ? C.ice : C.slate2,
                 color: (answered || isRevealed) ? C.slate : C.textMute,
                 fontWeight: 800, fontSize: 15, cursor: (answered || isRevealed) ? "pointer" : "default" }}>
-              {idx + 1 < questions.length ? "Next →" : "Finish exam"}
+              {(adaptive ? idx + 1 < total : idx + 1 < questions.length) ? "Next →" : "Finish exam"}
             </button>
           )}
           {!immediate && !answered && q.type === "match" && (
@@ -548,7 +593,7 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome, onRecomm
     let alive = true;
     (async () => {
       if (recording) {
-        await saveRun({ ts: Date.now(), app: cfg.appKey, mode: settings.mode, difficulty: settings.difficulty, topic: settings.topic,
+        await saveRun({ ts: Date.now(), app: cfg.appKey, mode: settings.mode, difficulty: settings.difficulty, topic: settings.topic, adaptive: !!settings.adaptive,
           correct, total, byTopic,
           questions: graded.map((g) => ({ topic: g.question.topic, type: g.question.type, diff: g.question.diff, correct: !!g.correct, conf: g.conf ?? null })) });
       }
@@ -773,6 +818,7 @@ export function ExamApp({ onHome, config }) {
   const [questions, setQuestions] = useState([]);
   const [graded, setGraded] = useState([]);
   const [hist, setHist] = useState([]);
+  const [adaptiveSet, setAdaptiveSet] = useState(null); // { pool, targetCount } when adaptive
 
   // load persisted record/guest preference
   useEffect(() => {
@@ -801,9 +847,17 @@ export function ExamApp({ onHome, config }) {
 
   const buildAndStart = useCallback((override) => {
     const eff = override ? { ...settings, ...override } : settings;
-    const qs = weightedSample(poolFor(eff.topic, config.bank), eff.count, eff.difficulty);
     if (override) setSettings(eff);
-    setQuestions(qs); setPhase("quiz");
+    if (eff.adaptive) {
+      const full = shuffle(poolFor(eff.topic, config.bank));
+      setAdaptiveSet({ pool: full, targetCount: Math.min(eff.count, full.length) });
+      setQuestions([]);
+    } else {
+      const qs = weightedSample(poolFor(eff.topic, config.bank), eff.count, eff.difficulty);
+      setAdaptiveSet(null);
+      setQuestions(qs);
+    }
+    setPhase("quiz");
   }, [settings, config.bank]);
   const start = useCallback(() => buildAndStart(null), [buildAndStart]);
   const useRecommendation = useCallback(() => {
@@ -820,7 +874,8 @@ export function ExamApp({ onHome, config }) {
       recording={recording} setRecording={setRecording} onStart={start} maxCount={maxCount} onHome={onHome}
       recommendation={recommendation} onUseRecommendation={useRecommendation} />;
   } else if (phase === "quiz") {
-    screen = <Quiz questions={questions} settings={settings} recording={recording} onFinish={finish} />;
+    screen = <Quiz questions={questions} settings={settings} recording={recording} onFinish={finish}
+      pool={adaptiveSet ? adaptiveSet.pool : null} targetCount={adaptiveSet ? adaptiveSet.targetCount : 0} />;
   } else {
     screen = <Results graded={graded} settings={settings} recording={recording}
       onRetry={start} onNew={() => setPhase("setup")} onHome={onHome} onRecommended={buildAndStart} />;
