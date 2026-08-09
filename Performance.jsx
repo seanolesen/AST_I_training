@@ -4,7 +4,7 @@ import { loadRuns, loadDoc } from "./storage";
 const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0", ice: "#7cc4ff",
   amber: "#f0812c", good: "#3FA372", warn: "#E0B93C", bad: "#D6483B", line: "rgba(255,255,255,0.12)" };
 const FONT = "system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
-const cap = (s) => (s && typeof s === "string" ? s[0].toUpperCase() + s.slice(1) : (s || "\u2014"));
+const cap = (s) => (s && typeof s === "string" ? s[0].toUpperCase() + s.slice(1) : (s || "—"));
 
 const TOPIC_LABEL = { terrain: "Terrain", snowpack: "Snowpack", weather: "Weather",
   forecast: "Forecast & Danger", planning: "Trip Planning", rescue: "Companion Rescue", travel: "Travel & Human Factors" };
@@ -18,7 +18,7 @@ function normalizeExam(payloads, topicMap) {
   for (const r of payloads || []) {
     if (Array.isArray(r.questions) && r.questions.length) {
       for (const q of r.questions)
-        out.push({ correct: !!q.correct, ts: r.ts || 0,
+        out.push({ correct: !!q.correct, ts: r.ts || 0, conf: q.conf ?? null,
           dims: { Subject: topicMap[q.topic] || cap(q.topic), Format: FORMAT_LABEL[q.type] || cap(q.type), Difficulty: cap(q.diff) } });
     } else if (r.byTopic) {
       for (const [tk, v] of Object.entries(r.byTopic))
@@ -54,9 +54,9 @@ export function normalizeCard(hist) {
 
 // ---- Registry (add a tool here to give it a panel everywhere) ----
 export const TOOLS = [
-  { key: "ast1", name: "AST 1 Practice", accent: T.ice, dims: ["Subject", "Format", "Difficulty"],
+  { key: "ast1", name: "AST 1 Practice", accent: T.ice, dims: ["Subject", "Format", "Difficulty"], learner: true, nTopics: 7,
     load: async () => { try { return normalizeAst1(await loadRuns("ast1")); } catch (e) { return []; } } },
-  { key: "ast2", name: "AST 2 Practice", accent: "#b98cff", dims: ["Subject", "Format", "Difficulty"],
+  { key: "ast2", name: "AST 2 Practice", accent: "#b98cff", dims: ["Subject", "Format", "Difficulty"], learner: true, nTopics: 7,
     load: async () => { try { return normalizeAst2(await loadRuns("ast2")); } catch (e) { return []; } } },
   { key: "slope", name: "Slope-Angle Trainer", accent: T.amber, dims: ["View", "Proximity", "Difficulty"],
     load: async () => { try { return normalizeSlope(await loadDoc("slope", { attempts: [] })); } catch (e) { return []; } } },
@@ -66,6 +66,148 @@ export const TOOLS = [
 
 const pctOf = (list) => (list.length ? Math.round((100 * list.filter((a) => a.correct).length) / list.length) : null);
 const colorFor = (p) => (p == null ? T.dim : p >= 80 ? T.good : p >= 50 ? T.warn : T.bad);
+
+// ==================== LEARNER ANALYTICS (exam tools) ====================
+const DIFF_COLS = ["Easy", "Moderate", "Hard"];
+const bandColor = (acc, n) => (n < 3 ? "#243040" : acc >= 0.85 ? T.good : acc >= 0.7 ? "#6FB98F"
+  : acc >= 0.5 ? T.warn : T.bad);
+
+function readinessScore(timed, nTopics) {
+  const logged = timed.filter((a) => a.dims.Subject !== "Unlogged");
+  if (!logged.length) return null;
+  const acc = logged.filter((a) => a.correct).length / logged.length;
+  const byT = {};
+  for (const a of logged) { const t = a.dims.Subject; (byT[t] = byT[t] || { c: 0, n: 0 }); byT[t].n++; if (a.correct) byT[t].c++; }
+  const covered = Object.values(byT).filter((t) => t.n >= 5);
+  const masteryMean = covered.length ? covered.reduce((s, t) => s + t.c / t.n, 0) / covered.length : acc;
+  const breadth = nTopics ? Math.min(1, covered.length / nTopics) : 1;
+  const volume = Math.min(1, logged.length / 150);
+  const base = 0.55 * acc + 0.30 * masteryMean + 0.15 * breadth;
+  const score = Math.round(100 * base * (0.5 + 0.5 * volume));
+  return { score, acc, covered: covered.length, nTopics, volume, n: logged.length };
+}
+const readinessLabel = (s) => s >= 85 ? "Exam-ready (self-study)" : s >= 70 ? "Approaching ready"
+  : s >= 50 ? "Developing" : "Building foundation";
+
+function masteryGrid(timed) {
+  const rows = {};
+  for (const a of timed) {
+    const t = a.dims.Subject, d = a.dims.Difficulty;
+    if (t === "Unlogged" || !DIFF_COLS.includes(d)) continue;
+    (rows[t] = rows[t] || {});
+    (rows[t][d] = rows[t][d] || { c: 0, n: 0 });
+    rows[t][d].n++; if (a.correct) rows[t][d].c++;
+  }
+  return Object.entries(rows).map(([topic, cells]) => ({ topic, cells })).sort((a, b) => a.topic.localeCompare(b.topic));
+}
+
+function calibration(timed) {
+  const order = [["low", "Low"], ["med", "Med"], ["high", "High"]];
+  const buckets = order.map(([k, l]) => {
+    const list = timed.filter((a) => a.conf === k);
+    return { key: k, label: l, n: list.length, acc: list.length ? list.filter((a) => a.correct).length / list.length : null };
+  });
+  return { buckets, totalTagged: buckets.reduce((s, b) => s + b.n, 0) };
+}
+
+function SubHead({ children, note }) {
+  return (
+    <div style={{ marginTop: 18, marginBottom: 8 }}>
+      <div style={{ fontSize: 11, letterSpacing: "0.8px", textTransform: "uppercase", color: T.dim }}>{children}</div>
+      {note && <div style={{ fontSize: 11, color: "#6E8291", marginTop: 2, lineHeight: 1.4 }}>{note}</div>}
+    </div>
+  );
+}
+
+function LearnerAnalytics({ timed, nTopics, accent }) {
+  const rd = readinessScore(timed, nTopics);
+  const grid = masteryGrid(timed);
+  const cal = calibration(timed);
+
+  return (
+    <div style={{ marginTop: 14, borderTop: `1px solid ${T.line}`, paddingTop: 4 }}>
+      {/* Readiness */}
+      <SubHead note="Self-study heuristic from accuracy, topic breadth, and volume — not an official readiness measure.">Readiness</SubHead>
+      {rd ? (
+        <div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+            <div style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 30, fontWeight: 800, color: colorFor(rd.score), lineHeight: 1 }}>{rd.score}</div>
+            <div style={{ fontSize: 13, color: T.snow, fontWeight: 700 }}>{readinessLabel(rd.score)}</div>
+          </div>
+          <div style={{ height: 7, background: "#0d141d", borderRadius: 4, overflow: "hidden", margin: "8px 0 6px" }}>
+            <div style={{ height: "100%", width: `${rd.score}%`, background: colorFor(rd.score) }} />
+          </div>
+          <div style={{ fontSize: 11.5, color: T.dim, lineHeight: 1.5 }}>
+            {Math.round(rd.acc * 100)}% accuracy · {rd.covered}/{rd.nTopics} topics with enough data · {rd.n} question{rd.n === 1 ? "" : "s"} logged
+            {rd.volume < 1 && <span> · score is capped until you’ve logged more (~150)</span>}
+          </div>
+        </div>
+      ) : <div style={{ fontSize: 12.5, color: T.dim }}>Run a recorded set with per-question logging to unlock a readiness score.</div>}
+
+      {/* Mastery map */}
+      <SubHead note="Accuracy by topic × difficulty. Cells with under 3 seen stay muted.">Mastery map</SubHead>
+      {grid.length ? (
+        <div>
+          <div style={{ display: "grid", gridTemplateColumns: "1.4fr repeat(3, 1fr)", gap: 3, fontSize: 10.5 }}>
+            <div />
+            {DIFF_COLS.map((d) => <div key={d} style={{ textAlign: "center", color: T.dim, fontWeight: 700, paddingBottom: 2 }}>{d}</div>)}
+            {grid.map((row) => (
+              <React.Fragment key={row.topic}>
+                <div style={{ color: T.snow, fontSize: 11, alignSelf: "center", paddingRight: 4, lineHeight: 1.2 }}>{row.topic}</div>
+                {DIFF_COLS.map((d) => {
+                  const cell = row.cells[d];
+                  const n = cell ? cell.n : 0, acc = cell ? cell.c / cell.n : null;
+                  return (
+                    <div key={d} title={cell ? `${cell.c}/${cell.n}` : "no data"}
+                      style={{ background: acc == null ? "#141c26" : bandColor(acc, n), borderRadius: 5, minHeight: 30,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        color: acc == null ? "#3E4E5E" : (n < 3 ? T.dim : "#0c1218"), fontWeight: 800, fontSize: 11 }}>
+                      {acc == null ? "—" : Math.round(acc * 100) + "%"}
+                    </div>
+                  );
+                })}
+              </React.Fragment>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 8, fontSize: 10.5, color: T.dim }}>
+            <span><span style={{ display: "inline-block", width: 9, height: 9, background: T.good, borderRadius: 2, marginRight: 4 }} />Mastered 85%+</span>
+            <span><span style={{ display: "inline-block", width: 9, height: 9, background: T.warn, borderRadius: 2, marginRight: 4 }} />Developing 50–69%</span>
+            <span><span style={{ display: "inline-block", width: 9, height: 9, background: T.bad, borderRadius: 2, marginRight: 4 }} />Weak &lt;50%</span>
+          </div>
+        </div>
+      ) : <div style={{ fontSize: 12.5, color: T.dim }}>Topic × difficulty mastery appears once you’ve logged some questions.</div>}
+
+      {/* Calibration */}
+      <SubHead note="Are you right as often as you feel? Set confidence on questions to build this.">Calibration</SubHead>
+      {cal.totalTagged >= 8 ? (
+        <div>
+          {cal.buckets.map((b) => (
+            <div key={b.key} style={{ marginBottom: 6 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 3 }}>
+                <span style={{ color: T.snow }}>{b.label} confidence <span style={{ color: T.dim }}>· {b.n}</span></span>
+                <span style={{ color: b.acc == null ? T.dim : colorFor(b.acc * 100), fontWeight: 700, fontFamily: "ui-monospace, Menlo, monospace" }}>{b.acc == null ? "—" : Math.round(b.acc * 100) + "%"}</span>
+              </div>
+              <div style={{ height: 6, background: "#0d141d", borderRadius: 4, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${(b.acc || 0) * 100}%`, background: b.acc == null ? T.dim : colorFor(b.acc * 100) }} />
+              </div>
+            </div>
+          ))}
+          {(() => {
+            const hi = cal.buckets[2], lo = cal.buckets[0];
+            let msg = null;
+            if (hi.acc != null && lo.acc != null) {
+              if (hi.acc - lo.acc >= 0.1) msg = "Well calibrated — you're right more often when you feel confident.";
+              else if (hi.acc < lo.acc) msg = "Inverted — you're missing more of the questions you felt sure about. Slow down on “High” answers.";
+              else msg = "Confidence isn't tracking accuracy yet — your hit rate is similar regardless of how sure you feel.";
+            }
+            if (hi.acc != null && hi.acc < 0.7 && hi.n >= 4) msg = (msg ? msg + " " : "") + "You're overconfident on “High” answers.";
+            return msg ? <div style={{ fontSize: 11.5, color: T.dim, lineHeight: 1.5, marginTop: 6 }}>{msg}</div> : null;
+          })()}
+        </div>
+      ) : <div style={{ fontSize: 12.5, color: T.dim }}>Tap Low / Med / High on questions as you answer — once you’ve tagged ~8, your confidence-vs-accuracy calibration shows here.</div>}
+    </div>
+  );
+}
 
 function Sparkline({ attempts }) {
   const sorted = [...attempts].sort((a, b) => a.ts - b.ts);
@@ -95,8 +237,8 @@ function Bar({ label, n, pct, active, onClick }) {
         background: active ? "rgba(124,196,255,0.10)" : "transparent",
         border: active ? `1px solid ${T.ice}` : "1px solid transparent", borderRadius: 8, padding: "6px 8px", marginBottom: 4 }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 3 }}>
-        <span style={{ color: T.snow }}>{label} <span style={{ color: T.dim }}>\u00b7 {n}</span></span>
-        <span style={{ color: col, fontWeight: 700, fontFamily: "ui-monospace, Menlo, monospace" }}>{pct == null ? "\u2014" : pct + "%"}</span>
+        <span style={{ color: T.snow }}>{label} <span style={{ color: T.dim }}>· {n}</span></span>
+        <span style={{ color: col, fontWeight: 700, fontFamily: "ui-monospace, Menlo, monospace" }}>{pct == null ? "—" : pct + "%"}</span>
       </div>
       <div style={{ height: 6, background: "#0d141d", borderRadius: 4, overflow: "hidden" }}>
         <div style={{ height: "100%", width: `${pct || 0}%`, background: col }} />
@@ -136,7 +278,7 @@ function ToolPanel({ tool, attempts }) {
         <div style={{ display: "flex", gap: 6 }}>{rangeChip("all", "All time")}{rangeChip("30", "30d")}{rangeChip("7", "7d")}</div>
       </div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 8 }}>
-        <div style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 34, fontWeight: 800, color: colorFor(overall), lineHeight: 1 }}>{overall == null ? "\u2014" : overall + "%"}</div>
+        <div style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 34, fontWeight: 800, color: colorFor(overall), lineHeight: 1 }}>{overall == null ? "—" : overall + "%"}</div>
         <div style={{ fontSize: 12.5, color: T.dim }}>{filtered.length} question{filtered.length === 1 ? "" : "s"}{active.length ? " (filtered)" : ""}</div>
       </div>
       <div style={{ marginTop: 4 }}><Sparkline attempts={filtered} /></div>
@@ -163,6 +305,7 @@ function ToolPanel({ tool, attempts }) {
           </div>
         );
       })}
+      {tool.learner && <LearnerAnalytics timed={timed} nTopics={tool.nTopics} accent={tool.accent} />}
     </div>
   );
 }
@@ -195,7 +338,7 @@ export function Performance({ onHome, session }) {
         {!signedIn ? (
           <div style={{ background: T.panel, border: `1px solid ${T.line}`, borderRadius: 14, padding: 16, fontSize: 13.5, color: T.dim }}>Sign in from the top bar to see your synced performance across devices.</div>
         ) : data == null ? (
-          <div style={{ fontSize: 13, color: T.dim }}>Loading your history\u2026</div>
+          <div style={{ fontSize: 13, color: T.dim }}>Loading your history…</div>
         ) : (
           <AnalyticsPanels attemptsByTool={data} />
         )}
