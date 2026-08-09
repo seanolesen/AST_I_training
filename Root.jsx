@@ -5,6 +5,7 @@ import { SlopeApp } from "./SlopeApp.jsx";
 import { CardApp } from "./CardApp.jsx";
 import { DangerApp } from "./DangerApp.jsx";
 import { TerrainApp } from "./TerrainApp.jsx";
+import { BeaconApp } from "./BeaconApp.jsx";
 import { Performance } from "./Performance.jsx";
 import { SiteAnalytics } from "./SiteAnalytics.jsx";
 import { AccountApp } from "./AccountApp.jsx";
@@ -112,6 +113,10 @@ function Home({ onPick, session, isAdmin }) {
           <div style={h}>{t("tool.terrain.name")}</div>
           <p style={p}>{t("tool.terrain.desc")}</p>
         </button>
+        <button style={tile("#3fb6c9")} onClick={() => onPick("beacon")}>
+          <div style={h}>{t("tool.beacon.name")}</div>
+          <p style={p}>{t("tool.beacon.desc")}</p>
+        </button>
         <button style={tile(T.ice)} onClick={() => onPick("ast1")}>
           <div style={h}>{t("tool.ast1.name")}</div>
           <p style={p}>{t("tool.ast1.desc")}</p>
@@ -210,6 +215,7 @@ export default function Root() {
       {view === "card" && <CardApp onHome={home} />}
       {view === "danger" && <DangerApp onHome={home} />}
       {view === "terrain" && <TerrainApp onHome={home} />}
+      {view === "beacon" && <BeaconApp onHome={home} />}
       {view === "perf" && <Performance onHome={home} session={session} />}
       {view === "admin" && isAdmin && <SiteAnalytics onHome={home} session={session} />}
       {view === "account" && <AccountApp onHome={home} session={session} onSignOut={() => { try { supabase && supabase.auth.signOut(); } catch (e) {} home(); }} />}

@@ -15,6 +15,7 @@ const FORMAT_LABEL = { mc: "Multiple choice", tf: "True / False", match: "Matchi
 
 import { normalizeDanger } from "./DangerApp.jsx";
 import { normalizeTerrain } from "./TerrainApp.jsx";
+import { normalizeBeacon } from "./BeaconApp.jsx";
 
 // ---- Pure normalizers: raw stored data -> flat attempts {correct, ts, dims{}} ----
 function normalizeExam(payloads, topicMap) {
@@ -66,6 +67,8 @@ export const TOOLS = [
     load: async () => { try { return normalizeDanger(await loadDoc("danger", { attempts: [] })); } catch (e) { return []; } } },
   { key: "terrain", name: "Terrain-Trap Trainer", accent: "#A6754C", dims: ["Feature", "Difficulty"],
     load: async () => { try { return normalizeTerrain(await loadDoc("terrain", { attempts: [] })); } catch (e) { return []; } } },
+  { key: "beacon", name: "Beacon Search Simulator", accent: "#3fb6c9", dims: ["Result", "Difficulty"],
+    load: async () => { try { return normalizeBeacon(await loadDoc("beacon", { attempts: [] })); } catch (e) { return []; } } },
   { key: "ast1", name: "AST 1 Practice", accent: T.ice, dims: ["Subject", "Format", "Difficulty"], learner: true, nTopics: 7,
     load: async () => { try { return normalizeAst1(await loadRuns("ast1")); } catch (e) { return []; } } },
   { key: "ast2", name: "AST 2 Practice", accent: "#b98cff", dims: ["Subject", "Format", "Difficulty"], learner: true, nTopics: 7,
@@ -91,6 +94,7 @@ const VAL_KEY = {
   Proximity: { "Near (\u00b15\u00b0)": "perf.prox.near", "Clear of 30\u00b0": "perf.prox.clear" },
   Skill: { "Sizing": "card.trend.sizing", "Grain ID": "card.trend.grainId" },
   Band: { "Alpine": "danger.band.alp", "Treeline": "danger.band.tl", "Below treeline": "danger.band.btl" },
+  Result: { "Strike": "beacon.res.strike", "Close": "beacon.res.close", "Miss": "beacon.res.miss" },
   Feature: { "Gully": "terrain.feat.gully.name", "Cliff": "terrain.feat.cliff.name", "Bench": "terrain.feat.bench.name", "Trees": "terrain.feat.trees.name", "Hollow": "terrain.feat.hollow.name", "Crevasse": "terrain.feat.crevasse.name", "Apron": "terrain.feat.apron.name", "Meadow": "terrain.feat.meadow.name", "Ridge": "terrain.feat.ridge.name", "Spread": "terrain.feat.spread.name" },
 };
 // Localize a dimension VALUE for display (grouping still uses the raw English value).
