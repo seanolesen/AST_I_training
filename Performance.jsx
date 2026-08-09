@@ -41,6 +41,16 @@ export function normalizeSlope(hist) {
     Difficulty: cap(a.diff),
   } }));
 }
+const GRAIN_LABEL = { PP: "New snow", DF: "Decomposing", RG: "Rounded", FC: "Faceted",
+  DH: "Depth hoar", SH: "Surface hoar", MF: "Melt-freeze" };
+export function normalizeCard(hist) {
+  const at = (hist && hist.attempts) || [];
+  return at.map((a) => ({ correct: !!a.correct, ts: a.ts || 0, dims: {
+    Skill: a.mode === "size" ? "Sizing" : "Grain ID",
+    Grain: GRAIN_LABEL[a.code] || cap(a.code),
+    Difficulty: cap(a.diff),
+  } }));
+}
 
 // ---- Registry (add a tool here to give it a panel everywhere) ----
 export const TOOLS = [
@@ -50,6 +60,8 @@ export const TOOLS = [
     load: async () => { try { return normalizeAst2(await loadRuns("ast2")); } catch (e) { return []; } } },
   { key: "slope", name: "Slope-Angle Trainer", accent: T.amber, dims: ["View", "Proximity", "Difficulty"],
     load: async () => { try { return normalizeSlope(await loadDoc("slope", { attempts: [] })); } catch (e) { return []; } } },
+  { key: "card", name: "Crystal Card Trainer", accent: "#5AD1CF", dims: ["Skill", "Grain", "Difficulty"],
+    load: async () => { try { return normalizeCard(await loadDoc("card", { attempts: [] })); } catch (e) { return []; } } },
 ];
 
 const pctOf = (list) => (list.length ? Math.round((100 * list.filter((a) => a.correct).length) / list.length) : null);

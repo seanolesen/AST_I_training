@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient";
 import { Ast1App, Ast2App } from "./App.jsx";
 import { SlopeApp } from "./SlopeApp.jsx";
+import { CardApp } from "./CardApp.jsx";
 import { Performance } from "./Performance.jsx";
 import { SiteAnalytics } from "./SiteAnalytics.jsx";
+import { ExpandToggle, ax, useAcronyms } from "./glossary.jsx";
 
 const SUPER_ADMIN = "sean.olesen@gmail.com";
 
@@ -58,6 +60,7 @@ function TopBar({ session, view, onHome }) {
     <div style={row}>
       {back}
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+        <ExpandToggle />
         {auth}
       </div>
     </div>
@@ -65,6 +68,7 @@ function TopBar({ session, view, onHome }) {
 }
 
 function Home({ onPick, session, isAdmin }) {
+  const on = useAcronyms();
   const wrap = { minHeight: "calc(100vh - 44px)", background: T.bg, color: T.snow,
     fontFamily: FONT, padding: "30px 16px 44px", boxSizing: "border-box" };
   const inner = { maxWidth: 540, margin: "0 auto" };
@@ -89,13 +93,17 @@ function Home({ onPick, session, isAdmin }) {
           <div style={h}>Slope-Angle Trainer</div>
           <p style={p}>Train your eye to call above vs. below the 30-degree avalanche threshold.</p>
         </button>
+        <button style={tile("#5AD1CF")} onClick={() => onPick("card")}>
+          <div style={h}>Crystal Card Trainer</div>
+          <p style={p}>Read snow grains off a to-scale BCA card — size crystals against the grid and classify grain type, from new snow to surface hoar.</p>
+        </button>
         <button style={tile(T.ice)} onClick={() => onPick("ast1")}>
           <div style={h}>AST 1 Practice</div>
           <p style={p}>273 questions across terrain, snowpack, weather, forecasting, trip planning, companion rescue, and human factors.</p>
         </button>
         <button style={tile("#b98cff")} onClick={() => onPick("ast2")}>
           <div style={h}>AST 2 Practice</div>
-          <p style={p}>Advanced curriculum — snowpack tests, avalanche problems, terrain &amp; ATES, decision-making, and more.</p>
+          <p style={p}>{ax("Advanced curriculum — snowpack tests, avalanche problems, terrain & ATES, decision-making, and more.", on)}</p>
         </button>
         {session && session.user && (
           <button style={tile("#3FA372")} onClick={() => onPick("perf")}>
@@ -116,7 +124,8 @@ function Home({ onPick, session, isAdmin }) {
 
 export default function Root() {
   const [session, setSession] = useState(null);
-  const [view, setView] = useState("home"); // home | ast1 | ast2 | slope | perf | admin
+  const on = useAcronyms();
+  const [view, setView] = useState("home"); // home | ast1 | ast2 | slope | card | perf | admin
   const [isAdmin, setIsAdmin] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
 
@@ -159,7 +168,7 @@ export default function Root() {
             <div style={{ fontSize: 12, letterSpacing: "1.4px", textTransform: "uppercase", color: T.dim }}>Before you start</div>
             <h2 style={{ fontSize: 20, fontWeight: 800, margin: "6px 0 10px" }}>A study aid, not the real thing</h2>
             <p style={{ fontSize: 13.5, color: T.dim, lineHeight: 1.55, margin: "0 0 10px" }}>
-              These tools help you prepare for AST 1 and AST 2, but they are not a substitute for a certified course or for real-world judgment. Questions are original study material, not official exam content, and the 80% figure is a self-study benchmark, not a pass mark.
+              {ax("These tools help you prepare for AST 1 and AST 2, but they are not a substitute for a certified course or for real-world judgment. Questions are original study material, not official exam content, and the 80% figure is a self-study benchmark, not a pass mark.", on)}
             </p>
             <p style={{ fontSize: 13.5, color: T.dim, lineHeight: 1.55, margin: "0 0 16px" }}>
               Avalanche terrain is dangerous. Take a course, carry a transceiver, probe, and shovel, check the local bulletin, and make decisions with trained partners.
@@ -177,6 +186,7 @@ export default function Root() {
       {view === "ast1" && <Ast1App onHome={home} />}
       {view === "ast2" && <Ast2App onHome={home} />}
       {view === "slope" && <SlopeApp onHome={home} />}
+      {view === "card" && <CardApp onHome={home} />}
       {view === "perf" && <Performance onHome={home} session={session} />}
       {view === "admin" && isAdmin && <SiteAnalytics onHome={home} session={session} />}
     </React.Fragment>
