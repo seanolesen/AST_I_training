@@ -104,6 +104,26 @@ function analyzeRuns(runs) {
   return { weighted, runsCount: runs.length, weak };
 }
 
+// Curriculum reference for a question: per-question override, else per-topic, else default.
+function sourceFor(q, cfg) {
+  if (!q) return null;
+  if (q.source) return q.source;
+  if (cfg && cfg.sources && cfg.sources[q.topic]) return cfg.sources[q.topic];
+  return (cfg && cfg.sourceDefault) || null;
+}
+
+// Build a "recommended next session" from run history: target the weakest topic.
+function recommendFrom(runs, cfg) {
+  const a = analyzeRuns(runs);
+  if (!a || !a.weak || a.weak.length === 0) return null;
+  const weak = a.weak.filter((w) => cfg.topics[w.topic]);
+  if (weak.length === 0) return null;
+  const w = weak[0];
+  const difficulty = w.acc < 0.6 ? "moderate" : "hard";
+  const mode = w.acc < 0.6 ? "study" : "test";
+  return { topic: w.topic, acc: w.acc, n: w.n, difficulty, mode, count: 15, label: cfg.topics[w.topic] };
+}
+
 // ==================== UI PRIMITIVES ==================================
 function Eyebrow({ children }) {
   return (
@@ -164,7 +184,7 @@ function RecordSwitch({ recording, onToggle }) {
   );
 }
 
-function Setup({ settings, setSettings, recording, setRecording, onStart, maxCount, onHome }) {
+function Setup({ settings, setSettings, recording, setRecording, onStart, maxCount, onHome, recommendation, onUseRecommendation }) {
   const cfg = useCfg();
   const set = (k, v) => setSettings((s) => ({ ...s, [k]: v }));
   const shell = { minHeight: "100%", background: C.slate, color: C.snow,
@@ -188,6 +208,23 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
         </p>
 
         <RecordSwitch recording={recording} onToggle={() => setRecording((r) => !r)} />
+
+        {recommendation && (
+          <button onClick={onUseRecommendation}
+            style={{ width: "100%", textAlign: "left", cursor: "pointer", marginBottom: 18,
+              padding: "13px 15px", borderRadius: 12, background: C.slate2,
+              border: `1px solid ${C.ice}`, borderLeft: `4px solid ${C.ice}`, color: C.snow }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: C.ice, marginBottom: 4 }}>
+              Recommended next session
+            </div>
+            <div style={{ fontSize: 13, lineHeight: 1.5, color: C.snow }}>
+              Focus on <b>{recommendation.label}</b> — your weakest area at {Math.round(recommendation.acc * 100)}% over {recommendation.n} seen.
+            </div>
+            <div style={{ fontSize: 11.5, color: C.textDim, marginTop: 4 }}>
+              Tap to load: {recommendation.label} · {recommendation.difficulty} · {recommendation.mode} · {recommendation.count} questions →
+            </div>
+          </button>
+        )}
 
         <Segmented label="Session type"
           sub="Study shows the explanation after every question and drops the pass/fail framing. Test grades you against the study target."
@@ -410,6 +447,11 @@ function Quiz({ questions, settings, recording, onFinish }) {
               {grade(q, answers[q.id]) ? "Correct" : "Not quite"}
             </div>
             <div style={{ fontSize: 13.5, lineHeight: 1.5, color: C.snow }}>{ax(q.explain, on)}</div>
+            {sourceFor(q, cfg) && (
+              <div style={{ fontSize: 11, color: C.textMute, marginTop: 8, lineHeight: 1.45 }}>
+                <span style={{ color: C.textDim, fontWeight: 700 }}>Reference · </span>{ax(sourceFor(q, cfg), on)}
+              </div>
+            )}
           </div>
         )}
 
@@ -485,7 +527,7 @@ function MatchBody({ q, value, revealed, onChange }) {
 
 // ==================== RESULTS SCREEN =================================
 
-function Results({ graded, settings, recording, onRetry, onNew, onHome }) {
+function Results({ graded, settings, recording, onRetry, onNew, onHome, onRecommended }) {
   const cfg = useCfg();
   const study = settings.mode === "study";
   const [history, setHistory] = useState(undefined); // undefined = loading
@@ -518,6 +560,16 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome }) {
   }, []);
 
   const analysis = history && history.length ? analyzeRuns(history) : null;
+  const recTopic = analysis && analysis.weak ? analysis.weak.filter((w) => cfg.topics[w.topic])[0] : null;
+  const startWeakSpots = () => {
+    if (!recTopic || !onRecommended) return;
+    onRecommended({
+      topic: recTopic.topic,
+      difficulty: recTopic.acc < 0.6 ? "moderate" : "hard",
+      mode: recTopic.acc < 0.6 ? "study" : "test",
+      count: 15,
+    });
+  };
 
   const shell = { minHeight: "100%", background: C.slate, color: C.snow,
     fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif", padding: "20px 14px 34px", boxSizing: "border-box" };
@@ -625,6 +677,15 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome }) {
           </div>
         )}
 
+        {/* Recommended next: drill weakest topic */}
+        {recTopic && onRecommended && (
+          <button onClick={startWeakSpots}
+            style={{ width: "100%", padding: "14px", borderRadius: 12, border: "none", cursor: "pointer",
+              background: C.threshold, color: C.slate, fontWeight: 800, fontSize: 15, marginBottom: 10 }}>
+            Drill my weak spot: {cfg.topics[recTopic.topic]} ({Math.round(recTopic.acc * 100)}%) →
+          </button>
+        )}
+
         {/* Actions */}
         <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
           <button onClick={onRetry}
@@ -695,6 +756,11 @@ function ReviewItem({ n, g }) {
       )}
       <div style={{ fontSize: 12.5, color: C.textDim, lineHeight: 1.5, marginTop: 4,
         paddingTop: 6, borderTop: `1px solid ${C.line}` }}>{ax(q.explain, on)}</div>
+      {sourceFor(q, cfg) && (
+        <div style={{ fontSize: 10.5, color: C.textMute, lineHeight: 1.45, marginTop: 5 }}>
+          <span style={{ color: C.textDim, fontWeight: 700 }}>Reference · </span>{ax(sourceFor(q, cfg), on)}
+        </div>
+      )}
     </div>
   );
 }
@@ -706,6 +772,7 @@ export function ExamApp({ onHome, config }) {
   const [recording, setRecording] = useState(true);
   const [questions, setQuestions] = useState([]);
   const [graded, setGraded] = useState([]);
+  const [hist, setHist] = useState([]);
 
   // load persisted record/guest preference
   useEffect(() => {
@@ -714,6 +781,14 @@ export function ExamApp({ onHome, config }) {
     return () => { alive = false; };
   }, []);
   useEffect(() => { saveRecordPref(recording); }, [recording]);
+
+  // History for the "recommended next session" surface; refreshes when we land on setup.
+  useEffect(() => {
+    let alive = true;
+    (async () => { const r = await loadRuns(config.appKey); if (alive) setHist(r || []); })();
+    return () => { alive = false; };
+  }, [config.appKey, phase]);
+  const recommendation = React.useMemo(() => recommendFrom(hist, config), [hist, config]);
 
   const pool = poolFor(settings.topic, config.bank);
   const maxCount = Math.max(5, Math.floor(pool.length / 5) * 5);
@@ -724,22 +799,31 @@ export function ExamApp({ onHome, config }) {
     // eslint-disable-next-line
   }, [settings.topic]);
 
-  const start = useCallback(() => {
-    const qs = weightedSample(poolFor(settings.topic, config.bank), settings.count, settings.difficulty);
+  const buildAndStart = useCallback((override) => {
+    const eff = override ? { ...settings, ...override } : settings;
+    const qs = weightedSample(poolFor(eff.topic, config.bank), eff.count, eff.difficulty);
+    if (override) setSettings(eff);
     setQuestions(qs); setPhase("quiz");
-  }, [settings]);
+  }, [settings, config.bank]);
+  const start = useCallback(() => buildAndStart(null), [buildAndStart]);
+  const useRecommendation = useCallback(() => {
+    if (!recommendation) return;
+    setSettings((s) => ({ ...s, topic: recommendation.topic, difficulty: recommendation.difficulty,
+      count: recommendation.count, mode: recommendation.mode }));
+  }, [recommendation]);
 
   const finish = useCallback((g) => { setGraded(g); setPhase("results"); }, []);
 
   let screen;
   if (phase === "setup") {
     screen = <Setup settings={settings} setSettings={setSettings}
-      recording={recording} setRecording={setRecording} onStart={start} maxCount={maxCount} onHome={onHome} />;
+      recording={recording} setRecording={setRecording} onStart={start} maxCount={maxCount} onHome={onHome}
+      recommendation={recommendation} onUseRecommendation={useRecommendation} />;
   } else if (phase === "quiz") {
     screen = <Quiz questions={questions} settings={settings} recording={recording} onFinish={finish} />;
   } else {
     screen = <Results graded={graded} settings={settings} recording={recording}
-      onRetry={start} onNew={() => setPhase("setup")} onHome={onHome} />;
+      onRetry={start} onNew={() => setPhase("setup")} onHome={onHome} onRecommended={buildAndStart} />;
   }
   return <ExamCfg.Provider value={config}>{screen}</ExamCfg.Provider>;
 }
