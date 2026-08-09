@@ -1,598 +1,276 @@
-// AST 2 practice bank (starter). Generated from bank2.py. Not official exam content.
+// AST 2 practice bank (273). Not official exam content.
 export const BANK = [
-  {
-    "id": "sno_e_mc1",
-    "type": "mc",
-    "topic": "snowpack",
-    "diff": "easy",
-    "q": "In a Compression Test, a result like 'CT12' refers to the:",
-    "options": [
-      "Slope angle in degrees",
-      "Number of taps at which the column failed",
-      "Number of layers in the column",
-      "Depth of the weak layer in centimetres"
-    ],
-    "answer": 1,
-    "explain": "CT scores count the taps needed to produce a failure."
-  },
-  {
-    "id": "sno_e_tf1",
-    "type": "tf",
-    "topic": "snowpack",
-    "diff": "easy",
-    "q": "Faceted grains are angular and bond poorly, making them a common weak-layer grain.",
-    "answer": true,
-    "explain": "Facets are a classic persistent weak-layer grain."
-  },
-  {
-    "id": "sno_m_mc1",
-    "type": "mc",
-    "topic": "snowpack",
-    "diff": "moderate",
-    "q": "The Extended Column Test (ECT) is designed mainly to assess:",
-    "options": [
-      "Both fracture initiation and whether it will propagate",
-      "Slope angle",
-      "Only the load needed to initiate a fracture",
-      "Air temperature"
-    ],
-    "answer": 0,
-    "explain": "The ECT adds propagation information beyond a standard CT."
-  },
-  {
-    "id": "sno_m_ma1",
-    "type": "match",
-    "topic": "snowpack",
-    "diff": "moderate",
-    "q": "Match each test to what it tells you.",
-    "pairs": [
-      {
-        "l": "Compression Test",
-        "r": "Ease of fracture initiation under load"
-      },
-      {
-        "l": "Extended Column Test",
-        "r": "Whether a fracture will propagate"
-      },
-      {
-        "l": "Rutschblock",
-        "r": "Skier-scale stability on a larger block"
-      }
-    ],
-    "explain": "Different tests probe different parts of the stability picture."
-  },
-  {
-    "id": "sno_h_mc1",
-    "type": "mc",
-    "topic": "snowpack",
-    "diff": "hard",
-    "q": "An 'ECTP' result (propagation across the whole column) most prudently means:",
-    "options": [
-      "Propagation is impossible",
-      "The weak layer can propagate a fracture, so treat the slope as suspect",
-      "The slope is confirmed stable",
-      "It only matters below treeline"
-    ],
-    "answer": 1,
-    "explain": "Propagation results flag slopes where a fracture can spread."
-  },
-  {
-    "id": "sno_h_tf1",
-    "type": "tf",
-    "topic": "snowpack",
-    "diff": "hard",
-    "q": "A single stability-test pit gives a definitive, whole-slope verdict on stability.",
-    "answer": false,
-    "explain": "Snowpacks vary across a slope; one pit is not a whole-slope verdict."
-  },
-  {
-    "id": "pro_e_mc1",
-    "type": "mc",
-    "topic": "problems",
-    "diff": "easy",
-    "q": "A 'Wind Slab' avalanche problem is caused by:",
-    "options": [
-      "Solar warming of the surface",
-      "Rain falling on snow",
-      "Depth hoar at the base",
-      "Wind depositing cohesive snow, usually on lee slopes"
-    ],
-    "answer": 3,
-    "explain": "Wind slabs form from wind-transported snow on lee terrain."
-  },
-  {
-    "id": "pro_e_tf1",
-    "type": "tf",
-    "topic": "problems",
-    "diff": "easy",
-    "q": "A 'Loose Wet' problem is associated with warming and free water in the snowpack.",
-    "answer": true,
-    "explain": "Wet loose activity is driven by warming and free water."
-  },
-  {
-    "id": "pro_m_mc1",
-    "type": "mc",
-    "topic": "problems",
-    "diff": "moderate",
-    "q": "Which problem is typically hardest to predict and can produce surprising, wide propagations?",
-    "options": [
-      "Storm Slab",
-      "Cornice",
-      "Loose Dry",
-      "Persistent Slab"
-    ],
-    "answer": 3,
-    "explain": "Persistent slabs sit over long-lived weak layers and are hard to predict."
-  },
-  {
-    "id": "pro_m_ma1",
-    "type": "match",
-    "topic": "problems",
-    "diff": "moderate",
-    "q": "Match each problem to its character.",
-    "pairs": [
-      {
-        "l": "Storm Slab",
-        "r": "A cohesive slab of recent new snow"
-      },
-      {
-        "l": "Wind Slab",
-        "r": "Wind-deposited slab on lee terrain"
-      },
-      {
-        "l": "Wet Loose",
-        "r": "Point-release sluffing of wet snow"
-      }
-    ],
-    "explain": "Each problem type behaves differently."
-  },
-  {
-    "id": "pro_h_mc1",
-    "type": "mc",
-    "topic": "problems",
-    "diff": "hard",
-    "q": "A 'Deep Persistent Slab' problem is especially dangerous because it:",
-    "options": [
-      "Only occurs on groomed runs",
-      "Heals within a day",
-      "Is hard to trigger but produces very large, destructive avalanches",
-      "Only produces tiny slides"
-    ],
-    "answer": 2,
-    "explain": "Deep persistent slabs are low-probability but high-consequence."
-  },
-  {
-    "id": "pro_h_tf1",
-    "type": "tf",
-    "topic": "problems",
-    "diff": "hard",
-    "q": "Cornices are harmless and never trigger the slopes below them.",
-    "answer": false,
-    "explain": "Cornice falls can trigger the slope beneath and are a real hazard."
-  },
-  {
-    "id": "ter_e_mc1",
-    "type": "mc",
-    "topic": "terrain",
-    "diff": "easy",
-    "q": "ATES rates terrain using which three categories?",
-    "options": [
-      "Simple, Challenging, Complex",
-      "Green, Blue, Black",
-      "Low, Moderate, High",
-      "Class 1 to 5"
-    ],
-    "answer": 0,
-    "explain": "ATES describes exposure as Simple, Challenging, or Complex."
-  },
-  {
-    "id": "ter_e_tf1",
-    "type": "tf",
-    "topic": "terrain",
-    "diff": "easy",
-    "q": "A terrain trap such as a gully increases the consequences of even a small avalanche.",
-    "answer": true,
-    "explain": "Terrain traps raise burial depth and injury risk."
-  },
-  {
-    "id": "ter_m_mc1",
-    "type": "mc",
-    "topic": "terrain",
-    "diff": "moderate",
-    "q": "At the slope scale, 'unsupported' convex terrain is a concern because:",
-    "options": [
-      "It always faces north",
-      "Tension concentrates near the roll, making triggering more likely",
-      "It is never avalanche terrain",
-      "It cannot hold snow"
-    ],
-    "answer": 1,
-    "explain": "Stress concentrates at convex rolls."
-  },
-  {
-    "id": "ter_m_ma1",
-    "type": "match",
-    "topic": "terrain",
-    "diff": "moderate",
-    "q": "Match each ATES rating to its exposure.",
-    "pairs": [
-      {
-        "l": "Simple",
-        "r": "Low exposure; forest or low-angle terrain"
-      },
-      {
-        "l": "Challenging",
-        "r": "Well-defined avalanche paths and features"
-      },
-      {
-        "l": "Complex",
-        "r": "Multiple overlapping steep paths"
-      }
-    ],
-    "explain": "Exposure increases from Simple to Complex."
-  },
-  {
-    "id": "ter_h_mc1",
-    "type": "mc",
-    "topic": "terrain",
-    "diff": "hard",
-    "q": "On a High-danger day with a persistent problem, the most defensible terrain strategy is to:",
-    "options": [
-      "Ski complex terrain to test it",
-      "Ignore aspect and elevation",
-      "Reduce exposure with simpler terrain and avoid connected steep slopes",
-      "Travel beneath large start zones"
-    ],
-    "answer": 2,
-    "explain": "Reducing exposure is the reliable lever under uncertainty."
-  },
-  {
-    "id": "ter_h_tf1",
-    "type": "tf",
-    "topic": "terrain",
-    "diff": "hard",
-    "q": "Choosing simpler terrain is a valid way to manage uncertainty about a persistent weak layer.",
-    "answer": true,
-    "explain": "Terrain avoidance sidesteps the uncertainty of a variable weak layer."
-  },
-  {
-    "id": "wea_e_mc1",
-    "type": "mc",
-    "topic": "weather",
-    "diff": "easy",
-    "q": "Wind can build a slab on lee slopes:",
-    "options": [
-      "Several times faster than snow falling from the sky",
-      "Only in spring",
-      "Only during rain",
-      "Never"
-    ],
-    "answer": 0,
-    "explain": "Wind loading rapidly deposits slab on lee terrain."
-  },
-  {
-    "id": "wea_e_tf1",
-    "type": "tf",
-    "topic": "weather",
-    "diff": "easy",
-    "q": "Clear, cold, calm nights promote surface hoar growth.",
-    "answer": true,
-    "explain": "Radiative cooling grows surface hoar."
-  },
-  {
-    "id": "wea_m_mc1",
-    "type": "mc",
-    "topic": "weather",
-    "diff": "moderate",
-    "q": "Prolonged clear, cold weather over a shallow snowpack tends to:",
-    "options": [
-      "Have no effect",
-      "Cause wet avalanches",
-      "Strengthen the base quickly",
-      "Drive faceting and weaken the snowpack"
-    ],
-    "answer": 3,
-    "explain": "A strong gradient over shallow snow drives faceting."
-  },
-  {
-    "id": "wea_m_ma1",
-    "type": "match",
-    "topic": "weather",
-    "diff": "moderate",
-    "q": "Match each weather pattern to the hazard it favors.",
-    "pairs": [
-      {
-        "l": "Snowfall plus strong wind",
-        "r": "Fresh wind slab on lee terrain"
-      },
-      {
-        "l": "Rapid warming or rain",
-        "r": "Wet-avalanche danger"
-      },
-      {
-        "l": "Clear, cold, calm spell",
-        "r": "Faceting and surface hoar for later"
-      }
-    ],
-    "explain": "Weather patterns preview the day's problems."
-  },
-  {
-    "id": "wea_h_mc1",
-    "type": "mc",
-    "topic": "weather",
-    "diff": "hard",
-    "q": "Tracking the season's weather matters because:",
-    "options": [
-      "The snowpack has no memory",
-      "Old weather has no effect",
-      "Only today's temperature matters",
-      "Weak layers formed weeks earlier can stay reactive and drive today's hazard"
-    ],
-    "answer": 3,
-    "explain": "The snowpack integrates past weather; persistent layers linger."
-  },
-  {
-    "id": "wea_h_tf1",
-    "type": "tf",
-    "topic": "weather",
-    "diff": "hard",
-    "q": "A rapid mid-winter warm-up always makes the snowpack more stable.",
-    "answer": false,
-    "explain": "Warming often raises danger by adding free water and load."
-  },
-  {
-    "id": "pla_e_mc1",
-    "type": "mc",
-    "topic": "planning",
-    "diff": "easy",
-    "q": "The Conceptual Model of Avalanche Hazard (CMAH) links the avalanche problem, its likelihood, and its:",
-    "options": [
-      "Destructive size",
-      "Ski wax",
-      "Group fitness",
-      "Parking location"
-    ],
-    "answer": 0,
-    "explain": "CMAH combines problem, likelihood, and size into a hazard picture."
-  },
-  {
-    "id": "pla_e_tf1",
-    "type": "tf",
-    "topic": "planning",
-    "diff": "easy",
-    "q": "A good trip plan is made before you go and can be dialed back in the field.",
-    "answer": true,
-    "explain": "Plans should adapt to field observations."
-  },
-  {
-    "id": "pla_m_mc1",
-    "type": "mc",
-    "topic": "planning",
-    "diff": "moderate",
-    "q": "Compared with the Avaluator, the CMAH approach emphasizes:",
-    "options": [
-      "Ignoring the forecast",
-      "Only group size",
-      "Only slope aspect",
-      "Reasoning from the specific avalanche problem, its likelihood, and size"
-    ],
-    "answer": 3,
-    "explain": "CMAH is a problem-based reasoning framework."
-  },
-  {
-    "id": "pla_m_ma1",
-    "type": "match",
-    "topic": "planning",
-    "diff": "moderate",
-    "q": "Match each CMAH element to its role.",
-    "pairs": [
-      {
-        "l": "Avalanche problem",
-        "r": "What type of avalanche to expect"
-      },
-      {
-        "l": "Likelihood",
-        "r": "The chance of triggering"
-      },
-      {
-        "l": "Size",
-        "r": "How destructive it could be"
-      }
-    ],
-    "explain": "These elements combine into a hazard assessment."
-  },
-  {
-    "id": "pla_h_mc1",
-    "type": "mc",
-    "topic": "planning",
-    "diff": "hard",
-    "q": "Your field observations are worse than the morning forecast. The sound response is to:",
-    "options": [
-      "Treat conditions as more dangerous and choose more conservative terrain",
-      "Increase your objective",
-      "Ignore the observations",
-      "Trust the forecast over what you see"
-    ],
-    "answer": 0,
-    "explain": "Field evidence that raises concern should win."
-  },
-  {
-    "id": "pla_h_tf1",
-    "type": "tf",
-    "topic": "planning",
-    "diff": "hard",
-    "q": "Terrain selection is the lever you most directly control to manage avalanche risk.",
-    "answer": true,
-    "explain": "You cannot change weather or the snowpack, but you choose terrain."
-  },
-  {
-    "id": "res_e_mc1",
-    "type": "mc",
-    "topic": "rescue",
-    "diff": "easy",
-    "q": "The three essential rescue tools are:",
-    "options": [
-      "Radio, flare, and whistle",
-      "Rope, harness, and helmet",
-      "Map, compass, and GPS",
-      "Transceiver, probe, and shovel"
-    ],
-    "answer": 3,
-    "explain": "Every member should carry and know all three."
-  },
-  {
-    "id": "res_e_tf1",
-    "type": "tf",
-    "topic": "rescue",
-    "diff": "easy",
-    "q": "In a burial, survival chances drop sharply after roughly the first 10 to 15 minutes.",
-    "answer": true,
-    "explain": "The survival window is short, so speed is critical."
-  },
-  {
-    "id": "res_m_mc1",
-    "type": "mc",
-    "topic": "rescue",
-    "diff": "moderate",
-    "q": "In a multiple burial, a key transceiver skill is:",
-    "options": [
-      "Turning your beacon off",
-      "Marking or flagging a found signal so you can search for the next",
-      "Probing before searching",
-      "Ignoring the extra signals"
-    ],
-    "answer": 1,
-    "explain": "Signal marking/separation resolves multiple burials."
-  },
-  {
-    "id": "res_m_ma1",
-    "type": "match",
-    "topic": "rescue",
-    "diff": "moderate",
-    "q": "Match each rescue step to its purpose.",
-    "pairs": [
-      {
-        "l": "Mark the last-seen point",
-        "r": "Narrows the search area"
-      },
-      {
-        "l": "Signal separation",
-        "r": "Resolves multiple burials"
-      },
-      {
-        "l": "Strategic shoveling",
-        "r": "Moves snow efficiently to the airway"
-      }
-    ],
-    "explain": "Each step speeds the rescue."
-  },
-  {
-    "id": "res_h_mc1",
-    "type": "mc",
-    "topic": "rescue",
-    "diff": "hard",
-    "q": "For a deep burial, the most effective way to speed extraction is:",
-    "options": [
-      "Waiting for organized rescue",
-      "Multiple shovelers in a strategic pattern, entering from downhill",
-      "One person digging straight down on the probe",
-      "Probing repeatedly instead of digging"
-    ],
-    "answer": 1,
-    "explain": "Team strategic shoveling clears set-up debris far faster."
-  },
-  {
-    "id": "res_h_tf1",
-    "type": "tf",
-    "topic": "rescue",
-    "diff": "hard",
-    "q": "Companion rescue usually matters more than organized rescue because organized help typically arrives too late.",
-    "answer": true,
-    "explain": "The survival window is shorter than typical organized response times."
-  },
-  {
-    "id": "hum_e_mc1",
-    "type": "mc",
-    "topic": "human",
-    "diff": "easy",
-    "q": "The 'Expert halo' heuristic trap describes:",
-    "options": [
-      "Comfort on familiar terrain",
-      "Wanting approval from others",
-      "Over-trusting a confident or experienced-seeming leader",
-      "Rushing for fresh tracks"
-    ],
-    "answer": 2,
-    "explain": "An assumed expert can shut down group input."
-  },
-  {
-    "id": "hum_e_tf1",
-    "type": "tf",
-    "topic": "human",
-    "diff": "easy",
-    "q": "Tracks on a slope reliably prove that it is safe.",
-    "answer": false,
-    "explain": "A slope may simply not have been triggered yet."
-  },
-  {
-    "id": "hum_m_mc1",
-    "type": "mc",
-    "topic": "human",
-    "diff": "moderate",
-    "q": "Good group management on a suspect slope includes:",
-    "options": [
-      "Regrouping in the runout",
-      "Turning beacons off",
-      "Descending together for support",
-      "Exposing one person at a time while others watch from safety"
-    ],
-    "answer": 3,
-    "explain": "One-at-a-time travel limits how many can be caught."
-  },
-  {
-    "id": "hum_m_ma1",
-    "type": "match",
-    "topic": "human",
-    "diff": "moderate",
-    "q": "Match each heuristic trap to the behavior it describes.",
-    "pairs": [
-      {
-        "l": "Familiarity",
-        "r": "Comfort on well-known terrain"
-      },
-      {
-        "l": "Acceptance",
-        "r": "Taking risks to gain approval"
-      },
-      {
-        "l": "Scarcity",
-        "r": "Rushing for untracked snow"
-      }
-    ],
-    "explain": "Naming the trap helps a group counter it."
-  },
-  {
-    "id": "hum_h_mc1",
-    "type": "mc",
-    "topic": "human",
-    "diff": "hard",
-    "q": "A structural habit that reduces human-factor errors is to:",
-    "options": [
-      "Let the fastest skier decide",
-      "Use a checklist and pre-agreed veto or turnaround rules",
-      "Rely on the group's mood",
-      "Avoid discussing risk to stay positive"
-    ],
-    "answer": 1,
-    "explain": "Structure counters in-the-moment bias."
-  },
-  {
-    "id": "hum_h_tf1",
-    "type": "tf",
-    "topic": "human",
-    "diff": "hard",
-    "q": "A quiet member's unease is worth pausing for, even if confident members disagree.",
-    "answer": true,
-    "explain": "Dissent can surface a risk the group is rationalizing away."
-  }
+{"id":"sno_e_mc1","type":"mc","topic":"snowpack","diff":"easy","q":"Which grain type is most associated with persistent weak layers?","options":["Graupel","Facets","Wind-packed grains","Rounded grains"],"answer":1,"explain":"Faceted grains are angular and bond poorly."},
+{"id":"sno_e_mc2","type":"mc","topic":"snowpack","diff":"easy","q":"In the hand-hardness scale, which is the softest?","options":["Four fingers","Pencil","Fist","Knife"],"answer":2,"explain":"Order softest to hardest: fist, four fingers, one finger, pencil, knife."},
+{"id":"sno_e_mc3","type":"mc","topic":"snowpack","diff":"easy","q":"Surface hoar forms mainly on:","options":["Warm, windy days","Rainy nights","Clear, cold, calm nights","Sunny afternoons"],"answer":2,"explain":"Radiative cooling grows feathery surface hoar."},
+{"id":"sno_e_mc4","type":"mc","topic":"snowpack","diff":"easy","q":"Depth hoar tends to form:","options":["Only in spring melt","In deep, warm snowpacks","At the surface after storms","Near the base of a shallow snowpack"],"answer":3,"explain":"A strong gradient over shallow snow drives basal faceting."},
+{"id":"sno_e_mc5","type":"mc","topic":"snowpack","diff":"easy","q":"A weak layer is a layer that:","options":["Is the strongest in the pack","Is the ski track","Can fail and let the slab above slide","Is always the ground"],"answer":2,"explain":"Weak layers are where fractures initiate."},
+{"id":"sno_e_mc6","type":"mc","topic":"snowpack","diff":"easy","q":"What does CT stand for?","options":["Crystal Test","Compression Test","Cornice Test","Column Tally"],"answer":1,"explain":"The Compression Test loads an isolated column with taps."},
+{"id":"sno_e_mc7","type":"mc","topic":"snowpack","diff":"easy","q":"Crystals that fall during a storm are called:","options":["Precipitation particles (new snow)","Depth hoar","Rounds","Facets"],"answer":0,"explain":"Fresh snow crystals are precipitation particles."},
+{"id":"sno_e_mc8","type":"mc","topic":"snowpack","diff":"easy","q":"A well-bonded, stronger snowpack generally has grains that are:","options":["Sugary","Rounded and sintered together","Large and faceted","Angular and loose"],"answer":1,"explain":"Rounding and sintering build strength."},
+{"id":"sno_e_tf1","type":"tf","topic":"snowpack","diff":"easy","q":"Faceted grains bond poorly and are a common weak-layer grain.","answer":true,"explain":"Facets are a classic persistent weak layer."},
+{"id":"sno_e_tf2","type":"tf","topic":"snowpack","diff":"easy","q":"Surface hoar, once buried, can become a persistent weak layer.","answer":true,"explain":"Buried surface hoar is a notorious persistent layer."},
+{"id":"sno_e_tf3","type":"tf","topic":"snowpack","diff":"easy","q":"A single test pit reliably represents the entire slope.","answer":false,"explain":"Stability varies across a slope."},
+{"id":"sno_e_ma1","type":"match","topic":"snowpack","diff":"easy","q":"Match each grain to its behavior.","pairs":[{"l":"Facets","r":"Weak and persistent"},{"l":"Rounds","r":"Strong and well-bonded"},{"l":"Surface hoar","r":"Feathery grains that weaken once buried"}],"explain":"Grain form drives bonding."},
+{"id":"sno_e_ma2","type":"match","topic":"snowpack","diff":"easy","q":"Match hand-hardness to relative firmness.","pairs":[{"l":"Fist","r":"Softest"},{"l":"Pencil","r":"Hard"},{"l":"Knife","r":"Hardest"}],"explain":"Hardness increases fist to knife."},
+{"id":"sno_m_mc1","type":"mc","topic":"snowpack","diff":"moderate","q":"In a result of CT13, the 13 is:","options":["The number of taps to failure","Number of layers","Depth in centimetres","Slope angle"],"answer":0,"explain":"CT scores count taps to a failure."},
+{"id":"sno_m_mc2","type":"mc","topic":"snowpack","diff":"moderate","q":"Compared with the CT, the Extended Column Test adds information about:","options":["Fracture propagation across the column","Air temperature","Slope angle","Grain size"],"answer":0,"explain":"The ECT tests whether a fracture will propagate."},
+{"id":"sno_m_mc3","type":"mc","topic":"snowpack","diff":"moderate","q":"An ECTP result means:","options":["No fracture occurred","The fracture propagated across the whole column","The pit was too shallow","Propagation stopped partway"],"answer":1,"explain":"P = propagation across the column."},
+{"id":"sno_m_mc4","type":"mc","topic":"snowpack","diff":"moderate","q":"A sudden planar fracture character indicates:","options":["A clean, planar failure that is more concerning","A very strong layer","No failure","A rough break of little concern"],"answer":0,"explain":"Clean planar shears are more suspect."},
+{"id":"sno_m_mc5","type":"mc","topic":"snowpack","diff":"moderate","q":"Upside-down snow refers to:","options":["A flipped profile board","Denser, harder snow over softer, weaker snow","An inverted thermometer","South-facing snow"],"answer":1,"explain":"Slab over weaker snow is primed to fail."},
+{"id":"sno_m_mc6","type":"mc","topic":"snowpack","diff":"moderate","q":"Faceting is driven by:","options":["A strong temperature gradient over a short vertical distance","Wind alone","Rain","Warm, uniform snow"],"answer":0,"explain":"Large gradients grow facets."},
+{"id":"sno_m_mc7","type":"mc","topic":"snowpack","diff":"moderate","q":"The Rutschblock test loads the column via:","options":["A thermometer","A saw cut only","A skier on a larger isolated block","Hand taps only"],"answer":2,"explain":"The RB uses skier loading on a big block."},
+{"id":"sno_m_mc8","type":"mc","topic":"snowpack","diff":"moderate","q":"The bed surface is:","options":["The surface over which the slab slides","The weak grains themselves","The ski track","Only the ground"],"answer":0,"explain":"The slab slides on the bed surface."},
+{"id":"sno_m_tf1","type":"tf","topic":"snowpack","diff":"moderate","q":"Rounded grains generally indicate a strengthening snowpack.","answer":true,"explain":"Rounding builds bonds."},
+{"id":"sno_m_tf2","type":"tf","topic":"snowpack","diff":"moderate","q":"A strong temperature gradient promotes rounding rather than faceting.","answer":false,"explain":"Strong gradients drive faceting."},
+{"id":"sno_m_tf3","type":"tf","topic":"snowpack","diff":"moderate","q":"Propagation results (ECTP) raise concern about a slope's stability.","answer":true,"explain":"Propagation means a fracture can spread."},
+{"id":"sno_m_ma1","type":"match","topic":"snowpack","diff":"moderate","q":"Match each test to what it best reveals.","pairs":[{"l":"Compression Test","r":"Ease of fracture initiation"},{"l":"Extended Column Test","r":"Initiation and propagation"},{"l":"Propagation Saw Test","r":"Propagation propensity"}],"explain":"Tests probe different parts of stability."},
+{"id":"sno_m_ma2","type":"match","topic":"snowpack","diff":"moderate","q":"Match shear quality to interpretation.","pairs":[{"l":"Sudden planar","r":"Clean and concerning"},{"l":"Resistant planar","r":"Moderate concern"},{"l":"Break irregular","r":"Less concerning"}],"explain":"Fracture character informs concern."},
+{"id":"sno_h_mc1","type":"mc","topic":"snowpack","diff":"hard","q":"An ECTP11 on surface hoar buried 40 cm most reasonably means:","options":["Propagation is impossible","The layer can initiate and propagate, so treat the slope as suspect","The slope is confirmed stable","It only matters below treeline"],"answer":1,"explain":"Propagating results on a persistent layer are a red flag."},
+{"id":"sno_h_mc2","type":"mc","topic":"snowpack","diff":"hard","q":"A dense storm slab sitting over a soft layer is concerning because:","options":["Soft snow cannot slide","It removes the weak layer","A cohesive slab over a weaker layer is primed to fail","It always bonds overnight"],"answer":2,"explain":"Upside-down structure favors slab release."},
+{"id":"sno_h_mc3","type":"mc","topic":"snowpack","diff":"hard","q":"Depth hoar in a thin, cold, early-season pack tends to:","options":["Only cause wet slides","Persist as a stubborn basal weak layer (deep persistent problems)","Heal within a day","Have no effect"],"answer":1,"explain":"Basal facets can stay reactive for months."},
+{"id":"sno_h_mc4","type":"mc","topic":"snowpack","diff":"hard","q":"A Propagation Saw Test that propagates to the end of the column suggests:","options":["A strong layer","High propagation propensity","No propagation","An error"],"answer":1,"explain":"END results indicate easy propagation."},
+{"id":"sno_h_mc5","type":"mc","topic":"snowpack","diff":"hard","q":"Why sample multiple sites on a slope?","options":["To save time","To measure air temperature","Because pits are always identical","Stability varies spatially; one pit can mislead"],"answer":3,"explain":"Spatial variability demands multiple observations."},
+{"id":"sno_h_mc6","type":"mc","topic":"snowpack","diff":"hard","q":"Which combination is most alarming?","options":["Soft new snow with no weak layer","Well-bonded rounds","Isothermal spring corn at dawn","A hard slab over a persistent weak layer with propagating tests"],"answer":3,"explain":"Slab + persistent layer + propagation is high concern."},
+{"id":"sno_h_mc7","type":"mc","topic":"snowpack","diff":"hard","q":"Buried surface hoar is especially dangerous because it is:","options":["Confined to gullies","Always harmless","Widespread, thin, and able to propagate over long distances","Impossible to bury"],"answer":2,"explain":"Surface hoar propagates fractures far."},
+{"id":"sno_h_mc8","type":"mc","topic":"snowpack","diff":"hard","q":"Which single observation is the strongest sign of instability?","options":["One CT score","Recent avalanches on similar slopes","Air temperature","Total snow depth"],"answer":1,"explain":"Recent avalanches are a top red flag."},
+{"id":"sno_h_tf1","type":"tf","topic":"snowpack","diff":"hard","q":"Test scores alone, without structure and other evidence, give a complete stability picture.","answer":false,"explain":"Combine tests with structure and field evidence."},
+{"id":"sno_h_tf2","type":"tf","topic":"snowpack","diff":"hard","q":"A propagating fracture in a stability test is more concerning than a non-propagating one.","answer":true,"explain":"Propagation lets a slab release widely."},
+{"id":"sno_h_tf3","type":"tf","topic":"snowpack","diff":"hard","q":"Persistent weak layers can remain reactive for weeks.","answer":true,"explain":"They are slow to heal."},
+{"id":"sno_h_ma1","type":"match","topic":"snowpack","diff":"hard","q":"Match each result to its interpretation.","pairs":[{"l":"ECTP","r":"Propagation likely"},{"l":"ECTN","r":"Propagation less likely"},{"l":"No CT failure","r":"Hard to initiate here"}],"explain":"Read initiation and propagation together."},
+{"id":"sno_h_ma2","type":"match","topic":"snowpack","diff":"hard","q":"Match each layer to its role.","pairs":[{"l":"Slab","r":"Cohesive snow that slides"},{"l":"Weak layer","r":"Fails under load"},{"l":"Bed surface","r":"What the slab slides on"}],"explain":"Slab, weak layer, and bed surface interact."},
+{"id":"pro_e_mc1","type":"mc","topic":"problems","diff":"easy","q":"A storm slab problem is:","options":["Wind transport only","An old faceted base","Free water in the pack","A cohesive layer of recently fallen snow"],"answer":3,"explain":"Storm slabs are recent new-snow slabs."},
+{"id":"pro_e_mc2","type":"mc","topic":"problems","diff":"easy","q":"Wind slabs typically form on:","options":["Valley bottoms","Lee (downwind) slopes","Only south aspects","Windward slopes"],"answer":1,"explain":"Wind deposits slab on lee terrain."},
+{"id":"pro_e_mc3","type":"mc","topic":"problems","diff":"easy","q":"A loose dry (sluff) avalanche:","options":["Releases as a wide slab","Starts from a point and fans out in dry snow","Only starts from cornices","Only happens when wet"],"answer":1,"explain":"Loose dry is a point release."},
+{"id":"pro_e_mc4","type":"mc","topic":"problems","diff":"easy","q":"Loose wet avalanches occur with:","options":["Warming and free water in the snow","Cold, clear nights","Faceting","Wind alone"],"answer":0,"explain":"Water lubricates and weakens bonds."},
+{"id":"pro_e_mc5","type":"mc","topic":"problems","diff":"easy","q":"A cornice is:","options":["A buried weak layer","A gully","A grain type","An overhanging mass of wind-deposited snow on ridge crests"],"answer":3,"explain":"Cornices build on lee ridge crests."},
+{"id":"pro_e_mc6","type":"mc","topic":"problems","diff":"easy","q":"A persistent slab problem involves:","options":["No weak layer","Only new snow","A persistent weak layer beneath a slab","Only wet snow"],"answer":2,"explain":"Persistent slabs sit on long-lived weak layers."},
+{"id":"pro_e_mc7","type":"mc","topic":"problems","diff":"easy","q":"A glide avalanche is when:","options":["A wind slab releases","The whole snowpack slides on the ground","A cornice falls","Only surface sluff moves"],"answer":1,"explain":"Glide is full-depth movement on the ground."},
+{"id":"pro_e_mc8","type":"mc","topic":"problems","diff":"easy","q":"Which is a loose (non-slab) problem?","options":["Persistent slab","Storm slab","Wind slab","Loose dry"],"answer":3,"explain":"Loose dry and loose wet are point releases."},
+{"id":"pro_e_tf1","type":"tf","topic":"problems","diff":"easy","q":"Wind slabs typically form on lee slopes.","answer":true,"explain":"Wind loads the downwind side."},
+{"id":"pro_e_tf2","type":"tf","topic":"problems","diff":"easy","q":"Wet loose avalanches are associated with cold, dry conditions.","answer":false,"explain":"They come with warming and water."},
+{"id":"pro_e_tf3","type":"tf","topic":"problems","diff":"easy","q":"A storm slab usually becomes less sensitive as the snow settles and bonds.","answer":true,"explain":"Storm slabs often stabilize over time."},
+{"id":"pro_e_ma1","type":"match","topic":"problems","diff":"easy","q":"Match each problem to its cause.","pairs":[{"l":"Storm slab","r":"Recent heavy snowfall"},{"l":"Wind slab","r":"Wind-transported snow"},{"l":"Wet loose","r":"Warming and free water"}],"explain":"Cause defines the problem."},
+{"id":"pro_e_ma2","type":"match","topic":"problems","diff":"easy","q":"Match each problem to where you expect it.","pairs":[{"l":"Wind slab","r":"Lee slopes below ridges"},{"l":"Cornice","r":"Ridge crests"},{"l":"Glide","r":"Smooth ground or rock slabs"}],"explain":"Location is a clue to the problem."},
+{"id":"pro_m_mc1","type":"mc","topic":"problems","diff":"moderate","q":"Persistent slabs are hard to manage because:","options":["They only occur on groomed runs","They never propagate","They heal within hours","The weak layer lingers and gives inconsistent, surprising results"],"answer":3,"explain":"Persistent layers are unpredictable."},
+{"id":"pro_m_mc2","type":"mc","topic":"problems","diff":"moderate","q":"A deep persistent slab problem is:","options":["Only in spring","Shallow and frequent","Deep, hard to trigger, and very destructive","Small and self-clearing"],"answer":2,"explain":"Low probability, high consequence."},
+{"id":"pro_m_mc3","type":"mc","topic":"problems","diff":"moderate","q":"A wet slab releases when:","options":["Dry snow point-releases","Free water weakens a layer and a cohesive slab lets go","Wind loads a ridge","A cornice falls"],"answer":1,"explain":"Water can trigger cohesive wet slabs."},
+{"id":"pro_m_mc4","type":"mc","topic":"problems","diff":"moderate","q":"Wet-loose and wet-slab danger is highest:","options":["During peak daytime warming or after rain","During mid-winter cold snaps","At night in winter","On cold, clear mornings"],"answer":0,"explain":"Warming and water drive wet problems."},
+{"id":"pro_m_mc5","type":"mc","topic":"problems","diff":"moderate","q":"A key cornice hazard is that they:","options":["Can break farther back than expected and trigger the slope below","Are always harmless","Only form in spring","Are always stable"],"answer":0,"explain":"Give cornices a wide margin."},
+{"id":"pro_m_mc6","type":"mc","topic":"problems","diff":"moderate","q":"Glide cracks indicate:","options":["The slope is safe","The snowpack is gliding; release timing is unpredictable","They only open at night","They are ski tracks"],"answer":1,"explain":"Glide release timing is hard to predict."},
+{"id":"pro_m_mc7","type":"mc","topic":"problems","diff":"moderate","q":"Storm slab vs wind slab: wind slab is:","options":["Always wet","Identical to storm slab","Only at night","Localized to wind-loaded features"],"answer":3,"explain":"Wind slabs are patchy and feature-specific."},
+{"id":"pro_m_mc8","type":"mc","topic":"problems","diff":"moderate","q":"Which problem is most tied to low likelihood but high consequence?","options":["Loose dry","Deep persistent slab","Loose wet","Storm slab"],"answer":1,"explain":"Deep persistent slabs are rare but destructive."},
+{"id":"pro_m_tf1","type":"tf","topic":"problems","diff":"moderate","q":"Deep persistent slabs are typically easy to trigger but small.","answer":false,"explain":"They are hard to trigger and large."},
+{"id":"pro_m_tf2","type":"tf","topic":"problems","diff":"moderate","q":"Rapid daytime warming can turn a dry snow problem into a wet one.","answer":true,"explain":"Warming introduces free water."},
+{"id":"pro_m_tf3","type":"tf","topic":"problems","diff":"moderate","q":"Cornices can trigger avalanches on the slopes beneath them.","answer":true,"explain":"Cornice falls load slopes below."},
+{"id":"pro_m_ma1","type":"match","topic":"problems","diff":"moderate","q":"Match each problem to its typical timing.","pairs":[{"l":"Wet loose","r":"Afternoon warming"},{"l":"Storm slab","r":"During and just after storms"},{"l":"Persistent slab","r":"Lingers days to weeks"}],"explain":"Timing helps forecasting."},
+{"id":"pro_m_ma2","type":"match","topic":"problems","diff":"moderate","q":"Match each problem to its management.","pairs":[{"l":"Wind slab","r":"Avoid fresh lee loading"},{"l":"Cornice","r":"Give crests a wide margin"},{"l":"Wet slab","r":"Get off slopes as they warm"}],"explain":"Each problem has a tactic."},
+{"id":"pro_h_mc1","type":"mc","topic":"problems","diff":"hard","q":"Buried surface hoar 50 cm deep with isolated whumpfs points to which problem?","options":["Cornice","Loose wet","Persistent slab","Loose dry"],"answer":2,"explain":"Whumpfing over a buried layer signals persistent slab."},
+{"id":"pro_h_mc2","type":"mc","topic":"problems","diff":"hard","q":"Deep persistent slabs are especially dangerous because they:","options":["Are small","Heal quickly","Are obvious and easy to see","Can be triggered from thin spots or remotely and are hard to detect"],"answer":3,"explain":"Thin-spot and remote triggering make them treacherous."},
+{"id":"pro_h_mc3","type":"mc","topic":"problems","diff":"hard","q":"A low-likelihood but large persistent slab calls for:","options":["Conservative terrain even when signs are subtle","Worrying only about size","Ignoring it","Aggressive testing on steep slopes"],"answer":0,"explain":"High consequence justifies caution."},
+{"id":"pro_h_mc4","type":"mc","topic":"problems","diff":"hard","q":"Rain on a dry snowpack most immediately raises:","options":["Loose-wet and wet-slab danger","Wind slab","Faceting","Cornice growth"],"answer":0,"explain":"Water raises wet-avalanche danger fast."},
+{"id":"pro_h_mc5","type":"mc","topic":"problems","diff":"hard","q":"Cornice failures are most likely during:","options":["Never","Only when skied","Rapid warming or heavy wind-loading","Cold, calm, clear days"],"answer":2,"explain":"Warming and loading stress cornices."},
+{"id":"pro_h_mc6","type":"mc","topic":"problems","diff":"hard","q":"Persistent problems differ from storm slabs in that they:","options":["Require larger safety margins over a longer time","Resolve overnight","Ignore aspect","Are managed identically"],"answer":0,"explain":"Persistent problems demand sustained caution."},
+{"id":"pro_h_mc7","type":"mc","topic":"problems","diff":"hard","q":"Which observation best confirms an active persistent slab problem?","options":["Recent avalanches failing on the same buried layer","Blue sky","Cold temperatures","One non-propagating CT"],"answer":0,"explain":"Recent activity on the layer is direct evidence."},
+{"id":"pro_h_mc8","type":"mc","topic":"problems","diff":"hard","q":"Spatial variability means a persistent slab:","options":["May not show in every pit yet still exist on the slope","Is uniform everywhere","Is easy to rule out","Never propagates"],"answer":0,"explain":"Absence in one pit is not proof of safety."},
+{"id":"pro_h_tf1","type":"tf","topic":"problems","diff":"hard","q":"No failure in one test pit proves a persistent slab problem is gone.","answer":false,"explain":"One pit cannot rule it out."},
+{"id":"pro_h_tf2","type":"tf","topic":"problems","diff":"hard","q":"Wet slab avalanches can be large and destructive.","answer":true,"explain":"Wet slabs can run big."},
+{"id":"pro_h_tf3","type":"tf","topic":"problems","diff":"hard","q":"Managing a deep persistent slab often means avoiding large, connected steep slopes.","answer":true,"explain":"Terrain avoidance is the reliable tool."},
+{"id":"pro_h_ma1","type":"match","topic":"problems","diff":"hard","q":"Match each problem to a defining clue.","pairs":[{"l":"Persistent slab","r":"Whumpfing and collapsing"},{"l":"Loose wet","r":"Rollerballs and pinwheels"},{"l":"Glide","r":"Glide cracks opening"}],"explain":"Clues identify the problem."},
+{"id":"pro_h_ma2","type":"match","topic":"problems","diff":"hard","q":"Match each problem to its likelihood/consequence profile.","pairs":[{"l":"Deep persistent slab","r":"Low likelihood, high consequence"},{"l":"Storm slab","r":"Higher likelihood during storms"},{"l":"Loose dry","r":"Usually lower consequence"}],"explain":"Weigh likelihood against size."},
+{"id":"ter_e_mc1","type":"mc","topic":"terrain","diff":"easy","q":"The prime slope-angle range for slab avalanches is about:","options":["30 to 45 degrees","5 to 15 degrees","10 to 20 degrees","45 to 60 degrees only"],"answer":0,"explain":"Most slab avalanches release on 30-45 degree slopes."},
+{"id":"ter_e_mc2","type":"mc","topic":"terrain","diff":"easy","q":"ATES rates terrain as:","options":["Simple, Challenging, Complex","Green, Blue, Black","Low, Moderate, High","Class 1 to 5"],"answer":0,"explain":"ATES uses three exposure categories."},
+{"id":"ter_e_mc3","type":"mc","topic":"terrain","diff":"easy","q":"A terrain trap is a feature that:","options":["Is a ridge crest","Makes a slope safe","Is a skin track","Increases the consequences of even a small avalanche"],"answer":3,"explain":"Gullies, cliffs, and trees raise consequences."},
+{"id":"ter_e_mc4","type":"mc","topic":"terrain","diff":"easy","q":"A lee slope is:","options":["The windward side","The downwind side, where wind deposits snow","The sunniest side","The valley floor"],"answer":1,"explain":"Wind loads lee slopes."},
+{"id":"ter_e_mc5","type":"mc","topic":"terrain","diff":"easy","q":"A start zone is:","options":["The runout","Where avalanches initiate, usually 30 degrees or steeper","The road","The parking lot"],"answer":1,"explain":"Start zones are the steep upper slope."},
+{"id":"ter_e_mc6","type":"mc","topic":"terrain","diff":"easy","q":"Convex rolls are concerning because:","options":["They face north","Stress concentrates near the roll","They are always safe","They cannot hold snow"],"answer":1,"explain":"Tension builds at convexities."},
+{"id":"ter_e_mc7","type":"mc","topic":"terrain","diff":"easy","q":"Which increases the consequences of a small slide?","options":["A terrain trap below","Very low angle","A wide, flat runout","Sparse trees far below"],"answer":0,"explain":"Terrain traps deepen burials and add trauma."},
+{"id":"ter_e_mc8","type":"mc","topic":"terrain","diff":"easy","q":"Ridgelines are often used for travel because they:","options":["Always hold the most snow","Are the warmest","Avoid being beneath start zones and overhead hazard","Are the steepest option"],"answer":2,"explain":"Ridges reduce overhead exposure."},
+{"id":"ter_e_tf1","type":"tf","topic":"terrain","diff":"easy","q":"Slopes under about 25 to 30 degrees rarely produce slab avalanches.","answer":true,"explain":"Slab release is uncommon below ~30 degrees."},
+{"id":"ter_e_tf2","type":"tf","topic":"terrain","diff":"easy","q":"Dense trees guarantee a slope is not avalanche terrain.","answer":false,"explain":"Treed slopes can still avalanche."},
+{"id":"ter_e_tf3","type":"tf","topic":"terrain","diff":"easy","q":"Traveling beneath a large start zone exposes you to overhead hazard.","answer":true,"explain":"You can be hit from above."},
+{"id":"ter_e_ma1","type":"match","topic":"terrain","diff":"easy","q":"Match each ATES rating to its exposure.","pairs":[{"l":"Simple","r":"Low exposure, forested or low-angle"},{"l":"Challenging","r":"Defined avalanche features"},{"l":"Complex","r":"Multiple overlapping steep paths"}],"explain":"Exposure rises Simple to Complex."},
+{"id":"ter_e_ma2","type":"match","topic":"terrain","diff":"easy","q":"Match each path feature to its role.","pairs":[{"l":"Start zone","r":"Where it releases"},{"l":"Track","r":"Where it flows"},{"l":"Runout","r":"Where it stops and deposits"}],"explain":"Avalanche paths have three zones."},
+{"id":"ter_m_mc1","type":"mc","topic":"terrain","diff":"moderate","q":"Which slope is most suspect?","options":["A 20-degree dense forest","An unsupported convex 38-degree lee slope","A windward 25-degree slope","A flat bench"],"answer":1,"explain":"Steep, convex, lee, unsupported is high risk."},
+{"id":"ter_m_mc2","type":"mc","topic":"terrain","diff":"moderate","q":"Connected terrain matters because:","options":["It is always safer","It blocks wind","A trigger can propagate to and from adjacent steep slopes","It is flatter"],"answer":2,"explain":"Connections spread fractures."},
+{"id":"ter_m_mc3","type":"mc","topic":"terrain","diff":"moderate","q":"In winter, strong sun on a south aspect can:","options":["Have no effect","Warm the surface and drive wet problems or crusts","Only matter at night","Cool the slope"],"answer":1,"explain":"Solar input changes the surface."},
+{"id":"ter_m_mc4","type":"mc","topic":"terrain","diff":"moderate","q":"Wind cross-loading loads:","options":["Only direct lee slopes","Only flats","Slopes at angles to the wind, including gully walls","Only windward slopes"],"answer":2,"explain":"Cross-loading affects oblique features."},
+{"id":"ter_m_mc5","type":"mc","topic":"terrain","diff":"moderate","q":"To reduce exposure crossing beneath a start zone:","options":["Cross one at a time, quickly, and regroup in a safe spot","Linger together","Stop mid-slope","Regroup in the runout"],"answer":0,"explain":"Spacing and safe zones limit exposure."},
+{"id":"ter_m_mc6","type":"mc","topic":"terrain","diff":"moderate","q":"Anchors such as trees and rocks in a start zone:","options":["Can locally reduce but not eliminate slab release","Cause avalanches","Are irrelevant","Guarantee safety"],"answer":0,"explain":"Anchors help locally but are not foolproof."},
+{"id":"ter_m_mc7","type":"mc","topic":"terrain","diff":"moderate","q":"Elevation bands matter because:","options":["Only aspect matters","Only time of day matters","Elevation never matters","Problems and danger often differ by alpine, treeline, and below"],"answer":3,"explain":"Danger varies with elevation."},
+{"id":"ter_m_mc8","type":"mc","topic":"terrain","diff":"moderate","q":"A Complex ATES rating implies:","options":["Only groomed runs","No exposure","An easy beginner area","Exposure to multiple overlapping paths with few safe options"],"answer":3,"explain":"Complex terrain offers few escapes."},
+{"id":"ter_m_tf1","type":"tf","topic":"terrain","diff":"moderate","q":"Terrain is the factor a party most directly controls.","answer":true,"explain":"You choose where to go."},
+{"id":"ter_m_tf2","type":"tf","topic":"terrain","diff":"moderate","q":"Cross-loading can build wind slabs on slopes not directly leeward.","answer":true,"explain":"Oblique features get loaded too."},
+{"id":"ter_m_tf3","type":"tf","topic":"terrain","diff":"moderate","q":"Choosing Simple terrain is a valid response to high uncertainty.","answer":true,"explain":"Simpler terrain lowers exposure."},
+{"id":"ter_m_ma1","type":"match","topic":"terrain","diff":"moderate","q":"Match each aspect to its typical effect.","pairs":[{"l":"Lee","r":"Wind-loaded slabs"},{"l":"Solar (south, winter)","r":"Warming and crusts"},{"l":"Shady (north)","r":"Colder; persistent grains preserved"}],"explain":"Aspect shapes the snowpack."},
+{"id":"ter_m_ma2","type":"match","topic":"terrain","diff":"moderate","q":"Match each terrain trap to its hazard.","pairs":[{"l":"Gully","r":"Deeper burial"},{"l":"Cliff","r":"Trauma from a fall"},{"l":"Trees","r":"Impact or strainer trauma"}],"explain":"Traps raise consequences differently."},
+{"id":"ter_h_mc1","type":"mc","topic":"terrain","diff":"hard","q":"On a High-danger persistent-slab day, the best terrain is:","options":["Steep complex terrain to test it","Moderate connected slopes","Simple, low-angle, unconnected, with minimal overhead","Gullies"],"answer":2,"explain":"Reduce exposure on dangerous days."},
+{"id":"ter_h_mc2","type":"mc","topic":"terrain","diff":"hard","q":"Why does supported vs unsupported matter?","options":["Unsupported means flatter","Unsupported (convex or open below) slopes fail more readily","There is no difference","Supported slopes are steeper"],"answer":1,"explain":"Support at the base resists release."},
+{"id":"ter_h_mc3","type":"mc","topic":"terrain","diff":"hard","q":"Managing overhead hazard means:","options":["Minimizing time in runouts and not stopping under start zones","Resting in the runout","Regrouping mid-path","Ignoring it"],"answer":0,"explain":"Limit time under hazard."},
+{"id":"ter_h_mc4","type":"mc","topic":"terrain","diff":"hard","q":"With a deep persistent slab, avoid:","options":["Ridgetops","Flat meadows","Large, steep, connected slopes and thin-to-thick trigger spots","Mellow trees"],"answer":2,"explain":"Thin spots can trigger deep layers."},
+{"id":"ter_h_mc5","type":"mc","topic":"terrain","diff":"hard","q":"Aspect-and-elevation planning means:","options":["Matching terrain choices to which aspects and elevations hold the problem","Picking terrain at random","Only avoiding north","Only avoiding south"],"answer":0,"explain":"Target your avoidance to the problem."},
+{"id":"ter_h_mc6","type":"mc","topic":"terrain","diff":"hard","q":"Islands of safety are:","options":["The middle of a slope","Cornice tops","Protected spots to regroup out of the path","The runout"],"answer":2,"explain":"Use ridges and dense timber as safe zones."},
+{"id":"ter_h_mc7","type":"mc","topic":"terrain","diff":"hard","q":"A convex, unsupported, wind-loaded 37-degree lee slope on the problem aspect is best treated as:","options":["Irrelevant","An ideal test slope","High-priority terrain to avoid","Safe if you go one at a time"],"answer":2,"explain":"All the red flags point to avoidance."},
+{"id":"ter_h_mc8","type":"mc","topic":"terrain","diff":"hard","q":"A route's ATES rating should be matched to:","options":["Only group fitness","Only the temperature","The day's hazard and the group's risk tolerance","Parking availability"],"answer":2,"explain":"Match terrain to conditions and tolerance."},
+{"id":"ter_h_tf1","type":"tf","topic":"terrain","diff":"hard","q":"Overhead hazard can threaten you even on low-angle terrain beneath a steep start zone.","answer":true,"explain":"Runouts extend onto gentle ground."},
+{"id":"ter_h_tf2","type":"tf","topic":"terrain","diff":"hard","q":"On complex terrain, small errors carry larger consequences.","answer":true,"explain":"Few escape options amplify mistakes."},
+{"id":"ter_h_tf3","type":"tf","topic":"terrain","diff":"hard","q":"Reducing exposure time and spacing out are valid terrain-use tactics.","answer":true,"explain":"They limit how many are exposed."},
+{"id":"ter_h_ma1","type":"match","topic":"terrain","diff":"hard","q":"Match each danger level to a terrain strategy.","pairs":[{"l":"Low","r":"Normal caution; watch isolated features"},{"l":"Considerable","r":"Conservative terrain choices"},{"l":"High","r":"Simple terrain; avoid avalanche paths"}],"explain":"Scale terrain to danger."},
+{"id":"ter_h_ma2","type":"match","topic":"terrain","diff":"hard","q":"Match each term to its meaning.","pairs":[{"l":"Supported slope","r":"Benched or concave below"},{"l":"Unsupported slope","r":"Convex or open below"},{"l":"Terrain trap","r":"Amplifies consequences"}],"explain":"Structure and traps shape risk."},
+{"id":"wea_e_mc1","type":"mc","topic":"weather","diff":"easy","q":"Rapid, heavy snowfall raises danger mainly by:","options":["Quickly adding load as a new slab","Cooling facets","Strengthening the pack","Having no effect"],"answer":0,"explain":"Fast loading outpaces bonding."},
+{"id":"wea_e_mc2","type":"mc","topic":"weather","diff":"easy","q":"Wind's main avalanche role is to:","options":["Transport snow and build slabs on lee terrain","Only cool the snow","Melt the snow","Have no effect"],"answer":0,"explain":"Wind loads lee slopes."},
+{"id":"wea_e_mc3","type":"mc","topic":"weather","diff":"easy","q":"Clear, cold, calm nights tend to:","options":["Grow surface hoar and facet near-surface snow","Cause wet avalanches","Cause rain","Strengthen the base"],"answer":0,"explain":"Radiative cooling weakens the surface."},
+{"id":"wea_e_mc4","type":"mc","topic":"weather","diff":"easy","q":"Rain on snow generally:","options":["Adds weight and weakens bonds, raising danger","Has no effect","Strengthens the snow","Only matters in summer"],"answer":0,"explain":"Rain both loads and weakens."},
+{"id":"wea_e_mc5","type":"mc","topic":"weather","diff":"easy","q":"The loading rate that matters most is:","options":["Only total depth","Only sunshine","Only temperature","How fast new snow or wind adds weight relative to bonding"],"answer":3,"explain":"Rate versus bonding drives instability."},
+{"id":"wea_e_mc6","type":"mc","topic":"weather","diff":"easy","q":"Strong spring sun on a south slope can:","options":["Freeze it solid all day","Have no effect","Warm it and trigger wet activity","Grow surface hoar"],"answer":2,"explain":"Solar warming drives wet problems."},
+{"id":"wea_e_mc7","type":"mc","topic":"weather","diff":"easy","q":"A red flag you can directly observe is:","options":["Recent avalanches on nearby slopes","Cold air","Fresh grooming","Blue sky"],"answer":0,"explain":"Recent avalanches signal instability."},
+{"id":"wea_e_mc8","type":"mc","topic":"weather","diff":"easy","q":"Rapid warming can:","options":["Only affect the base","Always stabilize it","Destabilize the pack by adding free water","Never matter"],"answer":2,"explain":"Fast warming raises danger."},
+{"id":"wea_e_tf1","type":"tf","topic":"weather","diff":"easy","q":"Wind can build slabs faster than snowfall alone.","answer":true,"explain":"Wind loading is efficient."},
+{"id":"wea_e_tf2","type":"tf","topic":"weather","diff":"easy","q":"Surface hoar forms during warm, windy storms.","answer":false,"explain":"It forms on clear, calm, cold nights."},
+{"id":"wea_e_tf3","type":"tf","topic":"weather","diff":"easy","q":"Recent avalanche activity is one of the strongest signs of instability.","answer":true,"explain":"It is direct evidence."},
+{"id":"wea_e_ma1","type":"match","topic":"weather","diff":"easy","q":"Match each weather pattern to its effect.","pairs":[{"l":"Heavy snow and wind","r":"New wind or storm slab"},{"l":"Rain","r":"Added load and weakened bonds"},{"l":"Clear, cold, calm","r":"Surface hoar and faceting"}],"explain":"Weather previews the problem."},
+{"id":"wea_e_ma2","type":"match","topic":"weather","diff":"easy","q":"Match each red flag to its meaning.","pairs":[{"l":"Whumpfing","r":"A collapsing weak layer"},{"l":"Shooting cracks","r":"Propagating instability"},{"l":"Recent avalanches","r":"An active problem"}],"explain":"Red flags are field evidence."},
+{"id":"wea_m_mc1","type":"mc","topic":"weather","diff":"moderate","q":"A strong temperature gradient over a shallow pack:","options":["Melts it","Has no effect","Rounds and strengthens it","Drives faceting and weakening"],"answer":3,"explain":"Big gradients grow facets."},
+{"id":"wea_m_mc2","type":"mc","topic":"weather","diff":"moderate","q":"A crust that forms and is then buried can:","options":["Always strengthen the pack","Act as a bed surface and preserve facets","Prevent all avalanches","Be irrelevant"],"answer":1,"explain":"Crust interfaces are common failure planes."},
+{"id":"wea_m_mc3","type":"mc","topic":"weather","diff":"moderate","q":"Prolonged mid-winter high pressure over a shallow pack tends to:","options":["Cause wet slides","Add load","Weaken it via faceting and grow surface hoar","Heal it quickly"],"answer":2,"explain":"Cold, clear spells weaken shallow packs."},
+{"id":"wea_m_mc4","type":"mc","topic":"weather","diff":"moderate","q":"The first big spring thaw, especially with no overnight refreeze:","options":["Raises wet-avalanche danger","Cools the pack","Only affects wind slabs","Lowers all danger"],"answer":0,"explain":"Warming and water drive wet danger."},
+{"id":"wea_m_mc5","type":"mc","topic":"weather","diff":"moderate","q":"Snowpack memory means:","options":["The pack forgets weather daily","Only today matters","Weak layers from past weather persist and affect current stability","Memory is a myth"],"answer":2,"explain":"The pack integrates its history."},
+{"id":"wea_m_mc6","type":"mc","topic":"weather","diff":"moderate","q":"Wind cross-loading loads:","options":["Only ridgetops","Only direct lee slopes","Gully walls and slopes oblique to the wind","Only windward slopes"],"answer":2,"explain":"Cross-loading affects many features."},
+{"id":"wea_m_mc7","type":"mc","topic":"weather","diff":"moderate","q":"A thin snowpack area is often:","options":["More dangerous, with persistent grains, than a deep consolidated one","Always safer","Never faceted","Identical to deep areas"],"answer":0,"explain":"Thin areas facet and harbor weak layers."},
+{"id":"wea_m_mc8","type":"mc","topic":"weather","diff":"moderate","q":"A good overnight refreeze in spring:","options":["Can temporarily stabilize wet snow until it warms again","Grows depth hoar at the surface","Guarantees all-day safety","Causes immediate slides"],"answer":0,"explain":"Refreeze firms the surface briefly."},
+{"id":"wea_m_tf1","type":"tf","topic":"weather","diff":"moderate","q":"A good overnight refreeze can temporarily reduce wet-avalanche danger in spring.","answer":true,"explain":"Firmer surfaces are more stable."},
+{"id":"wea_m_tf2","type":"tf","topic":"weather","diff":"moderate","q":"Deep, uniform snowpacks generally have more persistent-weak-layer problems than thin, cold ones.","answer":false,"explain":"Thin, cold packs facet more."},
+{"id":"wea_m_tf3","type":"tf","topic":"weather","diff":"moderate","q":"Wind-loading can occur without new snowfall by moving existing surface snow.","answer":true,"explain":"Wind redistributes old snow."},
+{"id":"wea_m_ma1","type":"match","topic":"weather","diff":"moderate","q":"Match each process to its grain outcome.","pairs":[{"l":"Strong gradient","r":"Facets (weak)"},{"l":"Warm, uniform","r":"Rounds (strong)"},{"l":"Melt-freeze","r":"Crusts"}],"explain":"Metamorphism follows conditions."},
+{"id":"wea_m_ma2","type":"match","topic":"weather","diff":"moderate","q":"Match each spring cue to its meaning.","pairs":[{"l":"Good refreeze","r":"Firmer, safer morning"},{"l":"No refreeze","r":"Elevated wet danger"},{"l":"Rollerballs","r":"Surface warming underway"}],"explain":"Read spring signs."},
+{"id":"wea_h_mc1","type":"mc","topic":"weather","diff":"hard","q":"An early-season shallow, cold pack followed by loading sets up:","options":["No problems","Guaranteed stability","Only storm slabs","Deep persistent slab problems"],"answer":3,"explain":"Basal facets under later load are dangerous."},
+{"id":"wea_h_mc2","type":"mc","topic":"weather","diff":"hard","q":"Surface hoar preserved by cold, calm weather and then buried by a storm creates:","options":["A harmless layer","Only a wind slab","Instant strengthening","A widespread persistent weak layer"],"answer":3,"explain":"Buried surface hoar is persistent and widespread."},
+{"id":"wea_h_mc3","type":"mc","topic":"weather","diff":"hard","q":"In a mountain weather forecast, the most avalanche-relevant items are:","options":["Valley humidity only","Sunrise time","Pollen count","New snow amount, wind, and temperature trend"],"answer":3,"explain":"Snow, wind, and temperature drive hazard."},
+{"id":"wea_h_mc4","type":"mc","topic":"weather","diff":"hard","q":"A rain-on-snow event high on the mountain can:","options":["Only affect the surface","Strengthen the pack","Be harmless","Trigger widespread wet activity and load buried weak layers"],"answer":3,"explain":"Rain adds water and load."},
+{"id":"wea_h_mc5","type":"mc","topic":"weather","diff":"hard","q":"Tracking weather all season lets you:","options":["Focus only on today","Ignore the past","Know which buried layers exist and stay reactive","Do it for curiosity only"],"answer":2,"explain":"History reveals current problems."},
+{"id":"wea_h_mc6","type":"mc","topic":"weather","diff":"hard","q":"A long cold, clear, high-pressure spell over a shallow pack most likely:","options":["Triggers wet slides","Adds a slab","Weakens it through faceting and surface hoar","Strengthens it rapidly"],"answer":2,"explain":"Cold, clear spells weaken shallow packs."},
+{"id":"wea_h_mc7","type":"mc","topic":"weather","diff":"hard","q":"Which sequence is most dangerous?","options":["Warm bonding then light snow","A uniform deep pack","Steady cold with no new snow","Cold weak-layer development, then rapid heavy loading"],"answer":3,"explain":"A weak base plus fast load is a classic setup."},
+{"id":"wea_h_mc8","type":"mc","topic":"weather","diff":"hard","q":"A rapid temperature rise during a storm can:","options":["Have no effect","Create denser snow over lighter (upside-down) and raise sensitivity","Cool the pack","Stabilize the pack immediately"],"answer":1,"explain":"Warming mid-storm can invert density."},
+{"id":"wea_h_tf1","type":"tf","topic":"weather","diff":"hard","q":"A single day's weather tells you everything about current avalanche danger.","answer":false,"explain":"The pack reflects the whole season."},
+{"id":"wea_h_tf2","type":"tf","topic":"weather","diff":"hard","q":"Buried surface hoar can remain a problem for weeks after burial.","answer":true,"explain":"It heals slowly."},
+{"id":"wea_h_tf3","type":"tf","topic":"weather","diff":"hard","q":"Rapid warming during a storm can create upside-down snow that is more prone to failure.","answer":true,"explain":"Denser over lighter favors failure."},
+{"id":"wea_h_ma1","type":"match","topic":"weather","diff":"hard","q":"Match each weather history to today's problem.","pairs":[{"l":"Cold clear spell then burial","r":"Persistent slab"},{"l":"Big storm with wind","r":"Storm or wind slab"},{"l":"Spring thaw","r":"Wet avalanche"}],"explain":"History points to the current problem."},
+{"id":"wea_h_ma2","type":"match","topic":"weather","diff":"hard","q":"Match each term to its meaning.","pairs":[{"l":"Loading rate","r":"How fast weight is added"},{"l":"Snowpack memory","r":"Persistence of past layers"},{"l":"Refreeze","r":"A temporary spring stabilizer"}],"explain":"Key weather concepts."},
+{"id":"pla_e_mc1","type":"mc","topic":"planning","diff":"easy","q":"Trip planning should happen:","options":["Before you go, using the forecast","Only in the field","Never","After the trip"],"answer":0,"explain":"Plan ahead, then adjust."},
+{"id":"pla_e_mc2","type":"mc","topic":"planning","diff":"easy","q":"The daily avalanche bulletin provides:","options":["Danger ratings, problems, and travel advice","Only weather","Only trailheads","Only grooming"],"answer":0,"explain":"The bulletin is a core planning tool."},
+{"id":"pla_e_mc3","type":"mc","topic":"planning","diff":"easy","q":"A go/no-go decision should be based on:","options":["Only distance","Only powder quality","Only fitness","Hazard, terrain, and group factors together"],"answer":3,"explain":"Combine the three factors."},
+{"id":"pla_e_mc4","type":"mc","topic":"planning","diff":"easy","q":"The CMAH is:","options":["A grain type","A model linking avalanche problem, likelihood, and size","A slope tool","A rescue device"],"answer":1,"explain":"CMAH is a hazard-assessment framework."},
+{"id":"pla_e_mc5","type":"mc","topic":"planning","diff":"easy","q":"A good plan includes:","options":["No alternatives","A plan B or more conservative option","Ignoring the weather","Only the summit"],"answer":1,"explain":"Always have a fallback."},
+{"id":"pla_e_mc6","type":"mc","topic":"planning","diff":"easy","q":"The North American danger scale runs:","options":["1 to 3","Low, Moderate, Considerable, High, Extreme","A to F","Colors only"],"answer":1,"explain":"Five levels from Low to Extreme."},
+{"id":"pla_e_mc7","type":"mc","topic":"planning","diff":"easy","q":"Field observations should:","options":["Only matter afterward","Be ignored","Update your plan as you go","Never change the plan"],"answer":2,"explain":"Adapt to what you see."},
+{"id":"pla_e_mc8","type":"mc","topic":"planning","diff":"easy","q":"Terrain selection is used to:","options":["Match exposure to the day's hazard","Ignore hazard","Follow tracks","Maximize vertical always"],"answer":0,"explain":"Terrain is the main risk lever."},
+{"id":"pla_e_tf1","type":"tf","topic":"planning","diff":"easy","q":"The avalanche bulletin is a useful starting point for trip planning.","answer":true,"explain":"Start with the forecast."},
+{"id":"pla_e_tf2","type":"tf","topic":"planning","diff":"easy","q":"Once made, a plan should never be changed in the field.","answer":false,"explain":"Plans should adapt."},
+{"id":"pla_e_tf3","type":"tf","topic":"planning","diff":"easy","q":"Choosing more conservative terrain is a valid response to higher danger.","answer":true,"explain":"Scale terrain to danger."},
+{"id":"pla_e_ma1","type":"match","topic":"planning","diff":"easy","q":"Match each danger level to broad travel advice.","pairs":[{"l":"Low","r":"Normal caution"},{"l":"Considerable","r":"Careful terrain choices"},{"l":"High","r":"Avoid avalanche terrain"}],"explain":"Advice scales with danger."},
+{"id":"pla_e_ma2","type":"match","topic":"planning","diff":"easy","q":"Match each CMAH element to its meaning.","pairs":[{"l":"Problem","r":"Type of avalanche expected"},{"l":"Likelihood","r":"Chance of triggering"},{"l":"Size","r":"Destructive potential"}],"explain":"CMAH combines these."},
+{"id":"pla_m_mc1","type":"mc","topic":"planning","diff":"moderate","q":"Compared with the Avaluator, CMAH:","options":["Ignores the forecast","Uses only group size","Uses only aspect","Reasons from the specific problem, likelihood, and size"],"answer":3,"explain":"CMAH is problem-based."},
+{"id":"pla_m_mc2","type":"mc","topic":"planning","diff":"moderate","q":"Considerable danger means:","options":["It is safe","Dangerous conditions; cautious route-finding and conservative decisions","It equals Extreme","No avalanches are possible"],"answer":1,"explain":"Considerable warrants real caution."},
+{"id":"pla_m_mc3","type":"mc","topic":"planning","diff":"moderate","q":"When field evidence is worse than the forecast:","options":["Default to the more cautious interpretation","Ignore it","Trust the forecast","Push harder"],"answer":0,"explain":"Let concerning evidence win."},
+{"id":"pla_m_mc4","type":"mc","topic":"planning","diff":"moderate","q":"The planning cycle is:","options":["Ski, plan, forget","Random","Forecast, plan, field check, debrief","No process"],"answer":2,"explain":"Follow a repeatable loop."},
+{"id":"pla_m_mc5","type":"mc","topic":"planning","diff":"moderate","q":"A good safety margin means:","options":["Ignoring uncertainty","Leaving room for uncertainty in terrain choice","No margin","Skiing to the exact limit"],"answer":1,"explain":"Margins absorb the unknown."},
+{"id":"pla_m_mc6","type":"mc","topic":"planning","diff":"moderate","q":"Matching terrain to a persistent problem means:","options":["Testing steep slopes","Ignoring aspect","Choosing lower-consequence terrain even if signs are subtle","Going bigger"],"answer":2,"explain":"Be conservative with persistent problems."},
+{"id":"pla_m_mc7","type":"mc","topic":"planning","diff":"moderate","q":"Group check-ins during the day serve to:","options":["Only happen at the car","Never happen","Reassess as conditions and observations change","Only happen after a fall"],"answer":2,"explain":"Reassess regularly."},
+{"id":"pla_m_mc8","type":"mc","topic":"planning","diff":"moderate","q":"Debriefing after a trip:","options":["Builds experience and calibrates future decisions","Replaces planning","Is pointless","Is only for guides"],"answer":0,"explain":"Debriefs improve judgment."},
+{"id":"pla_m_tf1","type":"tf","topic":"planning","diff":"moderate","q":"A rising danger trend should make you more conservative with terrain.","answer":true,"explain":"Trend matters."},
+{"id":"pla_m_tf2","type":"tf","topic":"planning","diff":"moderate","q":"Debriefs have no value for recreational groups.","answer":false,"explain":"They calibrate decisions."},
+{"id":"pla_m_tf3","type":"tf","topic":"planning","diff":"moderate","q":"Good planning reduces the number of high-pressure decisions in the field.","answer":true,"explain":"Pre-planning offloads decisions."},
+{"id":"pla_m_ma1","type":"match","topic":"planning","diff":"moderate","q":"Match each step to its purpose.","pairs":[{"l":"Pre-trip plan","r":"Set terrain options"},{"l":"Field checks","r":"Confirm or downgrade the plan"},{"l":"Debrief","r":"Learn for next time"}],"explain":"Each step has a job."},
+{"id":"pla_m_ma2","type":"match","topic":"planning","diff":"moderate","q":"Match each danger rating to a mindset.","pairs":[{"l":"Moderate","r":"Heightened awareness on specific features"},{"l":"Considerable","r":"Conservative decisions"},{"l":"High","r":"Avoid avalanche terrain"}],"explain":"Mindset scales with rating."},
+{"id":"pla_h_mc1","type":"mc","topic":"planning","diff":"hard","q":"Moderate danger with a persistent slab on north-to-east alpine calls for:","options":["Avoiding steep NE alpine and choosing lower-consequence aspects and elevations","Ignoring aspect","Going alpine everywhere","Skiing steep NE to test it"],"answer":0,"explain":"Target avoidance to the problem."},
+{"id":"pla_h_mc2","type":"mc","topic":"planning","diff":"hard","q":"If your observations (whumpfs, recent avalanches) exceed the forecast, you should:","options":["Continue as planned","Trust the printed rating","Treat danger as higher and scale back terrain","Go steeper"],"answer":2,"explain":"Field evidence overrides the printed rating."},
+{"id":"pla_h_mc3","type":"mc","topic":"planning","diff":"hard","q":"The main advantage of a problem-based (CMAH) approach is that it:","options":["Tailors terrain to the specific problem's likelihood and size","Is just faster","Ignores size","Removes the need for terrain choices"],"answer":0,"explain":"CMAH links problem to terrain."},
+{"id":"pla_h_mc4","type":"mc","topic":"planning","diff":"hard","q":"For a low-likelihood, high-consequence problem you should:","options":["Ignore consequence","Only worry with obvious signs","Be conservative despite few obvious signs","Ski it once to check"],"answer":2,"explain":"Consequence justifies caution."},
+{"id":"pla_h_mc5","type":"mc","topic":"planning","diff":"hard","q":"When group members disagree about a slope:","options":["Ignore the cautious member","The fastest decides","Majority rules regardless","Default to the more conservative option and discuss"],"answer":3,"explain":"Respect the cautious voice."},
+{"id":"pla_h_mc6","type":"mc","topic":"planning","diff":"hard","q":"A plan B exists to:","options":["Provide a pre-decided safer option when conditions warrant","Never be used","Replace the forecast","Add vertical"],"answer":0,"explain":"Pre-plan the fallback."},
+{"id":"pla_h_mc7","type":"mc","topic":"planning","diff":"hard","q":"The strongest basis for a go decision on steep terrain is:","options":["A confident partner","One good test","Multiple consistent lines of low-danger evidence plus low-consequence terrain","Good snow quality"],"answer":2,"explain":"Consistency beats a single data point."},
+{"id":"pla_h_mc8","type":"mc","topic":"planning","diff":"hard","q":"On a High-danger day, matching ATES to conditions means:","options":["Terrain rating is irrelevant","Only fitness matters","Keeping to Simple terrain regardless of the objective","Complex is fine if fast"],"answer":2,"explain":"High danger calls for Simple terrain."},
+{"id":"pla_h_tf1","type":"tf","topic":"planning","diff":"hard","q":"When in doubt, the more conservative terrain choice is the defensible one.","answer":true,"explain":"Caution is defensible."},
+{"id":"pla_h_tf2","type":"tf","topic":"planning","diff":"hard","q":"A single positive stability sign outweighs several red flags.","answer":false,"explain":"Weigh all the evidence."},
+{"id":"pla_h_tf3","type":"tf","topic":"planning","diff":"hard","q":"Pre-committing to turnaround or veto rules helps counter in-the-moment pressure.","answer":true,"explain":"Rules resist pressure."},
+{"id":"pla_h_ma1","type":"match","topic":"planning","diff":"hard","q":"Match each evidence picture to an action.","pairs":[{"l":"Multiple red flags","r":"Step back to simpler terrain"},{"l":"Mixed or uncertain","r":"Add margin"},{"l":"Consistent low danger and low consequence","r":"Proceed with normal caution"}],"explain":"Act on the whole picture."},
+{"id":"pla_h_ma2","type":"match","topic":"planning","diff":"hard","q":"Match each CMAH element to its role.","pairs":[{"l":"Avalanche problem","r":"What to expect"},{"l":"Likelihood","r":"How probable a trigger"},{"l":"Consequence or size","r":"How bad if it happens"}],"explain":"CMAH weighs all three."},
+{"id":"res_e_mc1","type":"mc","topic":"rescue","diff":"easy","q":"The three essential rescue tools are:","options":["Radio, flare, whistle","Map, compass, GPS","Rope, harness, helmet","Transceiver, probe, and shovel"],"answer":3,"explain":"Everyone carries and knows all three."},
+{"id":"res_e_mc2","type":"mc","topic":"rescue","diff":"easy","q":"When a partner is buried, your first action is to:","options":["Go for help first","Switch beacons to search and begin immediately","Wait and watch","Call and wait"],"answer":1,"explain":"Speed saves lives; search now."},
+{"id":"res_e_mc3","type":"mc","topic":"rescue","diff":"easy","q":"The survival window is highest in the first:","options":["Day","Few hours","10 to 15 minutes","There is no time pressure"],"answer":2,"explain":"Survival drops fast after ~15 minutes."},
+{"id":"res_e_mc4","type":"mc","topic":"rescue","diff":"easy","q":"The probe is used to:","options":["Dig","Search the signal","Pinpoint the victim's location and depth","Measure slope angle"],"answer":2,"explain":"Probe after the fine search."},
+{"id":"res_e_mc5","type":"mc","topic":"rescue","diff":"easy","q":"Strategic shoveling is:","options":["Waiting to dig","An organized team digging to reach the airway fast","One person digging straight down","Random digging"],"answer":1,"explain":"Technique speeds extraction."},
+{"id":"res_e_mc6","type":"mc","topic":"rescue","diff":"easy","q":"After locating with the transceiver you:","options":["Re-search first","Shovel then probe","Probe to confirm, then shovel","Leave the scene"],"answer":2,"explain":"Confirm with a probe strike."},
+{"id":"res_e_mc7","type":"mc","topic":"rescue","diff":"easy","q":"Everyone in the party should:","options":["Leave gear in the car","Rely on one expert","Share one beacon","Carry gear and know how to use it"],"answer":3,"explain":"Self-sufficiency matters."},
+{"id":"res_e_mc8","type":"mc","topic":"rescue","diff":"easy","q":"If outside help is available, you should:","options":["Stop searching","Wait for help","Ignore help","Send for organized rescue while companion rescue continues"],"answer":3,"explain":"Do both without pausing the search."},
+{"id":"res_e_tf1","type":"tf","topic":"rescue","diff":"easy","q":"Companion rescue speed is critical because survival drops fast after ~15 minutes.","answer":true,"explain":"The window is short."},
+{"id":"res_e_tf2","type":"tf","topic":"rescue","diff":"easy","q":"You should go for help before beginning a companion search.","answer":false,"explain":"Search first; help is usually too slow."},
+{"id":"res_e_tf3","type":"tf","topic":"rescue","diff":"easy","q":"All group members should regularly practice with their transceivers.","answer":true,"explain":"Practice builds speed."},
+{"id":"res_e_ma1","type":"match","topic":"rescue","diff":"easy","q":"Match each tool to its job.","pairs":[{"l":"Transceiver","r":"Locate the signal"},{"l":"Probe","r":"Pinpoint depth and spot"},{"l":"Shovel","r":"Extract efficiently"}],"explain":"Each tool has a role."},
+{"id":"res_e_ma2","type":"match","topic":"rescue","diff":"easy","q":"Match each search phase to its action.","pairs":[{"l":"Signal search","r":"Acquire a signal"},{"l":"Coarse search","r":"Follow the flux line"},{"l":"Fine search","r":"Bracket the lowest reading"}],"explain":"Phases run in order."},
+{"id":"res_m_mc1","type":"mc","topic":"rescue","diff":"moderate","q":"The transceiver search phases, in order, are:","options":["Fine, coarse, signal","Signal, coarse, fine, pinpoint","Probe first","Random order"],"answer":1,"explain":"Work signal to pinpoint."},
+{"id":"res_m_mc2","type":"mc","topic":"rescue","diff":"moderate","q":"In a multiple burial, marking (flagging) a signal:","options":["Ignores the extras","Deletes signals","Turns your beacon off","Suppresses a found signal so you can search for others"],"answer":3,"explain":"Marking isolates found victims."},
+{"id":"res_m_mc3","type":"mc","topic":"rescue","diff":"moderate","q":"Good fine-search technique is to:","options":["Run quickly","Spin it around","Wave it high","Keep the beacon low and steady while bracketing the lowest number"],"answer":3,"explain":"Slow, low, and methodical."},
+{"id":"res_m_mc4","type":"mc","topic":"rescue","diff":"moderate","q":"Strategic (conveyor) shoveling starts:","options":["Uphill only","Downhill of the probe, moving snow aside and rotating diggers","With one digger only","Straight down on the probe"],"answer":1,"explain":"Move snow, do not lift it up a hole."},
+{"id":"res_m_mc5","type":"mc","topic":"rescue","diff":"moderate","q":"At the pinpoint, probe in:","options":["Only uphill","One probe then dig","Random jabs","A spiral out from the lowest reading"],"answer":3,"explain":"Spiral probing finds the victim."},
+{"id":"res_m_mc6","type":"mc","topic":"rescue","diff":"moderate","q":"If you lose the signal during coarse search:","options":["Return to where you last had it and slow down","Give up","Speed up","Start far away"],"answer":0,"explain":"Back up and re-acquire."},
+{"id":"res_m_mc7","type":"mc","topic":"rescue","diff":"moderate","q":"Immediately after extraction, the priority is:","options":["Pack up gear","Airway and breathing, and check responsiveness","Re-bury the probe","Search again"],"answer":1,"explain":"Care for the airway first."},
+{"id":"res_m_mc8","type":"mc","topic":"rescue","diff":"moderate","q":"With a large group or bystanders you should:","options":["Assign roles such as search, shovel, and call","Have everyone dig one hole","Have everyone search","Use no roles"],"answer":0,"explain":"Roles prevent chaos."},
+{"id":"res_m_tf1","type":"tf","topic":"rescue","diff":"moderate","q":"Marking a signal lets you move on to find additional burials.","answer":true,"explain":"That is its purpose."},
+{"id":"res_m_tf2","type":"tf","topic":"rescue","diff":"moderate","q":"In fine search you should hold the transceiver low and still near the surface.","answer":true,"explain":"Minimize the reading carefully."},
+{"id":"res_m_tf3","type":"tf","topic":"rescue","diff":"moderate","q":"Digging straight down onto the probe is the fastest way to reach a deep burial.","answer":false,"explain":"Strategic shoveling is faster."},
+{"id":"res_m_ma1","type":"match","topic":"rescue","diff":"moderate","q":"Match each search phase to its goal.","pairs":[{"l":"Signal","r":"Get first reception"},{"l":"Coarse","r":"Follow the flux to the victim"},{"l":"Fine","r":"Minimize the reading"}],"explain":"Each phase narrows the search."},
+{"id":"res_m_ma2","type":"match","topic":"rescue","diff":"moderate","q":"Match each multiple-burial tactic to its purpose.","pairs":[{"l":"Marking","r":"Isolate found signals"},{"l":"Micro-search strips","r":"Cover ground systematically"},{"l":"Three-antenna beacon","r":"Resolve close signals"}],"explain":"Tactics handle multiple burials."},
+{"id":"res_h_mc1","type":"mc","topic":"rescue","diff":"hard","q":"For a burial deeper than about 1.5 m, use:","options":["Wait for professionals","Multiple shovelers in a V or conveyor from downhill","A single digger on the probe","Repeated probing instead of digging"],"answer":1,"explain":"Deep burials need team technique."},
+{"id":"res_h_mc2","type":"mc","topic":"rescue","diff":"hard","q":"Two burials close together are best separated by:","options":["Marking plus a precise fine search or grid","Turning beacons off","Digging randomly","Giving up"],"answer":0,"explain":"Careful technique resolves them."},
+{"id":"res_h_mc3","type":"mc","topic":"rescue","diff":"hard","q":"The best predictor of a live recovery is:","options":["Calling first","Organized rescue","Fast companion rescue within the survival window","More probes"],"answer":2,"explain":"Companions are the difference."},
+{"id":"res_h_mc4","type":"mc","topic":"rescue","diff":"hard","q":"Because a 1 m burial may require moving over a tonne of debris, you should:","options":["Assume one person is enough","Use a team and proper technique, not brute force alone","Treat it as light","Skip technique"],"answer":1,"explain":"Debris volume is large."},
+{"id":"res_h_mc5","type":"mc","topic":"rescue","diff":"hard","q":"You should delegate calling for help:","options":["Once enough rescuers are searching, without stopping the search","By having everyone stop to call","By calling before searching","By never calling"],"answer":0,"explain":"Do not pause the search to call."},
+{"id":"res_h_mc6","type":"mc","topic":"rescue","diff":"hard","q":"Avalanche debris sets up like concrete, so:","options":["Speed does not matter","Shoveling is trivial","Only the beacon matters","Efficient, coordinated shoveling matters as much as the search"],"answer":3,"explain":"Shoveling is a huge share of the time."},
+{"id":"res_h_mc7","type":"mc","topic":"rescue","diff":"hard","q":"As a lone survivor with one buried partner you should:","options":["Leave to find help first","Search, pinpoint, and dig yourself; call for help if it does not delay","Wait","Dig a random hole"],"answer":1,"explain":"Self-rescue immediately."},
+{"id":"res_h_mc8","type":"mc","topic":"rescue","diff":"hard","q":"Rescue skills are best kept sharp by:","options":["Regular, realistic practice including multiple burials and deep digs","Only tabletop beacon drills","Never practicing","Practicing once ever"],"answer":0,"explain":"Realistic reps build competence."},
+{"id":"res_h_tf1","type":"tf","topic":"rescue","diff":"hard","q":"Strategic shoveling can dramatically cut extraction time versus digging straight down.","answer":true,"explain":"Technique moves more snow faster."},
+{"id":"res_h_tf2","type":"tf","topic":"rescue","diff":"hard","q":"Organized rescue usually arrives within the burial survival window.","answer":false,"explain":"It is typically too slow."},
+{"id":"res_h_tf3","type":"tf","topic":"rescue","diff":"hard","q":"Realistic, repeated practice improves real rescue performance.","answer":true,"explain":"Practice pays off."},
+{"id":"res_h_ma1","type":"match","topic":"rescue","diff":"hard","q":"Match each scenario to its tactic.","pairs":[{"l":"Multiple burial","r":"Mark or flag signals"},{"l":"Deep burial","r":"Team strategic shoveling"},{"l":"Lost signal","r":"Return to last contact"}],"explain":"Match tactic to situation."},
+{"id":"res_h_ma2","type":"match","topic":"rescue","diff":"hard","q":"Put the rescue priorities in order.","pairs":[{"l":"First","r":"Search and pinpoint"},{"l":"Then","r":"Strategic shovel to the airway"},{"l":"Finally","r":"First aid and evacuation"}],"explain":"Sequence the rescue."},
+{"id":"hum_e_mc1","type":"mc","topic":"human","diff":"easy","q":"Heuristic traps are:","options":["Rescue tools","Weather patterns","Mental shortcuts that can lead to poor avalanche decisions","Grain types"],"answer":2,"explain":"Shortcuts can bias judgment."},
+{"id":"hum_e_mc2","type":"mc","topic":"human","diff":"easy","q":"The expert-halo trap is:","options":["Wanting fresh tracks","Wanting approval","Comfort on familiar terrain","Deferring to a perceived expert without question"],"answer":3,"explain":"An assumed expert silences input."},
+{"id":"hum_e_mc3","type":"mc","topic":"human","diff":"easy","q":"The familiarity trap is:","options":["Following an expert","Assuming a well-known slope is safe because it usually is","Peer pressure","Rushing for powder"],"answer":1,"explain":"Familiar terrain feels deceptively safe."},
+{"id":"hum_e_mc4","type":"mc","topic":"human","diff":"easy","q":"In a healthy group, raising a safety concern:","options":["Should always defer","Is best kept silent","Is only for the leader","Should be welcomed from anyone"],"answer":3,"explain":"Everyone can speak up."},
+{"id":"hum_e_mc5","type":"mc","topic":"human","diff":"easy","q":"Powder fever describes:","options":["A grain type","Desire for good snow overriding caution","A rescue step","A cold injury"],"answer":1,"explain":"Excitement can bias decisions."},
+{"id":"hum_e_mc6","type":"mc","topic":"human","diff":"easy","q":"One-at-a-time travel on a suspect slope:","options":["Is too slow to use","Is pointless","Limits how many can be caught","Is only for beginners"],"answer":2,"explain":"Spacing reduces exposure."},
+{"id":"hum_e_mc7","type":"mc","topic":"human","diff":"easy","q":"A checklist helps by:","options":["Slowing you down uselessly","Guaranteeing safety","Reducing reliance on in-the-moment judgment and bias","Replacing terrain choice"],"answer":2,"explain":"Structure counters bias."},
+{"id":"hum_e_mc8","type":"mc","topic":"human","diff":"easy","q":"Tracks on a slope:","options":["Prove it is safe","Do not prove it is safe","Are irrelevant to decisions","Mean it will slide"],"answer":1,"explain":"Untriggered is not the same as safe."},
+{"id":"hum_e_tf1","type":"tf","topic":"human","diff":"easy","q":"Group members should feel free to raise safety concerns.","answer":true,"explain":"Open communication is safer."},
+{"id":"hum_e_tf2","type":"tf","topic":"human","diff":"easy","q":"If a slope has tracks on it, it is definitely safe to ski.","answer":false,"explain":"It may simply not have released yet."},
+{"id":"hum_e_tf3","type":"tf","topic":"human","diff":"easy","q":"Emotional desire for good snow can bias risk decisions.","answer":true,"explain":"Powder fever is real."},
+{"id":"hum_e_ma1","type":"match","topic":"human","diff":"easy","q":"Match each trap to its description.","pairs":[{"l":"Familiarity","r":"Known terrain feels safe"},{"l":"Expert halo","r":"Defer to an expert"},{"l":"Scarcity","r":"Rush for untracked snow"}],"explain":"Name the trap to counter it."},
+{"id":"hum_e_ma2","type":"match","topic":"human","diff":"easy","q":"Match each practice to its benefit.","pairs":[{"l":"One-at-a-time","r":"Fewer people exposed"},{"l":"Checklists","r":"Counter bias"},{"l":"Open communication","r":"Surfaces concerns"}],"explain":"Habits improve safety."},
+{"id":"hum_m_mc1","type":"mc","topic":"human","diff":"moderate","q":"The social-proof or acceptance trap is:","options":["Familiarity","Scarcity","Relying on an expert","Doing what others do, or taking risks to gain approval"],"answer":3,"explain":"We copy others and seek approval."},
+{"id":"hum_m_mc2","type":"mc","topic":"human","diff":"moderate","q":"The commitment or consistency trap is:","options":["No bias at all","Ignoring the goal","Sticking to a goal despite new warning signs","Changing plans easily"],"answer":2,"explain":"Commitment blinds us to red flags."},
+{"id":"hum_m_mc3","type":"mc","topic":"human","diff":"moderate","q":"Good leadership on a suspect slope includes:","options":["Rushing the group","Setting spacing, safe zones, and clear communication","Staying silent","Skiing first for glory"],"answer":1,"explain":"Structure and communication."},
+{"id":"hum_m_mc4","type":"mc","topic":"human","diff":"moderate","q":"The best way to counter groupthink is to:","options":["Let the majority rule fast","Defer to the loudest","Invite dissent and use a pre-agreed veto","Avoid discussion"],"answer":2,"explain":"Encourage dissent."},
+{"id":"hum_m_mc5","type":"mc","topic":"human","diff":"moderate","q":"A quiet member's unease should be:","options":["Overruled","Mocked","Taken seriously and discussed","Ignored"],"answer":2,"explain":"Quiet dissent can be crucial."},
+{"id":"hum_m_mc6","type":"mc","topic":"human","diff":"moderate","q":"Larger groups tend to:","options":["Have no effect","Increase exposure and complicate communication","Always be safer","Automatically reduce risk"],"answer":1,"explain":"Big groups are harder to manage."},
+{"id":"hum_m_mc7","type":"mc","topic":"human","diff":"moderate","q":"To resist terrain choices made under peer pressure:","options":["Skip planning","Follow the group always","Decide emotionally","Pre-commit to rules before emotions rise"],"answer":3,"explain":"Rules resist pressure."},
+{"id":"hum_m_mc8","type":"mc","topic":"human","diff":"moderate","q":"The scarcity (tracks) trap is:","options":["Rushing to get fresh tracks before others","Commitment","Expert halo","Familiarity"],"answer":0,"explain":"Fresh-track pressure biases us."},
+{"id":"hum_m_tf1","type":"tf","topic":"human","diff":"moderate","q":"Pre-agreed turnaround rules help resist powder fever.","answer":true,"explain":"Rules beat in-the-moment urges."},
+{"id":"hum_m_tf2","type":"tf","topic":"human","diff":"moderate","q":"Larger groups automatically make better, safer decisions.","answer":false,"explain":"They often increase risk."},
+{"id":"hum_m_tf3","type":"tf","topic":"human","diff":"moderate","q":"A designated devil's advocate can reduce groupthink.","answer":true,"explain":"Structured dissent helps."},
+{"id":"hum_m_ma1","type":"match","topic":"human","diff":"moderate","q":"Match each trap to its description.","pairs":[{"l":"Acceptance","r":"Risk for approval"},{"l":"Consistency","r":"Stick to the plan despite red flags"},{"l":"Expert halo","r":"Over-trust a leader"}],"explain":"Traps take many forms."},
+{"id":"hum_m_ma2","type":"match","topic":"human","diff":"moderate","q":"Match each tool to the bias it counters.","pairs":[{"l":"Checklist","r":"Halo and consistency"},{"l":"One-at-a-time","r":"Exposure"},{"l":"Veto rule","r":"Social pressure"}],"explain":"Structure counters bias."},
+{"id":"hum_h_mc1","type":"mc","topic":"human","diff":"hard","q":"A confident leader dismisses a member's whumpf observation. The best response is to:","options":["Keep going","Pause and re-evaluate, weighting the observation","Defer to the leader","Mock the member"],"answer":1,"explain":"Field evidence outranks confidence."},
+{"id":"hum_h_mc2","type":"mc","topic":"human","diff":"hard","q":"A group drove hours for a line and now sees fresh avalanches. The trap at play is:","options":["Commitment or consistency; be willing to abandon the objective","No trap","Familiarity only","Expert halo"],"answer":0,"explain":"Sunk cost drives commitment."},
+{"id":"hum_h_mc3","type":"mc","topic":"human","diff":"hard","q":"Structural defenses against human-factor errors include:","options":["Avoiding discussion","Relying on mood","Checklists, defined roles, turnaround times, and veto power","Letting the fastest decide"],"answer":2,"explain":"Structure beats willpower."},
+{"id":"hum_h_mc4","type":"mc","topic":"human","diff":"hard","q":"Experienced parties still get caught because:","options":["Heuristic traps and overconfidence can override knowledge","Knowledge removes all risk","They never do","Only beginners get caught"],"answer":0,"explain":"Expertise is not immunity."},
+{"id":"hum_h_mc5","type":"mc","topic":"human","diff":"hard","q":"The best group setup for complex terrain is:","options":["A large group for safety in numbers","No roles","Everyone leading","A small, well-communicating group with clear leadership and roles"],"answer":3,"explain":"Small and coordinated."},
+{"id":"hum_h_mc6","type":"mc","topic":"human","diff":"hard","q":"When a group disagrees on go/no-go, you should:","options":["Let the majority rule quickly","Default conservative, discuss openly, and not pressure dissenters","Ignore the cautious voice","Have the leader decide alone"],"answer":1,"explain":"Protect the cautious voice."},
+{"id":"hum_h_mc7","type":"mc","topic":"human","diff":"hard","q":"The role of feedback and debrief in human factors is to:","options":["Replace planning","Calibrate judgment and expose biases over time","Only matter after accidents","Have no effect"],"answer":1,"explain":"Debriefs build calibration."},
+{"id":"hum_h_mc8","type":"mc","topic":"human","diff":"hard","q":"The idea that terrain is the antidote to uncertainty means:","options":["When unsure about people or snow, choose safer terrain","Ignore terrain","Ski harder to learn","Rely on gear"],"answer":0,"explain":"Terrain choice manages the unknown."},
+{"id":"hum_h_tf1","type":"tf","topic":"human","diff":"hard","q":"Experience and knowledge fully immunize a party against heuristic traps.","answer":false,"explain":"Experts fall into traps too."},
+{"id":"hum_h_tf2","type":"tf","topic":"human","diff":"hard","q":"A culture where anyone can call a turnaround improves group safety.","answer":true,"explain":"Shared authority helps."},
+{"id":"hum_h_tf3","type":"tf","topic":"human","diff":"hard","q":"Choosing conservative terrain manages both snowpack and human uncertainty.","answer":true,"explain":"Terrain absorbs uncertainty."},
+{"id":"hum_h_ma1","type":"match","topic":"human","diff":"hard","q":"Match each scenario to its trap.","pairs":[{"l":"Drove far, ignore red flags","r":"Commitment"},{"l":"Follow a confident leader","r":"Expert halo"},{"l":"Rush for untracked snow","r":"Scarcity"}],"explain":"Recognize the trap in action."},
+{"id":"hum_h_ma2","type":"match","topic":"human","diff":"hard","q":"Match each defense to its effect.","pairs":[{"l":"Turnaround time","r":"Limits summit fever"},{"l":"Defined roles","r":"Reduce chaos"},{"l":"Open dissent","r":"Counters groupthink"}],"explain":"Defenses target specific failures."}
 ];
