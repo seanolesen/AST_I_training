@@ -13,7 +13,7 @@ const FORMAT_LABEL = { mc: "Multiple choice", tf: "True / False", match: "Matchi
 // ---- Normalize each tool's stored data into flat attempts: {correct, ts, dims{}} ----
 async function loadAst1() {
   let runs = [];
-  try { runs = await loadRuns(); } catch (e) { runs = []; }
+  try { runs = await loadRuns("ast1"); } catch (e) { runs = []; }
   const out = [];
   for (const r of runs || []) {
     if (Array.isArray(r.questions) && r.questions.length) {
@@ -44,8 +44,28 @@ async function loadSlope() {
 }
 
 // Registry — add a new tool here to give it its own performance panel.
+const AST2_TOPIC = { snowpack: "Snowpack & Tests", problems: "Avalanche Problems", terrain: "Terrain & ATES",
+  weather: "Weather & Evolution", planning: "Planning & Decisions", rescue: "Advanced Rescue", human: "Human & Group" };
+async function loadAst2() {
+  let runs = [];
+  try { runs = await loadRuns("ast2"); } catch (e) { runs = []; }
+  const out = [];
+  for (const r of runs || []) {
+    if (Array.isArray(r.questions) && r.questions.length) {
+      for (const q of r.questions)
+        out.push({ correct: !!q.correct, ts: r.ts || 0,
+          dims: { Subject: AST2_TOPIC[q.topic] || cap(q.topic), Format: FORMAT_LABEL[q.type] || cap(q.type), Difficulty: cap(q.diff) } });
+    } else if (typeof r.correct === "number" && typeof r.total === "number") {
+      for (let i = 0; i < r.total; i++)
+        out.push({ correct: i < r.correct, ts: r.ts || 0, dims: { Subject: "Unlogged", Format: "Unlogged", Difficulty: "Unlogged" } });
+    }
+  }
+  return out;
+}
+
 const TOOLS = [
   { key: "ast1", name: "AST 1 Practice", accent: T.ice, dims: ["Subject", "Format", "Difficulty"], load: loadAst1 },
+  { key: "ast2", name: "AST 2 Practice", accent: "#b98cff", dims: ["Subject", "Format", "Difficulty"], load: loadAst2 },
   { key: "slope", name: "Slope-Angle Trainer", accent: T.amber, dims: ["View", "Proximity", "Difficulty"], load: loadSlope },
 ];
 

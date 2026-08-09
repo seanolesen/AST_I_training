@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient";
-import { Ast1App } from "./App.jsx";
+import { Ast1App, Ast2App } from "./App.jsx";
 import { SlopeApp } from "./SlopeApp.jsx";
 import { Performance } from "./Performance.jsx";
 
@@ -86,6 +86,10 @@ function Home({ onPick, session }) {
           <div style={h}>AST 1 Practice</div>
           <p style={p}>273 questions across terrain, snowpack, weather, forecasting, trip planning, companion rescue, and human factors.</p>
         </button>
+        <button style={tile("#b98cff")} onClick={() => onPick("ast2")}>
+          <div style={h}>AST 2 Practice</div>
+          <p style={p}>Advanced curriculum — snowpack tests, avalanche problems, terrain &amp; ATES, decision-making, and more.</p>
+        </button>
         <button style={tile(T.amber)} onClick={() => onPick("slope")}>
           <div style={h}>Slope-Angle Trainer</div>
           <p style={p}>Train your eye to call above vs. below the 30-degree avalanche threshold.</p>
@@ -119,6 +123,7 @@ export default function Root() {
       <TopBar session={session} view={view} onHome={home} />
       {view === "home" && <Home onPick={setView} session={session} />}
       {view === "ast1" && <Ast1App onHome={home} />}
+      {view === "ast2" && <Ast2App onHome={home} />}
       {view === "slope" && <SlopeApp onHome={home} />}
       {view === "perf" && <Performance onHome={home} session={session} />}
     </React.Fragment>

@@ -33,17 +33,21 @@ function localSaveRun(run) {
   }
 }
 
-export async function loadRuns() {
+export async function loadRuns(app) {
   const uid = await currentUserId();
+  let rows;
   if (uid) {
     const { data, error } = await supabase
       .from("runs")
       .select("payload, created_at")
       .order("created_at", { ascending: true });
-    if (error) return localLoadRuns(); // graceful fallback
-    return (data || []).map((r) => r.payload);
+    rows = error ? localLoadRuns() : (data || []).map((r) => r.payload);
+  } else {
+    rows = localLoadRuns();
   }
-  return localLoadRuns();
+  // Runs are tagged with an app key; older untagged runs are AST 1.
+  if (app) rows = rows.filter((r) => r && (r.app || "ast1") === app);
+  return rows;
 }
 
 export async function saveRun(run) {
