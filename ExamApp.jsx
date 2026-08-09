@@ -4,6 +4,7 @@ const ExamCfg = React.createContext(null);
 const useCfg = () => React.useContext(ExamCfg);
 import { supabase } from "./supabaseClient";
 import { loadRuns, saveRun, loadRecordPref, saveRecordPref } from "./storage";
+import { useLang } from "./i18n.jsx";
 import { ax, useAcronyms } from "./glossary.jsx";
 
 /* ------------------------------------------------------------------ *
@@ -176,6 +177,7 @@ function Segmented({ label, sub, options, value, onChange }) {
 const DEFAULTS = { difficulty: "moderate", topic: "all", count: 25, feedback: "immediate", mode: "test", adaptive: false };
 
 function RecordSwitch({ recording, onToggle }) {
+  const { t } = useLang();
   return (
     <button onClick={onToggle}
       style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -185,10 +187,10 @@ function RecordSwitch({ recording, onToggle }) {
         transition: reduceMotion ? "none" : "all 140ms ease", marginBottom: 22 }}>
       <div>
         <div style={{ fontSize: 13.5, fontWeight: 700, color: recording ? C.good : C.threshold }}>
-          {recording ? "Recording this run" : "Guest run — not recorded"}
+          {recording ? t("exam.record.on") : t("exam.record.off")}
         </div>
         <div style={{ fontSize: 11.5, color: C.textDim, marginTop: 2 }}>
-          {recording ? "Results will count toward your history and trend." : "Let someone else practice without affecting your stats."}
+          {recording ? t("exam.record.onSub") : t("exam.record.offSub")}
         </div>
       </div>
       <div style={{ position: "relative", width: 46, height: 26, borderRadius: 20, flexShrink: 0,
@@ -202,6 +204,7 @@ function RecordSwitch({ recording, onToggle }) {
 
 function Setup({ settings, setSettings, recording, setRecording, onStart, maxCount, onHome, recommendation, onUseRecommendation }) {
   const cfg = useCfg();
+  const { t } = useLang();
   const set = (k, v) => setSettings((s) => ({ ...s, [k]: v }));
   const shell = { minHeight: "100%", background: C.slate, color: C.snow,
     fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif", padding: "18px 14px 32px", boxSizing: "border-box" };
@@ -215,10 +218,10 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
     <div style={shell}>
       <div style={card}>
         {onHome && (
-          <button onClick={onHome} style={{ background: "transparent", border: "none", color: C.textDim, cursor: "pointer", fontSize: 13, padding: "2px 0 10px", fontWeight: 600 }}>← All tools</button>
+          <button onClick={onHome} style={{ background: "transparent", border: "none", color: C.textDim, cursor: "pointer", fontSize: 13, padding: "2px 0 10px", fontWeight: 600 }}>{t("nav.allTools")}</button>
         )}
         <Eyebrow>{cfg.eyebrow}</Eyebrow>
-        <h1 style={{ fontSize: 23, fontWeight: 700, margin: "6px 0 4px", letterSpacing: "-0.3px" }}>Set up your exam</h1>
+        <h1 style={{ fontSize: 23, fontWeight: 700, margin: "6px 0 4px", letterSpacing: "-0.3px" }}>{t("exam.setup.title")}</h1>
         <p style={{ color: C.textDim, fontSize: 13.5, lineHeight: 1.5, margin: "0 0 20px" }}>
           {cfg.intro}
         </p>
@@ -231,42 +234,42 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
               padding: "13px 15px", borderRadius: 12, background: C.slate2,
               border: `1px solid ${C.ice}`, borderLeft: `4px solid ${C.ice}`, color: C.snow }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: C.ice, marginBottom: 4 }}>
-              Recommended next session
+              {t("exam.rec.title")}
             </div>
             <div style={{ fontSize: 13, lineHeight: 1.5, color: C.snow }}>
-              Focus on <b>{recommendation.label}</b> — your weakest area at {Math.round(recommendation.acc * 100)}% over {recommendation.n} seen.
+              {t("exam.rec.focusPre")}<b>{recommendation.label}</b>{t("exam.rec.focusPost", { pct: Math.round(recommendation.acc * 100), n: recommendation.n })}
             </div>
             <div style={{ fontSize: 11.5, color: C.textDim, marginTop: 4 }}>
-              Tap to load: {recommendation.label} · {recommendation.difficulty} · {recommendation.mode} · {recommendation.count} questions →
+              {t("exam.rec.load", { label: recommendation.label, diff: t("exam.diff." + recommendation.difficulty), mode: t("exam.mode." + recommendation.mode), count: recommendation.count })}
             </div>
           </button>
         )}
 
-        <Segmented label="Session type"
-          sub="Study shows the explanation after every question and drops the pass/fail framing. Test grades you against the study target."
+        <Segmented label={t("exam.mode.label")}
+          sub={t("exam.mode.sub")}
           value={settings.mode} onChange={(v) => set("mode", v)}
-          options={[{ value: "test", label: "Test" }, { value: "study", label: "Study" }]} />
+          options={[{ value: "test", label: t("exam.mode.test") }, { value: "study", label: t("exam.mode.study") }]} />
 
-        <Segmented label="Difficulty"
-          sub="Scales both recall depth and scenario complexity — Easy leans on definitions, Hard on multi-factor judgment calls."
+        <Segmented label={t("exam.diff.label")}
+          sub={t("exam.diff.sub")}
           value={settings.difficulty} onChange={(v) => set("difficulty", v)}
-          options={[{ value: "easy", label: "Easy" }, { value: "moderate", label: "Moderate" }, { value: "hard", label: "Hard" }]} />
+          options={[{ value: "easy", label: t("exam.diff.easy") }, { value: "moderate", label: t("exam.diff.moderate") }, { value: "hard", label: t("exam.diff.hard") }]} />
 
-        <Segmented label="Question selection"
-          sub="Adaptive starts at your chosen difficulty, then steps harder after a correct answer and easier after a miss — the set tracks your level as you go. Fixed keeps the difficulty mix constant."
+        <Segmented label={t("exam.sel.label")}
+          sub={t("exam.sel.sub")}
           value={settings.adaptive ? "adaptive" : "fixed"} onChange={(v) => set("adaptive", v === "adaptive")}
-          options={[{ value: "fixed", label: "Fixed" }, { value: "adaptive", label: "Adaptive" }]} />
+          options={[{ value: "fixed", label: t("exam.sel.fixed") }, { value: "adaptive", label: t("exam.sel.adaptive") }]} />
 
         {/* Count slider */}
         <div style={{ marginBottom: 18 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: C.snow }}>Number of questions</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: C.snow }}>{t("exam.count.label")}</div>
             <div style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 18, fontWeight: 700, color: C.ice }}>
-              {settings.count}{atMax ? " (all)" : ""}
+              {settings.count}{atMax ? t("exam.count.allSuffix") : ""}
             </div>
           </div>
           <div style={{ fontSize: 11.5, color: C.textMute, marginBottom: 10, lineHeight: 1.4 }}>
-            In steps of 5, up to {maxCount} available under the current topic filter.
+            {t("exam.count.help", { max: maxCount })}
           </div>
           <input type="range" min={5} max={maxCount} step={5} value={Math.min(settings.count, maxCount)}
             onChange={(e) => set("count", parseInt(e.target.value, 10))}
@@ -278,10 +281,10 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
 
         {/* Topic focus */}
         <div style={{ marginBottom: 18 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: C.snow, marginBottom: 2 }}>Topic focus</div>
-          <div style={{ fontSize: 11.5, color: C.textMute, marginBottom: 8 }}>Drill one area, or keep the whole curriculum in play.</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: C.snow, marginBottom: 2 }}>{t("exam.topic.label")}</div>
+          <div style={{ fontSize: 11.5, color: C.textMute, marginBottom: 8 }}>{t("exam.topic.help")}</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {[{ value: "all", label: "All topics" }, ...Object.entries(cfg.topics).map(([k, v]) => ({ value: k, label: v }))].map((o) => {
+            {[{ value: "all", label: t("exam.topic.all") }, ...Object.entries(cfg.topics).map(([k, v]) => ({ value: k, label: v }))].map((o) => {
               const on = settings.topic === o.value;
               return (
                 <button key={o.value} onClick={() => set("topic", o.value)}
@@ -297,22 +300,21 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
         </div>
 
         {settings.mode !== "study" && (
-          <Segmented label="Feedback"
-            sub="Immediate grades each question as you answer it. At end hides results until the review screen — closer to a real sitting."
+          <Segmented label={t("exam.fb.label")}
+            sub={t("exam.fb.sub")}
             value={settings.feedback} onChange={(v) => set("feedback", v)}
-            options={[{ value: "immediate", label: "Immediate" }, { value: "end", label: "At end" }]} />
+            options={[{ value: "immediate", label: t("exam.fb.immediate") }, { value: "end", label: t("exam.fb.end") }]} />
         )}
 
         <button onClick={onStart}
           style={{ width: "100%", padding: "16px", borderRadius: 14, border: "none", cursor: "pointer",
             background: C.ice, color: C.slate, fontSize: 16, fontWeight: 800, letterSpacing: "0.2px",
             marginTop: 6 }}>
-          {settings.mode === "study" ? "Start study set →" : "Start exam →"}
+          {settings.mode === "study" ? t("exam.start.study") : t("exam.start.test")}
         </button>
 
         <p style={{ color: C.textMute, fontSize: 11, lineHeight: 1.5, margin: "18px 0 0", textAlign: "center" }}>
-          Original study questions covering the AST 1 learning outcomes — not official Avalanche Canada exam content.
-          AST 1 certification comes from course participation, not a written test; the benchmark here is a self-study target only.
+          {t("exam.setup.footer")}
         </p>
       </div>
     </div>
@@ -339,6 +341,7 @@ function ChoiceBtn({ children, onClick, disabled, state }) {
 function Quiz({ questions, settings, recording, onFinish, pool, targetCount }) {
   const cfg = useCfg();
   const on = useAcronyms();
+  const { t } = useLang();
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState({});   // id -> user answer
   const [revealed, setRevealed] = useState({}); // id -> bool (immediate mode)
@@ -413,7 +416,7 @@ function Quiz({ questions, settings, recording, onFinish, pool, targetCount }) {
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {!recording && (
               <span style={{ fontSize: 10.5, fontWeight: 700, color: C.threshold, letterSpacing: "0.5px",
-                border: `1px solid ${C.threshold}`, borderRadius: 6, padding: "2px 6px" }}>GUEST</span>
+                border: `1px solid ${C.threshold}`, borderRadius: 6, padding: "2px 6px" }}>{t("exam.guest")}</span>
             )}
             <span style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 13, color: C.textDim }}>
               {idx + 1} / {total}
@@ -427,16 +430,16 @@ function Quiz({ questions, settings, recording, onFinish, pool, targetCount }) {
 
         {/* difficulty dot + type tag */}
         <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-          <Tag>{q.type === "mc" ? "Multiple choice" : q.type === "tf" ? "True / False" : "Matching"}</Tag>
-          <Tag>{q.diff}</Tag>
+          <Tag>{q.type === "mc" ? t("exam.fmt.mc") : q.type === "tf" ? t("exam.fmt.tf") : t("exam.fmt.match")}</Tag>
+          <Tag>{t("exam.diff." + q.diff)}</Tag>
         </div>
 
         <div style={{ fontSize: 17, fontWeight: 600, lineHeight: 1.4, marginBottom: 14 }}>{ax(q.q, on)}</div>
 
         {/* confidence (optional; feeds calibration later) */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 11.5, color: C.textMute }}>Confidence</span>
-          {[["low", "Low"], ["med", "Med"], ["high", "High"]].map(([v, l]) => {
+          <span style={{ fontSize: 11.5, color: C.textMute }}>{t("exam.conf.label")}</span>
+          {[["low", t("exam.conf.low")], ["med", t("exam.conf.med")], ["high", t("exam.conf.high")]].map(([v, l]) => {
             const on = conf[q.id] === v;
             return (
               <button key={v} onClick={() => setConf((c) => ({ ...c, [q.id]: on ? null : v }))}
@@ -463,7 +466,7 @@ function Quiz({ questions, settings, recording, onFinish, pool, targetCount }) {
           );
         })}
 
-        {q.type === "tf" && [{ v: true, l: "True" }, { v: false, l: "False" }].map((o) => {
+        {q.type === "tf" && [{ v: true, l: t("exam.tf.true") }, { v: false, l: t("exam.tf.false") }].map((o) => {
           let state = null;
           if (isRevealed) {
             if (o.v === q.answer) state = "right";
@@ -489,12 +492,12 @@ function Quiz({ questions, settings, recording, onFinish, pool, targetCount }) {
             border: `1px solid ${C.line}` }}>
             <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase",
               color: grade(q, answers[q.id]) ? C.good : C.bad, marginBottom: 5 }}>
-              {grade(q, answers[q.id]) ? "Correct" : "Not quite"}
+              {grade(q, answers[q.id]) ? t("exam.reveal.correct") : t("exam.reveal.wrong")}
             </div>
             <div style={{ fontSize: 13.5, lineHeight: 1.5, color: C.snow }}>{ax(q.explain, on)}</div>
             {sourceFor(q, cfg) && (
               <div style={{ fontSize: 11, color: C.textMute, marginTop: 8, lineHeight: 1.45 }}>
-                <span style={{ color: C.textDim, fontWeight: 700 }}>Reference · </span>{ax(sourceFor(q, cfg), on)}
+                <span style={{ color: C.textDim, fontWeight: 700 }}>{t("exam.reveal.reference")}</span>{ax(sourceFor(q, cfg), on)}
               </div>
             )}
           </div>
@@ -507,7 +510,7 @@ function Quiz({ questions, settings, recording, onFinish, pool, targetCount }) {
               style={{ flex: 1, padding: "14px", borderRadius: 12, border: "none",
                 background: answered ? C.ice : C.slate2, color: answered ? C.slate : C.textMute,
                 fontWeight: 700, fontSize: 15, cursor: answered ? "pointer" : "default" }}>
-              Check answer
+              {t("exam.btn.check")}
             </button>
           )}
           {(!immediate || isRevealed || (immediate && q.type !== "match" && answered)) && (
@@ -516,12 +519,12 @@ function Quiz({ questions, settings, recording, onFinish, pool, targetCount }) {
                 background: (answered || isRevealed) ? C.ice : C.slate2,
                 color: (answered || isRevealed) ? C.slate : C.textMute,
                 fontWeight: 800, fontSize: 15, cursor: (answered || isRevealed) ? "pointer" : "default" }}>
-              {(adaptive ? idx + 1 < total : idx + 1 < questions.length) ? "Next →" : "Finish exam"}
+              {(adaptive ? idx + 1 < total : idx + 1 < questions.length) ? t("exam.btn.next") : t("exam.btn.finish")}
             </button>
           )}
           {!immediate && !answered && q.type === "match" && (
             <div style={{ flex: 1, textAlign: "center", alignSelf: "center", fontSize: 12, color: C.textMute }}>
-              Match all rows to continue
+              {t("exam.match.continue")}
             </div>
           )}
         </div>
@@ -541,6 +544,7 @@ function Tag({ children }) {
 
 function MatchBody({ q, value, revealed, onChange }) {
   const on = useAcronyms();
+  const { t } = useLang();
   return (
     <div>
       {q.pairs.map((p) => {
@@ -557,11 +561,11 @@ function MatchBody({ q, value, revealed, onChange }) {
               onChange={(e) => onChange(p.l, e.target.value)}
               style={{ width: "100%", padding: "9px 10px", borderRadius: 9, fontSize: 13,
                 background: C.slate2, color: C.snow, border: `1px solid ${C.line}` }}>
-              <option value="" disabled>Choose a match…</option>
+              <option value="" disabled>{t("exam.match.choose")}</option>
               {q._rights.map((r) => <option key={r} value={r}>{r}</option>)}
             </select>
             {revealed && !correct && (
-              <div style={{ fontSize: 12, color: C.good, marginTop: 6 }}>Correct: {ax(p.r, on)}</div>
+              <div style={{ fontSize: 12, color: C.good, marginTop: 6 }}>{t("exam.match.correctPrefix")}{ax(p.r, on)}</div>
             )}
           </div>
         );
@@ -574,6 +578,7 @@ function MatchBody({ q, value, revealed, onChange }) {
 
 function Results({ graded, settings, recording, onRetry, onNew, onHome, onRecommended }) {
   const cfg = useCfg();
+  const { t } = useLang();
   const study = settings.mode === "study";
   const [history, setHistory] = useState(undefined); // undefined = loading
   const [openReview, setOpenReview] = useState(false);
@@ -624,7 +629,7 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome, onRecomm
   return (
     <div style={shell}>
       <div style={card}>
-        <Eyebrow>Results</Eyebrow>
+        <Eyebrow>{t("exam.results.title")}</Eyebrow>
         {/* Score */}
         <div style={{ display: "flex", alignItems: "baseline", gap: 12, margin: "8px 0 4px" }}>
           <div style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 52, fontWeight: 800,
@@ -632,29 +637,29 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome, onRecomm
           <div style={{ fontSize: 18, color: C.textDim, fontWeight: 600 }}>{correct} / {total}</div>
         </div>
         <div style={{ fontSize: 12.5, color: C.textMute, marginBottom: 4 }}>
-          {settings.difficulty} difficulty · {settings.topic === "all" ? "all topics" : cfg.topics[settings.topic]}
-          {!recording && " · guest run (not saved)"}
+          {t("exam.results.summary", { diff: t("exam.diff." + settings.difficulty), topic: settings.topic === "all" ? t("exam.topic.all") : cfg.topics[settings.topic] })}
+          {!recording && t("exam.results.guestSuffix")}
         </div>
 
         {/* Practice-target / study line */}
         {study ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 13px", borderRadius: 10,
             background: C.slate2, border: `1px solid ${C.line}`, marginBottom: 20 }}>
-            <span style={{ fontSize: 13, color: C.ice }}>Study session</span>
-            <span style={{ fontSize: 11, color: C.textMute }}>· explanations shown per question; no pass/fail</span>
+            <span style={{ fontSize: 13, color: C.ice }}>{t("exam.results.studyLabel")}</span>
+            <span style={{ fontSize: 11, color: C.textMute }}>{t("exam.results.studySub")}</span>
           </div>
         ) : (
           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 13px", borderRadius: 10,
             background: C.slate2, border: `1px solid ${C.line}`, marginBottom: 20 }}>
             <span style={{ fontSize: 13, color: hitTarget ? C.good : C.textDim }}>
-              {hitTarget ? "Above" : "Below"} the 80% self-study target
+              {hitTarget ? t("exam.results.above") : t("exam.results.below")}{t("exam.results.targetSuffix")}
             </span>
-            <span style={{ fontSize: 11, color: C.textMute }}>· a study benchmark, not an official AST pass mark</span>
+            <span style={{ fontSize: 11, color: C.textMute }}>{t("exam.results.targetNote")}</span>
           </div>
         )}
 
         {/* By-topic this run */}
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.snow, marginBottom: 10 }}>This run, by topic</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.snow, marginBottom: 10 }}>{t("exam.results.byTopic")}</div>
         <div style={{ marginBottom: 22 }}>
           {Object.entries(byTopic).sort((a, b) => (a[1].c / a[1].n) - (b[1].c / b[1].n)).map(([t, v]) => {
             const a = v.c / v.n;
@@ -675,27 +680,27 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome, onRecomm
 
         {/* Trend */}
         {history === undefined && (
-          <div style={{ fontSize: 12.5, color: C.textMute, marginBottom: 20 }}>Loading your history…</div>
+          <div style={{ fontSize: 12.5, color: C.textMute, marginBottom: 20 }}>{t("exam.results.loading")}</div>
         )}
         {history !== undefined && analysis && analysis.runsCount > 0 && (
           <div style={{ padding: "14px 15px", borderRadius: 12, background: C.slate2, border: `1px solid ${C.line}`, marginBottom: 22 }}>
             <div style={{ fontSize: 12.5, fontWeight: 700, color: C.snow, marginBottom: 8 }}>
-              Trend over {analysis.runsCount} recorded run{analysis.runsCount === 1 ? "" : "s"}
+              {t(analysis.runsCount === 1 ? "exam.results.trendOne" : "exam.results.trendMany", { n: analysis.runsCount })}
             </div>
             {analysis.weighted != null && (
               <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 10 }}>
                 <span style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 26, fontWeight: 700, color: C.ice }}>
                   {Math.round(analysis.weighted * 100)}%
                 </span>
-                <span style={{ fontSize: 11.5, color: C.textMute }}>recency-weighted accuracy (recent runs count more)</span>
+                <span style={{ fontSize: 11.5, color: C.textMute }}>{t("exam.results.weighted")}</span>
               </div>
             )}
             {analysis.weak && analysis.weak.length > 0 && (
               <div>
-                <div style={{ fontSize: 11.5, color: C.textDim, marginBottom: 5 }}>Weakest topics so far:</div>
+                <div style={{ fontSize: 11.5, color: C.textDim, marginBottom: 5 }}>{t("exam.results.weakest")}</div>
                 {analysis.weak.map((w) => (
                   <div key={w.topic} style={{ fontSize: 12.5, color: C.snow, marginBottom: 2 }}>
-                    · {cfg.topics[w.topic]} — {Math.round(w.acc * 100)}% <span style={{ color: C.textMute }}>({w.n} seen)</span>
+                    · {cfg.topics[w.topic]} — {Math.round(w.acc * 100)}% <span style={{ color: C.textMute }}>{t("exam.results.seen", { n: w.n })}</span>
                   </div>
                 ))}
               </div>
@@ -704,7 +709,7 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome, onRecomm
         )}
         {history !== undefined && (!analysis || analysis.runsCount === 0) && recording && (
           <div style={{ fontSize: 12, color: C.textMute, marginBottom: 20 }}>
-            This is your first recorded run — trends appear once you have a couple saved.
+            {t("exam.results.firstRun")}
           </div>
         )}
 
@@ -712,7 +717,7 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome, onRecomm
         <button onClick={() => setOpenReview((o) => !o)}
           style={{ width: "100%", padding: "13px", borderRadius: 12, border: `1px solid ${C.line}`,
             background: C.panel, color: C.snow, fontWeight: 600, fontSize: 14, cursor: "pointer", marginBottom: 12 }}>
-          {openReview ? "Hide" : "Review"} all {total} questions
+          {openReview ? t("exam.review.hide") : t("exam.review.show")}{t("exam.review.allSuffix", { n: total })}
         </button>
         {openReview && (
           <div style={{ marginBottom: 14 }}>
@@ -727,7 +732,7 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome, onRecomm
           <button onClick={startWeakSpots}
             style={{ width: "100%", padding: "14px", borderRadius: 12, border: "none", cursor: "pointer",
               background: C.threshold, color: C.slate, fontWeight: 800, fontSize: 15, marginBottom: 10 }}>
-            Drill my weak spot: {cfg.topics[recTopic.topic]} ({Math.round(recTopic.acc * 100)}%) →
+            {t("exam.results.drill", { topic: cfg.topics[recTopic.topic], pct: Math.round(recTopic.acc * 100) })}
           </button>
         )}
 
@@ -736,12 +741,12 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome, onRecomm
           <button onClick={onRetry}
             style={{ flex: 1, padding: "15px", borderRadius: 12, border: `1px solid ${C.ice}`,
               background: "transparent", color: C.ice, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
-            Retry these settings
+            {t("exam.results.retry")}
           </button>
           <button onClick={onNew}
             style={{ flex: 1, padding: "15px", borderRadius: 12, border: "none",
               background: C.ice, color: C.slate, fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
-            New setup
+            {t("exam.results.new")}
           </button>
         </div>
         {onHome && (
@@ -755,12 +760,13 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome, onRecomm
 function ReviewItem({ n, g }) {
   const cfg = useCfg();
   const on = useAcronyms();
+  const { t } = useLang();
   const q = g.question;
   const yourAns = () => {
-    if (g.ans == null) return "— (skipped)";
+    if (g.ans == null) return t("exam.review.skipped");
     if (q.type === "mc") return q.options[g.ans];
-    if (q.type === "tf") return g.ans ? "True" : "False";
-    if (q.type === "match") return "see rows below";
+    if (q.type === "tf") return g.ans ? t("exam.tf.true") : t("exam.tf.false");
+    if (q.type === "match") return t("exam.review.matchRows");
     return "";
   };
   return (
@@ -775,14 +781,14 @@ function ReviewItem({ n, g }) {
       <div style={{ fontSize: 14, fontWeight: 600, color: C.snow, marginBottom: 6, lineHeight: 1.4 }}>{ax(q.q, on)}</div>
       {q.type !== "match" && (
         <div style={{ fontSize: 12.5, color: C.textDim, marginBottom: 2 }}>
-          Your answer: <span style={{ color: g.correct ? C.good : C.bad }}>{ax(yourAns(), on)}</span>
+          {t("exam.review.yourAnswer")}<span style={{ color: g.correct ? C.good : C.bad }}>{ax(yourAns(), on)}</span>
         </div>
       )}
       {q.type === "mc" && !g.correct && (
-        <div style={{ fontSize: 12.5, color: C.good, marginBottom: 4 }}>Correct: {ax(q.options[q.answer], on)}</div>
+        <div style={{ fontSize: 12.5, color: C.good, marginBottom: 4 }}>{t("exam.match.correctPrefix")}{ax(q.options[q.answer], on)}</div>
       )}
       {q.type === "tf" && !g.correct && (
-        <div style={{ fontSize: 12.5, color: C.good, marginBottom: 4 }}>Correct: {q.answer ? "True" : "False"}</div>
+        <div style={{ fontSize: 12.5, color: C.good, marginBottom: 4 }}>{t("exam.match.correctPrefix")}{q.answer ? t("exam.tf.true") : t("exam.tf.false")}</div>
       )}
       {q.type === "match" && (
         <div style={{ margin: "4px 0 6px" }}>
@@ -793,7 +799,7 @@ function ReviewItem({ n, g }) {
               <div key={p.l} style={{ fontSize: 12.5, marginBottom: 2 }}>
                 <span style={{ color: C.snow, fontWeight: 600 }}>{p.l}</span>
                 <span style={{ color: ok ? C.good : C.bad }}> → {chosen || "—"}</span>
-                {!ok && <span style={{ color: C.good }}> (should be: {ax(p.r, on)})</span>}
+                {!ok && <span style={{ color: C.good }}> ({t("exam.review.shouldBeLabel")} {ax(p.r, on)})</span>}
               </div>
             );
           })}
@@ -803,7 +809,7 @@ function ReviewItem({ n, g }) {
         paddingTop: 6, borderTop: `1px solid ${C.line}` }}>{ax(q.explain, on)}</div>
       {sourceFor(q, cfg) && (
         <div style={{ fontSize: 10.5, color: C.textMute, lineHeight: 1.45, marginTop: 5 }}>
-          <span style={{ color: C.textDim, fontWeight: 700 }}>Reference · </span>{ax(sourceFor(q, cfg), on)}
+          <span style={{ color: C.textDim, fontWeight: 700 }}>{t("exam.reveal.reference")}</span>{ax(sourceFor(q, cfg), on)}
         </div>
       )}
     </div>
