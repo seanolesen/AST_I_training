@@ -141,6 +141,13 @@ function recommendFrom(runs, cfg) {
   return { topic: w.topic, acc: w.acc, n: w.n, difficulty, mode, count: 15, label: cfg.topics[w.topic] };
 }
 
+// Localized topic label: catalog override (topic.<app>.<code>) else the English config label.
+function topicLbl(cfg, code, t) {
+  const k = "topic." + cfg.appKey + "." + code;
+  const s = t(k);
+  return s === k ? (cfg.topics[code] || code) : s;
+}
+
 // ==================== UI PRIMITIVES ==================================
 function Eyebrow({ children }) {
   return (
@@ -237,10 +244,10 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
               {t("exam.rec.title")}
             </div>
             <div style={{ fontSize: 13, lineHeight: 1.5, color: C.snow }}>
-              {t("exam.rec.focusPre")}<b>{recommendation.label}</b>{t("exam.rec.focusPost", { pct: Math.round(recommendation.acc * 100), n: recommendation.n })}
+              {t("exam.rec.focusPre")}<b>{topicLbl(cfg, recommendation.topic, t)}</b>{t("exam.rec.focusPost", { pct: Math.round(recommendation.acc * 100), n: recommendation.n })}
             </div>
             <div style={{ fontSize: 11.5, color: C.textDim, marginTop: 4 }}>
-              {t("exam.rec.load", { label: recommendation.label, diff: t("exam.diff." + recommendation.difficulty), mode: t("exam.mode." + recommendation.mode), count: recommendation.count })}
+              {t("exam.rec.load", { label: topicLbl(cfg, recommendation.topic, t), diff: t("exam.diff." + recommendation.difficulty), mode: t("exam.mode." + recommendation.mode), count: recommendation.count })}
             </div>
           </button>
         )}
@@ -284,7 +291,7 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
           <div style={{ fontSize: 13, fontWeight: 600, color: C.snow, marginBottom: 2 }}>{t("exam.topic.label")}</div>
           <div style={{ fontSize: 11.5, color: C.textMute, marginBottom: 8 }}>{t("exam.topic.help")}</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {[{ value: "all", label: t("exam.topic.all") }, ...Object.entries(cfg.topics).map(([k, v]) => ({ value: k, label: v }))].map((o) => {
+            {[{ value: "all", label: t("exam.topic.all") }, ...Object.entries(cfg.topics).map(([k]) => ({ value: k, label: topicLbl(cfg, k, t) }))].map((o) => {
               const on = settings.topic === o.value;
               return (
                 <button key={o.value} onClick={() => set("topic", o.value)}
@@ -405,7 +412,7 @@ function Quiz({ questions, settings, recording, onFinish, pool, targetCount }) {
   };
 
   const progress = total ? idx / total : 0;
-  const topicLabel = cfg.topics[q.topic];
+  const topicLabel = topicLbl(cfg, q.topic, t);
 
   return (
     <div style={shell}>
@@ -637,7 +644,7 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome, onRecomm
           <div style={{ fontSize: 18, color: C.textDim, fontWeight: 600 }}>{correct} / {total}</div>
         </div>
         <div style={{ fontSize: 12.5, color: C.textMute, marginBottom: 4 }}>
-          {t("exam.results.summary", { diff: t("exam.diff." + settings.difficulty), topic: settings.topic === "all" ? t("exam.topic.all") : cfg.topics[settings.topic] })}
+          {t("exam.results.summary", { diff: t("exam.diff." + settings.difficulty), topic: settings.topic === "all" ? t("exam.topic.all") : topicLbl(cfg, settings.topic, t) })}
           {!recording && t("exam.results.guestSuffix")}
         </div>
 
@@ -661,13 +668,13 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome, onRecomm
         {/* By-topic this run */}
         <div style={{ fontSize: 13, fontWeight: 700, color: C.snow, marginBottom: 10 }}>{t("exam.results.byTopic")}</div>
         <div style={{ marginBottom: 22 }}>
-          {Object.entries(byTopic).sort((a, b) => (a[1].c / a[1].n) - (b[1].c / b[1].n)).map(([t, v]) => {
+          {Object.entries(byTopic).sort((a, b) => (a[1].c / a[1].n) - (b[1].c / b[1].n)).map(([tk, v]) => {
             const a = v.c / v.n;
             const col = a >= 0.8 ? C.good : a >= 0.5 ? C.warn : C.bad;
             return (
-              <div key={t} style={{ marginBottom: 9 }}>
+              <div key={tk} style={{ marginBottom: 9 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 3 }}>
-                  <span style={{ color: C.textDim }}>{cfg.topics[t]}</span>
+                  <span style={{ color: C.textDim }}>{topicLbl(cfg, tk, t)}</span>
                   <span style={{ color: col, fontWeight: 600 }}>{v.c}/{v.n}</span>
                 </div>
                 <div style={{ height: 6, background: C.slate2, borderRadius: 4, overflow: "hidden" }}>
@@ -700,7 +707,7 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome, onRecomm
                 <div style={{ fontSize: 11.5, color: C.textDim, marginBottom: 5 }}>{t("exam.results.weakest")}</div>
                 {analysis.weak.map((w) => (
                   <div key={w.topic} style={{ fontSize: 12.5, color: C.snow, marginBottom: 2 }}>
-                    · {cfg.topics[w.topic]} — {Math.round(w.acc * 100)}% <span style={{ color: C.textMute }}>{t("exam.results.seen", { n: w.n })}</span>
+                    · {topicLbl(cfg, w.topic, t)} — {Math.round(w.acc * 100)}% <span style={{ color: C.textMute }}>{t("exam.results.seen", { n: w.n })}</span>
                   </div>
                 ))}
               </div>
@@ -732,7 +739,7 @@ function Results({ graded, settings, recording, onRetry, onNew, onHome, onRecomm
           <button onClick={startWeakSpots}
             style={{ width: "100%", padding: "14px", borderRadius: 12, border: "none", cursor: "pointer",
               background: C.threshold, color: C.slate, fontWeight: 800, fontSize: 15, marginBottom: 10 }}>
-            {t("exam.results.drill", { topic: cfg.topics[recTopic.topic], pct: Math.round(recTopic.acc * 100) })}
+            {t("exam.results.drill", { topic: topicLbl(cfg, recTopic.topic, t), pct: Math.round(recTopic.acc * 100) })}
           </button>
         )}
 
@@ -776,7 +783,7 @@ function ReviewItem({ n, g }) {
         <span style={{ fontSize: 12, fontWeight: 700, color: g.correct ? C.good : C.bad }}>
           {n}. {g.correct ? "✓" : "✗"}
         </span>
-        <Tag>{cfg.topics[q.topic]}</Tag>
+        <Tag>{topicLbl(cfg, q.topic, t)}</Tag>
       </div>
       <div style={{ fontSize: 14, fontWeight: 600, color: C.snow, marginBottom: 6, lineHeight: 1.4 }}>{ax(q.q, on)}</div>
       {q.type !== "match" && (

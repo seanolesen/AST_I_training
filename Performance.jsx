@@ -73,6 +73,30 @@ const DIFF_COLS = ["Easy", "Moderate", "Hard"];
 const bandColor = (acc, n) => (n < 3 ? "#243040" : acc >= 0.85 ? T.good : acc >= 0.7 ? "#6FB98F"
   : acc >= 0.5 ? T.warn : T.bad);
 
+const TOPIC_REV = {
+  ast1: Object.fromEntries(Object.entries(TOPIC_LABEL).map(([k, v]) => [v, k])),
+  ast2: Object.fromEntries(Object.entries(AST2_TOPIC).map(([k, v]) => [v, k])),
+};
+const VAL_KEY = {
+  Format: { "Multiple choice": "exam.fmt.mc", "True / False": "exam.fmt.tf", "Matching": "exam.fmt.match" },
+  Difficulty: { "Easy": "exam.diff.easy", "Moderate": "exam.diff.moderate", "Hard": "exam.diff.hard" },
+  View: { "Field": "slope.view.field", "Profile": "slope.view.profile" },
+  Proximity: { "Near (\u00b15\u00b0)": "perf.prox.near", "Clear of 30\u00b0": "perf.prox.clear" },
+  Skill: { "Sizing": "card.trend.sizing", "Grain ID": "card.trend.grainId" },
+};
+// Localize a dimension VALUE for display (grouping still uses the raw English value).
+function dispVal(toolKey, dim, val, t) {
+  if (val === "Unlogged") return t("perf.unlogged");
+  if (dim === "Subject") {
+    const rev = TOPIC_REV[toolKey];
+    if (rev && rev[val]) { const k = "topic." + toolKey + "." + rev[val]; const s = t(k); return s === k ? val : s; }
+    return val;
+  }
+  const m = VAL_KEY[dim];
+  if (m && m[val]) return t(m[val]);
+  return val;
+}
+
 function readinessScore(timed, nTopics) {
   const logged = timed.filter((a) => a.dims.Subject !== "Unlogged");
   if (!logged.length) return null;
@@ -120,7 +144,7 @@ function SubHead({ children, note }) {
   );
 }
 
-function LearnerAnalytics({ timed, nTopics, accent }) {
+function LearnerAnalytics({ timed, nTopics, accent, toolKey }) {
   const { t } = useLang();
   const rd = readinessScore(timed, nTopics);
   const grid = masteryGrid(timed);
@@ -155,7 +179,7 @@ function LearnerAnalytics({ timed, nTopics, accent }) {
             {DIFF_COLS.map((d) => <div key={d} style={{ textAlign: "center", color: T.dim, fontWeight: 700, paddingBottom: 2 }}>{t("exam.diff." + d.toLowerCase())}</div>)}
             {grid.map((row) => (
               <React.Fragment key={row.topic}>
-                <div style={{ color: T.snow, fontSize: 11, alignSelf: "center", paddingRight: 4, lineHeight: 1.2 }}>{row.topic}</div>
+                <div style={{ color: T.snow, fontSize: 11, alignSelf: "center", paddingRight: 4, lineHeight: 1.2 }}>{dispVal(toolKey, "Subject", row.topic, t)}</div>
                 {DIFF_COLS.map((d) => {
                   const cell = row.cells[d];
                   const n = cell ? cell.n : 0, acc = cell ? cell.c / cell.n : null;
@@ -289,7 +313,7 @@ function ToolPanel({ tool, attempts }) {
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", margin: "6px 0 2px" }}>
           {active.map(([d, v]) => (
             <span key={d} onClick={() => toggle(d, v)} style={{ fontSize: 11.5, color: T.snow, background: "rgba(124,196,255,0.12)",
-              border: `1px solid ${T.ice}`, borderRadius: 20, padding: "3px 9px", cursor: "pointer" }}>{t("perf.dim." + d)}: {v} \u2715</span>
+              border: `1px solid ${T.ice}`, borderRadius: 20, padding: "3px 9px", cursor: "pointer" }}>{t("perf.dim." + d)}: {dispVal(tool.key, d, v, t)} \u2715</span>
           ))}
           <button onClick={() => setFilters({})} style={{ fontSize: 11.5, color: T.dim, background: "none", border: "none", cursor: "pointer" }}>{t("perf.clearAll")}</button>
         </div>
@@ -304,11 +328,11 @@ function ToolPanel({ tool, attempts }) {
         return (
           <div key={d} style={{ marginTop: 12 }}>
             <div style={{ fontSize: 11, letterSpacing: "0.8px", textTransform: "uppercase", color: T.dim, marginBottom: 6 }}>{t("perf.dim." + d)}</div>
-            {rows.map((r) => <Bar key={r.val} label={r.val} n={r.n} pct={r.pct} active={filters[d] === r.val} onClick={() => toggle(d, r.val)} />)}
+            {rows.map((r) => <Bar key={r.val} label={dispVal(tool.key, d, r.val, t)} n={r.n} pct={r.pct} active={filters[d] === r.val} onClick={() => toggle(d, r.val)} />)}
           </div>
         );
       })}
-      {tool.learner && <LearnerAnalytics timed={timed} nTopics={tool.nTopics} accent={tool.accent} />}
+      {tool.learner && <LearnerAnalytics timed={timed} nTopics={tool.nTopics} accent={tool.accent} toolKey={tool.key} />}
     </div>
   );
 }

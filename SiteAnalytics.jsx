@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient";
 import { AnalyticsPanels, normalizeAst1, normalizeAst2, normalizeSlope } from "./Performance.jsx";
+import { useLang } from "./i18n.jsx";
 
 const SUPER_ADMIN = "sean.olesen@gmail.com";
 const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0", ice: "#7cc4ff",
@@ -25,6 +26,7 @@ function statsFor(payloads, slopeHist) {
 }
 
 export function SiteAnalytics({ onHome, session }) {
+  const { t } = useLang();
   const [state, setState] = useState({ loading: true, error: null, profiles: [], runsByUser: {}, docsByUser: {} });
   const [selected, setSelected] = useState(null);
   const [busyId, setBusyId] = useState(null);
@@ -82,8 +84,8 @@ export function SiteAnalytics({ onHome, session }) {
     };
     return (
       <div style={wrap}><div style={inner}>
-        {back("\u2190 All users", () => setSelected(null))}
-        <div style={{ fontSize: 12, letterSpacing: "1.4px", textTransform: "uppercase", color: T.dim }}>User performance</div>
+        {back(t("sa.backUsers"), () => setSelected(null))}
+        <div style={{ fontSize: 12, letterSpacing: "1.4px", textTransform: "uppercase", color: T.dim }}>{t("sa.userPerf")}</div>
         <h1 style={{ fontSize: 20, fontWeight: 800, margin: "6px 0 16px", wordBreak: "break-all" }}>{p ? p.email : selected}</h1>
         <AnalyticsPanels attemptsByTool={attemptsByTool} />
       </div></div>
@@ -93,15 +95,15 @@ export function SiteAnalytics({ onHome, session }) {
   // ---- list ----
   return (
     <div style={wrap}><div style={inner}>
-      {onHome && back("\u2190 All tools", onHome)}
-      <div style={{ fontSize: 12, letterSpacing: "1.6px", textTransform: "uppercase", color: T.dim }}>Site analytics \u00b7 admin</div>
-      <h1 style={{ fontSize: 23, fontWeight: 800, margin: "6px 0 4px" }}>Users & engagement</h1>
-      <p style={{ fontSize: 13, color: T.dim, margin: "0 0 16px", lineHeight: 1.5 }}>Everyone who has signed in, with activity across all tools. Tap a user to view their full performance. Toggle admin to grant or revoke dashboard access.</p>
+      {onHome && back(t("nav.allTools"), onHome)}
+      <div style={{ fontSize: 12, letterSpacing: "1.6px", textTransform: "uppercase", color: T.dim }}>{t("sa.eyebrow")}</div>
+      <h1 style={{ fontSize: 23, fontWeight: 800, margin: "6px 0 4px" }}>{t("sa.h1")}</h1>
+      <p style={{ fontSize: 13, color: T.dim, margin: "0 0 16px", lineHeight: 1.5 }}>{t("sa.intro")}</p>
 
-      {state.loading ? <div style={{ color: T.dim, fontSize: 13 }}>Loading\u2026</div>
-        : state.error === "signin" ? <div style={{ color: T.dim, fontSize: 13 }}>Sign in to view site analytics.</div>
-        : !iAmAdmin ? <div style={{ background: T.panel, border: `1px solid ${T.line}`, borderRadius: 12, padding: 16, color: T.dim, fontSize: 13 }}>Your account doesn't have admin access.</div>
-        : state.error ? <div style={{ color: T.bad, fontSize: 13 }}>Couldn't load ({state.error}). Make sure the admin SQL has been run.</div>
+      {state.loading ? <div style={{ color: T.dim, fontSize: 13 }}>{t("sa.loading")}</div>
+        : state.error === "signin" ? <div style={{ color: T.dim, fontSize: 13 }}>{t("sa.signin")}</div>
+        : !iAmAdmin ? <div style={{ background: T.panel, border: `1px solid ${T.line}`, borderRadius: 12, padding: 16, color: T.dim, fontSize: 13 }}>{t("sa.noAccess")}</div>
+        : state.error ? <div style={{ color: T.bad, fontSize: 13 }}>{t("sa.loadError", { error: state.error })}</div>
         : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {state.profiles.map((p) => {
@@ -115,28 +117,28 @@ export function SiteAnalytics({ onHome, session }) {
                   </button>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     {sup ? (
-                      <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.4px", color: T.good, border: `1px solid ${T.good}`, borderRadius: 6, padding: "2px 7px" }}>SUPER ADMIN</span>
+                      <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.4px", color: T.good, border: `1px solid ${T.good}`, borderRadius: 6, padding: "2px 7px" }}>{t("sa.superAdmin")}</span>
                     ) : (
                       <button onClick={() => toggleAdmin(p)} disabled={busyId === p.id}
                         style={{ fontSize: 11.5, fontWeight: 700, cursor: "pointer", borderRadius: 6, padding: "4px 9px",
                           border: `1px solid ${p.is_admin ? T.ice : T.line}`, background: p.is_admin ? "rgba(124,196,255,0.14)" : "transparent",
                           color: p.is_admin ? T.ice : T.dim }}>
-                        {p.is_admin ? "Admin \u2713" : "Make admin"}
+                        {p.is_admin ? t("sa.adminYes") : t("sa.makeAdmin")}
                       </button>
                     )}
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 8, fontSize: 12, color: T.dim }}>
-                  <span><b style={{ color: T.snow, fontFamily: "ui-monospace, Menlo, monospace" }}>{st.runs}</b> runs <span style={{ color: T.dim }}>({st.ast1}/{st.ast2} AST1/2)</span></span>
-                  <span><b style={{ color: T.snow, fontFamily: "ui-monospace, Menlo, monospace" }}>{st.questions}</b> questions</span>
-                  <span>acc <b style={{ color: st.acc == null ? T.dim : st.acc >= 80 ? T.good : st.acc >= 50 ? T.warn : T.bad, fontFamily: "ui-monospace, Menlo, monospace" }}>{st.acc == null ? "\u2014" : st.acc + "%"}</b></span>
-                  <span><b style={{ color: T.snow, fontFamily: "ui-monospace, Menlo, monospace" }}>{st.slope}</b> slope calls</span>
-                  <span>last active {fmtDate(st.last)}</span>
+                  <span><b style={{ color: T.snow, fontFamily: "ui-monospace, Menlo, monospace" }}>{st.runs}</b> {t("sa.runs")} <span style={{ color: T.dim }}>{t("sa.astSplit", { ast1: st.ast1, ast2: st.ast2 })}</span></span>
+                  <span><b style={{ color: T.snow, fontFamily: "ui-monospace, Menlo, monospace" }}>{st.questions}</b> {t("sa.questions")}</span>
+                  <span>{t("sa.acc")} <b style={{ color: st.acc == null ? T.dim : st.acc >= 80 ? T.good : st.acc >= 50 ? T.warn : T.bad, fontFamily: "ui-monospace, Menlo, monospace" }}>{st.acc == null ? "\u2014" : st.acc + "%"}</b></span>
+                  <span><b style={{ color: T.snow, fontFamily: "ui-monospace, Menlo, monospace" }}>{st.slope}</b> {t("sa.slopeCalls")}</span>
+                  <span>{t("sa.lastActive", { date: fmtDate(st.last) })}</span>
                 </div>
               </div>
             );
           })}
-          {state.profiles.length === 0 && <div style={{ color: T.dim, fontSize: 13 }}>No users found yet.</div>}
+          {state.profiles.length === 0 && <div style={{ color: T.dim, fontSize: 13 }}>{t("sa.noUsers")}</div>}
         </div>
       )}
     </div></div>
