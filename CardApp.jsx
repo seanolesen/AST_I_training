@@ -38,6 +38,8 @@ function mulberry32(a) {
 
 // ---- Grain taxonomy -------------------------------------------------
 // size = [min, max] mm of the measured grain; persist = weak-layer risk.
+import { useLang } from "./i18n.jsx";
+
 const GRAINS = {
   PP: { code: "PP", label: "New snow", sub: "Precipitation particles", size: [1.0, 4.0],
         persist: "new", teach: "Fresh stellars and dendrites. Bond fast once they settle; the concern is loading and storm-slab instability, not persistence." },
@@ -211,6 +213,7 @@ function drawGrain(code, sizeMm, pxPerMm, cx, cy, rng, jitter) {
 
 // ---- The card instrument (SVG) -------------------------------------
 function CrystalCard({ q, pxPerMm = 15, style = "poly", showMeasure = false, loupe = false }) {
+  const { t: tr } = useLang();
   const fieldW_mm = 20, fieldH_mm = 13;
   const fw = fieldW_mm * pxPerMm, fh = fieldH_mm * pxPerMm;
   const padL = 30, padT = 16, padR = 16, padB = 26;
@@ -252,7 +255,7 @@ function CrystalCard({ q, pxPerMm = 15, style = "poly", showMeasure = false, lou
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block", maxHeight: 300 }} role="img"
-      aria-label="Snow crystal on a to-scale grid card">
+      aria-label={tr("card.aria.card")}>
       <defs>
         <radialGradient id="cardfield" cx="50%" cy="42%" r="75%">
           <stop offset="0%" stopColor={C.fieldEdge} />
@@ -323,13 +326,14 @@ function TrendTile({ label, v, warn }) {
   );
 }
 function DiffChips({ byDiff }) {
+  const { t } = useLang();
   if (!byDiff || byDiff.length < 2) return null;
   return (
     <div style={{ display: "flex", gap: 14, marginTop: 10, alignItems: "baseline", flexWrap: "wrap" }}>
-      <span style={{ fontSize: 10.5, color: C.textMute, letterSpacing: "0.4px" }}>BY DIFFICULTY</span>
+      <span style={{ fontSize: 10.5, color: C.textMute, letterSpacing: "0.4px" }}>{t("card.byDifficulty")}</span>
       {byDiff.map((d) => (
         <span key={d.k} style={{ fontSize: 12, color: C.textDim }}>
-          {d.label}{" "}
+          {t("card.diff." + d.k)}{" "}
           <b style={{ fontFamily: MONO, color: d.acc != null && d.acc < 60 ? C.warn : C.snow }}>{d.acc == null ? "—" : d.acc + "%"}</b>
         </span>
       ))}
@@ -397,7 +401,7 @@ function buildInsights(answers) {
   const out = [];
   const misses = answers.filter((a) => !a.correct);
   if (!misses.length) {
-    out.push({ tone: "good", title: "Clean sweep", body: "No misses. Push it: Hard difficulty widens the grain set to all seven types and tightens the size tolerance to ±0.4 mm." });
+    out.push({ tone: "good", titleKey: "card.ins.clean.title", bodyKey: "card.ins.clean.body", vars: {} });
     return out;
   }
   // Size-mode bias — undersizing persistent grains is the dangerous error.
@@ -406,9 +410,9 @@ function buildInsights(answers) {
     const errs = sizeA.map((a) => a.guess - a.size);
     const mean = errs.reduce((s, e) => s + e, 0) / errs.length;
     const persistUnder = sizeA.filter((a) => (GRAINS[a.code].persist === "high") && (a.guess - a.size) <= -0.5);
-    if (mean <= -0.4) out.push({ tone: "warn", title: "You size low", body: `On average you called grains ${Math.abs(mean).toFixed(1)} mm smaller than they were. Undersizing hides depth hoar and surface hoar — the grains that matter most. Count grid squares before committing; each square is ${answers.some((a)=>a.style==="alu") ? "1 mm" : "2 mm"}.` });
-    else if (mean >= 0.5) out.push({ tone: "info", title: "You size high", body: `You ran about ${mean.toFixed(1)} mm large on average. Less dangerous than undersizing, but it can over-flag weak layers. Anchor to the grid rather than eyeballing.` });
-    if (persistUnder.length >= 2) out.push({ tone: "warn", title: "Persistent grains slipped past", body: `You undersized ${persistUnder.length} facet/depth-hoar/surface-hoar grains. Those are exactly the large, weak crystals a snowpit is looking for — size them generously, not conservatively.` });
+    if (mean <= -0.4) out.push({ tone: "warn", titleKey: "card.ins.sizeLow.title", bodyKey: "card.ins.sizeLow.body", vars: { mm: Math.abs(mean).toFixed(1), sq: answers.some((a)=>a.style==="alu") ? "1 mm" : "2 mm" } });
+    else if (mean >= 0.5) out.push({ tone: "info", titleKey: "card.ins.sizeHigh.title", bodyKey: "card.ins.sizeHigh.body", vars: { mm: mean.toFixed(1) } });
+    if (persistUnder.length >= 2) out.push({ tone: "warn", titleKey: "card.ins.persistUnder.title", bodyKey: "card.ins.persistUnder.body", vars: { n: persistUnder.length } });
   }
   // Type-mode confusions.
   const typeMiss = answers.filter((a) => a.mode === "type" && !a.correct);
@@ -418,7 +422,7 @@ function buildInsights(answers) {
     const worst = Object.entries(byGrain).sort((x, y) => y[1] - x[1])[0];
     if (worst) {
       const g = GRAINS[worst[0]];
-      out.push({ tone: "info", title: `${g.label} is tripping you up`, body: `Missed ${worst[1]}× on ${g.label} (${g.sub}). ${g.teach}` });
+      out.push({ tone: "info", titleKey: "card.ins.typeConf.title", bodyKey: "card.ins.typeConf.body", vars: { label: g.label, n: worst[1], sub: g.sub, teach: g.teach } });
     }
   }
   return out.slice(0, 3);
@@ -476,6 +480,7 @@ const SIZE_CLASS = (mm) =>
 const DEFAULTS = { record: true, difficulty: "moderate", mode: "mix", count: 10, feedback: "full", style: "poly", loupe: true };
 
 export function CardApp({ onHome }) {
+  const { t, lang } = useLang();
   const [phase, setPhase] = useState("setup"); // setup | play | summary
   const [settings, setSettings] = useState(DEFAULTS);
   const [history, setHistory] = useState(null);
@@ -543,66 +548,66 @@ export function CardApp({ onHome }) {
   if (phase === "setup") {
     return (
       <div style={wrap}><div style={inner}>
-        <Eyebrow>{ax("BCA Crystal Card · field practice", on)}</Eyebrow>
-        <h1 style={{ fontSize: 24, fontWeight: 800, margin: "6px 0 6px", letterSpacing: "-0.3px" }}>Read the card</h1>
+        <Eyebrow>{lang === "en" ? ax(t("card.setup.eyebrow"), on) : t("card.setup.eyebrow")}</Eyebrow>
+        <h1 style={{ fontSize: 24, fontWeight: 800, margin: "6px 0 6px", letterSpacing: "-0.3px" }}>{t("card.setup.title")}</h1>
         <p style={{ fontSize: 13.5, color: C.textDim, lineHeight: 1.55, margin: "0 0 16px" }}>
-          Crystals are drawn to scale on the grid. Size them against the squares, or classify the grain type — then check yourself against ground truth.
+          {t("card.setup.intro")}
         </p>
 
         {trends && trends.n > 0 ? (
           <div style={panel}>
-            <div style={{ fontSize: 11, letterSpacing: "0.6px", textTransform: "uppercase", color: C.textDim }}>Your trend · recent + difficulty weighted</div>
+            <div style={{ fontSize: 11, letterSpacing: "0.6px", textTransform: "uppercase", color: C.textDim }}>{t("card.trend.header")}</div>
             <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 8 }}>
               <div>
                 <div style={{ fontFamily: MONO, fontSize: 34, fontWeight: 700, lineHeight: 1, color: C.ice }}>{trends.acc == null ? "—" : trends.acc + "%"}</div>
-                <div style={{ fontSize: 10.5, color: C.textDim, marginTop: 3 }}>{trends.sessions.length} sessions · {trends.n} cards</div>
+                <div style={{ fontSize: 10.5, color: C.textDim, marginTop: 3 }}>{t("card.trend.sessionsCards", { sessions: trends.sessions.length, n: trends.n })}</div>
               </div>
               <div style={{ flex: 1 }}><Sparkline sessions={trends.sessions} /></div>
             </div>
             <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-              <TrendTile label="Sizing" v={trends.size} />
-              <TrendTile label="Grain ID" v={trends.type} />
+              <TrendTile label={t("card.trend.sizing")} v={trends.size} />
+              <TrendTile label={t("card.trend.grainId")} v={trends.type} />
             </div>
             <DiffChips byDiff={trends.byDiff} />
           </div>
         ) : (
-          <p style={{ color: C.textMute, fontSize: 12, margin: "-4px 0 18px" }}>No history yet — finish a set to start tracking. Recent sessions count most.</p>
+          <p style={{ color: C.textMute, fontSize: 12, margin: "-4px 0 18px" }}>{t("card.setup.noHistory")}</p>
         )}
 
         <div style={panel}>
-          <Segmented label="Difficulty" hint={SIZE_TOL[settings.difficulty] + " mm tolerance"}
+          <Segmented label={t("card.seg.difficulty")} hint={t("card.seg.difficultyHint", { tol: SIZE_TOL[settings.difficulty] })}
             value={settings.difficulty} onChange={(v) => set("difficulty", v)}
-            options={[{ label: "Easy", value: "easy" }, { label: "Moderate", value: "moderate" }, { label: "Hard", value: "hard" }]} />
-          <Segmented label="Mode" hint="what you practice"
+            options={[{ label: t("card.diff.easy"), value: "easy" }, { label: t("card.diff.moderate"), value: "moderate" }, { label: t("card.diff.hard"), value: "hard" }]} />
+          <Segmented label={t("card.seg.mode")} hint={t("card.seg.modeHint")}
             value={settings.mode} onChange={(v) => set("mode", v)}
-            options={[{ label: "Size", value: "size" }, { label: "Grain type", value: "type" }, { label: "Mix", value: "mix" }]} />
-          <Segmented label="Set length" value={settings.count} onChange={(v) => set("count", v)}
+            options={[{ label: t("card.mode.size"), value: "size" }, { label: t("card.mode.type"), value: "type" }, { label: t("card.mode.mix"), value: "mix" }]} />
+          <Segmented label={t("card.seg.setLength")} value={settings.count} onChange={(v) => set("count", v)}
             options={[{ label: "5", value: 5 }, { label: "10", value: 10 }, { label: "15", value: 15 }, { label: "20", value: 20 }]} />
-          <Segmented label="Feedback" hint={settings.feedback === "full" ? "explain each" : "score only"}
+          <Segmented label={t("card.seg.feedback")} hint={settings.feedback === "full" ? t("card.seg.feedbackHintFull") : t("card.seg.feedbackHintMinimal")}
             value={settings.feedback} onChange={(v) => set("feedback", v)}
-            options={[{ label: "Full", value: "full" }, { label: "Minimal", value: "minimal" }]} />
-          <Segmented label="Card style" hint={settings.style === "alu" ? "1 & 3 mm grid" : "2 mm grid"}
+            options={[{ label: t("card.fb.full"), value: "full" }, { label: t("card.fb.minimal"), value: "minimal" }]} />
+          <Segmented label={t("card.seg.cardStyle")} hint={settings.style === "alu" ? t("card.seg.cardStyleHintAlu") : t("card.seg.cardStyleHintPoly")}
             value={settings.style} onChange={(v) => set("style", v)}
-            options={[{ label: "Polycarbonate", value: "poly" }, { label: "Aluminum", value: "alu" }]} />
-          <Segmented label="Loupe vignette" value={settings.loupe} onChange={(v) => set("loupe", v)}
-            options={[{ label: "On", value: true }, { label: "Off", value: false }]} />
+            options={[{ label: t("card.style.poly"), value: "poly" }, { label: t("card.style.alu"), value: "alu" }]} />
+          <Segmented label={t("card.seg.loupe")} value={settings.loupe} onChange={(v) => set("loupe", v)}
+            options={[{ label: t("card.on"), value: true }, { label: t("card.off"), value: false }]} />
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
-            <span style={{ fontSize: 13.5, fontWeight: 600 }}>Record this session</span>
+            <span style={{ fontSize: 13.5, fontWeight: 600 }}>{t("card.record.label")}</span>
             <button onClick={() => set("record", !settings.record)}
               style={{ padding: "7px 14px", borderRadius: 9, border: `1px solid ${settings.record ? C.ice : C.line}`,
                 background: settings.record ? "rgba(90,209,207,0.14)" : "transparent", color: settings.record ? C.ice : C.textDim, cursor: "pointer", fontWeight: 600, fontSize: 13 }}>
-              {settings.record ? "On" : "Off"}
+              {settings.record ? t("card.record.on") : t("card.record.off")}
             </button>
           </div>
           <div style={{ fontSize: 11.5, color: C.textMute, marginTop: 6, lineHeight: 1.4 }}>
-            {settings.record ? "Counts toward your trend." : "Practice freely — this set won't affect your data."}
+            {settings.record ? t("card.record.onSub") : t("card.record.offSub")}
           </div>
         </div>
 
-        <button style={primaryBtn} onClick={start}>Start set · {settings.count} cards</button>
+        <button style={primaryBtn} onClick={start}>{t("card.start", { count: settings.count })}</button>
         <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
-          {onHome && <button style={{ ...ghostBtn, marginTop: 0 }} onClick={onHome}>← All tools</button>}
-          {trends && trends.n > 0 && <button style={{ ...ghostBtn, marginTop: 0 }} onClick={resetAll}>Reset history</button>}
+          {onHome && <button style={{ ...ghostBtn, marginTop: 0 }} onClick={onHome}>{t("nav.allTools")}</button>}
+          {trends && trends.n > 0 && <button style={{ ...ghostBtn, marginTop: 0 }} onClick={resetAll}>{t("card.resetHistory")}</button>}
         </div>
       </div></div>
     );
@@ -615,8 +620,8 @@ export function CardApp({ onHome }) {
     return (
       <div style={wrap}><div style={inner}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <span style={{ fontSize: 12, color: C.textDim, fontFamily: MONO }}>Card {idx + 1} / {queue.length}</span>
-          <span style={{ fontSize: 12, color: C.textDim }}>{q.mode === "size" ? "Size the grain" : "Name the grain"}</span>
+          <span style={{ fontSize: 12, color: C.textDim, fontFamily: MONO }}>{t("card.play.cardLabel")} {idx + 1} / {queue.length}</span>
+          <span style={{ fontSize: 12, color: C.textDim }}>{q.mode === "size" ? t("card.play.sizeMode") : t("card.play.typeMode")}</span>
         </div>
         <div style={{ height: 4, background: C.slate2, borderRadius: 3, overflow: "hidden", marginBottom: 14 }}>
           <div style={{ height: "100%", width: `${(idx / queue.length) * 100}%`, background: C.ice, transition: reduceMotion ? "none" : "width 200ms ease" }} />
@@ -628,10 +633,10 @@ export function CardApp({ onHome }) {
 
         {q.mode === "size" ? (
           <React.Fragment>
-            {!revealed && <div style={{ fontSize: 13, color: C.textDim, textAlign: "center" }}>Count squares — each is <b style={{ color: C.snow }}>{settings.style === "alu" ? "1 mm" : "2 mm"}</b> across.</div>}
+            {!revealed && <div style={{ fontSize: 13, color: C.textDim, textAlign: "center" }}>{t("card.play.countPre")}<b style={{ color: C.snow }}>{settings.style === "alu" ? "1 mm" : "2 mm"}</b>{t("card.play.countPost")}</div>}
             <SizeInput value={sizeGuess} onChange={setSizeGuess} disabled={revealed} />
             {!revealed
-              ? <button style={primaryBtn} onClick={submitSize}>Check</button>
+              ? <button style={primaryBtn} onClick={submitSize}>{t("card.play.check")}</button>
               : null}
           </React.Fragment>
         ) : (
@@ -657,10 +662,10 @@ export function CardApp({ onHome }) {
         {revealed && (
           <div style={{ marginTop: 14, background: C.slate2, border: `1px solid ${locked.correct ? C.good : C.bad}`, borderRadius: 14, padding: 14 }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-              <span style={{ fontWeight: 800, fontSize: 15, color: locked.correct ? C.good : C.bad }}>{locked.correct ? "Correct" : "Miss"}</span>
+              <span style={{ fontWeight: 800, fontSize: 15, color: locked.correct ? C.good : C.bad }}>{locked.correct ? t("card.reveal.correct") : t("card.reveal.miss")}</span>
               {q.mode === "size"
-                ? <span style={{ fontSize: 13, color: C.textDim }}>Actual <b style={{ color: C.snow, fontFamily: MONO }}>{q.size.toFixed(2)} mm</b> ({SIZE_CLASS(q.size)}) · you said {locked.guess.toFixed(2)}</span>
-                : <span style={{ fontSize: 13, color: C.textDim }}>It's <b style={{ color: C.snow }}>{g.label}</b> — {g.sub}</span>}
+                ? <span style={{ fontSize: 13, color: C.textDim }}>{t("card.reveal.actualPre")}<b style={{ color: C.snow, fontFamily: MONO }}>{q.size.toFixed(2)} mm</b>{t("card.reveal.actualPost", { cls: SIZE_CLASS(q.size), you: locked.guess.toFixed(2) })}</span>
+                : <span style={{ fontSize: 13, color: C.textDim }}>{t("card.reveal.its")} <b style={{ color: C.snow }}>{g.label}</b> — {g.sub}</span>}
             </div>
             {settings.feedback === "full" && (
               <p style={{ fontSize: 12.5, color: C.textDim, lineHeight: 1.5, margin: "8px 0 0" }}>
@@ -669,7 +674,7 @@ export function CardApp({ onHome }) {
                   : g.teach, on)}
               </p>
             )}
-            <button style={{ ...primaryBtn, marginTop: 12 }} onClick={next}>{idx + 1 < queue.length ? "Next card" : "See results"}</button>
+            <button style={{ ...primaryBtn, marginTop: 12 }} onClick={next}>{idx + 1 < queue.length ? t("card.play.nextCard") : t("card.play.seeResults")}</button>
           </div>
         )}
       </div></div>
@@ -684,29 +689,29 @@ export function CardApp({ onHome }) {
   let trendNote = null;
   if (settings.record && postTrends && postTrends.n >= 8 && postTrends.acc != null) {
     const diff = pct - postTrends.acc;
-    if (diff >= 8) trendNote = `This set (${pct}%) beat your recent-weighted average of ${postTrends.acc}% — trending up.`;
-    else if (diff <= -8) trendNote = `This set (${pct}%) fell below your recent average of ${postTrends.acc}%. Could be a hard draw or fatigue — watch the next run.`;
-    else trendNote = `Right around your recent-weighted average of ${postTrends.acc}%.`;
+    if (diff >= 8) trendNote = t("card.trendNote.up", { pct, acc: postTrends.acc });
+    else if (diff <= -8) trendNote = t("card.trendNote.down", { pct, acc: postTrends.acc });
+    else trendNote = t("card.trendNote.around", { acc: postTrends.acc });
   }
 
   return (
     <div style={wrap}><div style={inner}>
-      <Eyebrow>Set complete</Eyebrow>
+      <Eyebrow>{t("card.results.eyebrow")}</Eyebrow>
       <div style={{ display: "flex", alignItems: "baseline", gap: 12, margin: "8px 0 4px" }}>
         <div style={{ fontFamily: MONO, fontSize: 46, fontWeight: 800, lineHeight: 1, color: pct >= 80 ? C.good : pct >= 50 ? C.warn : C.bad }}>{pct}%</div>
-        <div style={{ fontSize: 14, color: C.textDim }}>{correct} / {answers.length} correct</div>
+        <div style={{ fontSize: 14, color: C.textDim }}>{t("card.results.correctOf", { correct, total: answers.length })}</div>
       </div>
-      {!settings.record && <div style={{ fontSize: 12, color: C.textMute, marginBottom: 8 }}>Practice set — not recorded.</div>}
+      {!settings.record && <div style={{ fontSize: 12, color: C.textMute, marginBottom: 8 }}>{t("card.results.notRecorded")}</div>}
 
       <div style={{ ...panel, marginTop: 12 }}>
-        <div style={{ fontSize: 11, letterSpacing: "0.8px", textTransform: "uppercase", color: C.textDim, marginBottom: 4 }}>By grain type</div>
+        <div style={{ fontSize: 11, letterSpacing: "0.8px", textTransform: "uppercase", color: C.textDim, marginBottom: 4 }}>{t("card.results.byGrain")}</div>
         <GrainMissMap answers={answers} />
       </div>
 
       {insights.map((ins, i) => (
         <div key={i} style={{ ...panel, borderLeft: `4px solid ${TONE[ins.tone]}` }}>
-          <div style={{ fontWeight: 800, fontSize: 14.5, marginBottom: 4, color: TONE[ins.tone] }}>{ins.title}</div>
-          <p style={{ fontSize: 13, color: C.textDim, lineHeight: 1.55, margin: 0 }}>{ins.body}</p>
+          <div style={{ fontWeight: 800, fontSize: 14.5, marginBottom: 4, color: TONE[ins.tone] }}>{t(ins.titleKey)}</div>
+          <p style={{ fontSize: 13, color: C.textDim, lineHeight: 1.55, margin: 0 }}>{t(ins.bodyKey, ins.vars)}</p>
         </div>
       ))}
 
@@ -717,8 +722,8 @@ export function CardApp({ onHome }) {
         </div>
       )}
 
-      <button style={primaryBtn} onClick={() => setPhase("setup")}>New set</button>
-      {onHome && <button style={ghostBtn} onClick={onHome}>← All tools</button>}
+      <button style={primaryBtn} onClick={() => setPhase("setup")}>{t("card.results.newSet")}</button>
+      {onHome && <button style={ghostBtn} onClick={onHome}>{t("nav.allTools")}</button>}
 
       <p style={{ fontSize: 11, color: C.textMute, lineHeight: 1.5, marginTop: 18 }}>
         A study aid, not a substitute for a field course. Real crystals are messier than these drawings — pair the card with a loupe and a proper snowpit.

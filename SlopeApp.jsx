@@ -584,7 +584,7 @@ export function SlopeApp({ onHome }) {
             <button onClick={onHome} style={{ background: "transparent", border: "none", color: C.textDim, cursor: "pointer", fontSize: 13, padding: "0 0 10px", fontWeight: 600 }}>← All tools</button>
           )}
           <Eyebrow>{t("slope.setup.eyebrow")}</Eyebrow>
-          <h1 style={{ fontSize: 22, fontWeight: 700, margin: "6px 0 14px" }}>Set up your session</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 700, margin: "6px 0 14px" }}>{t("slope.setup.title")}</h1>
 
           <button onClick={() => setRecord(!settings.record)}
             style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
@@ -630,7 +630,7 @@ export function SlopeApp({ onHome }) {
               <DiffChips byDiff={trends.byDiff} />
             </div>
           ) : (
-            <p style={{ color: C.textMute, fontSize: 12, margin: "-8px 0 22px" }}>No history yet — finish a set to start tracking. Recent sessions count most.</p>
+            <p style={{ color: C.textMute, fontSize: 12, margin: "-8px 0 22px" }}>{t("slope.setup.noHistory")}</p>
           )}
 
           <Slider label={t("slope.slider.diffWeight")}
