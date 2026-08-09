@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient";
-import { AnalyticsPanels, normalizeAst1, normalizeAst2, normalizeSlope } from "./Performance.jsx";
+import { AnalyticsPanels, normalizeAst1, normalizeAst2, normalizeSlope, normalizeCard } from "./Performance.jsx";
+import { normalizeDanger } from "./DangerApp.jsx";
+import { normalizeTerrain } from "./TerrainApp.jsx";
+import { normalizeBeacon } from "./BeaconApp.jsx";
 import { useLang } from "./i18n.jsx";
 
 const SUPER_ADMIN = "sean.olesen@gmail.com";
@@ -78,9 +81,13 @@ export function SiteAnalytics({ onHome, session }) {
     const payloads = state.runsByUser[selected] || [];
     const docs = state.docsByUser[selected] || {};
     const attemptsByTool = {
+      slope: normalizeSlope(docs.slope || { attempts: [] }),
+      card: normalizeCard(docs.card || { attempts: [] }),
+      danger: normalizeDanger(docs.danger || { attempts: [] }),
+      terrain: normalizeTerrain(docs.terrain || { attempts: [] }),
+      beacon: normalizeBeacon(docs.beacon || { attempts: [] }),
       ast1: normalizeAst1(payloads.filter((x) => (x.app || "ast1") === "ast1")),
       ast2: normalizeAst2(payloads.filter((x) => x.app === "ast2")),
-      slope: normalizeSlope(docs.slope || { attempts: [] }),
     };
     return (
       <div style={wrap}><div style={inner}>

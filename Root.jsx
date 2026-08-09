@@ -6,6 +6,7 @@ import { CardApp } from "./CardApp.jsx";
 import { DangerApp } from "./DangerApp.jsx";
 import { TerrainApp } from "./TerrainApp.jsx";
 import { BeaconApp } from "./BeaconApp.jsx";
+import { Leaderboard } from "./Leaderboard.jsx";
 import { Performance } from "./Performance.jsx";
 import { SiteAnalytics } from "./SiteAnalytics.jsx";
 import { AccountApp } from "./AccountApp.jsx";
@@ -131,6 +132,12 @@ function Home({ onPick, session, isAdmin }) {
             <p style={p}>{t("tool.perf.desc")}</p>
           </button>
         )}
+        {session && session.user && (
+          <button style={tile("#f2c14e")} onClick={() => onPick("leaderboard")}>
+            <div style={h}>{t("tool.leaderboard.name")}</div>
+            <p style={p}>{t("tool.leaderboard.desc")}</p>
+          </button>
+        )}
         {isAdmin && (
           <button style={tile("#E0B93C")} onClick={() => onPick("admin")}>
             <div style={h}>{t("tool.admin.name")}</div>
@@ -217,6 +224,7 @@ export default function Root() {
       {view === "terrain" && <TerrainApp onHome={home} />}
       {view === "beacon" && <BeaconApp onHome={home} />}
       {view === "perf" && <Performance onHome={home} session={session} />}
+      {view === "leaderboard" && <Leaderboard onHome={home} session={session} />}
       {view === "admin" && isAdmin && <SiteAnalytics onHome={home} session={session} />}
       {view === "account" && <AccountApp onHome={home} session={session} onSignOut={() => { try { supabase && supabase.auth.signOut(); } catch (e) {} home(); }} />}
     </React.Fragment>

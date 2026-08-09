@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { exportAllData, deleteAllData } from "./storage";
+import { getMyLeaderboard, upsertMyLeaderboard, deleteMyLeaderboard } from "./leaderboard.js";
 import { useLang } from "./i18n.jsx";
 
 const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0",
@@ -28,6 +29,32 @@ export function AccountApp({ onHome, session, onSignOut }) {
   const [note, setNote] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [done, setDone] = useState(false);
+  const [lbName, setLbName] = useState("");
+  const [lbOptIn, setLbOptIn] = useState(false);
+  const [lbBusy, setLbBusy] = useState(false);
+  const [lbNote, setLbNote] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+    if (!signedIn) return;
+    (async () => { const row = await getMyLeaderboard(); if (alive && row) { setLbName(row.display_name || ""); setLbOptIn(true); } })();
+    return () => { alive = false; };
+  }, [signedIn]);
+
+  const saveLb = async () => {
+    setLbBusy(true); setLbNote("");
+    try {
+      if (lbOptIn) {
+        if (!lbName.trim()) { setLbNote(t("account.lb.needName")); setLbBusy(false); return; }
+        const res = await upsertMyLeaderboard(lbName.trim());
+        setLbNote(res.ok ? t("account.lb.saved") : t("account.lb.error", { error: res.error }));
+      } else {
+        const res = await deleteMyLeaderboard();
+        setLbNote(res.ok ? t("account.lb.removed") : t("account.lb.error", { error: res.error }));
+      }
+    } catch (e) { setLbNote(t("account.lb.error", { error: e && e.message ? e.message : String(e) })); }
+    setLbBusy(false);
+  };
 
   const wrap = { minHeight: "calc(100vh - 44px)", background: T.bg, color: T.snow,
     fontFamily: FONT, padding: "22px 14px 44px", boxSizing: "border-box" };
@@ -92,6 +119,26 @@ export function AccountApp({ onHome, session, onSignOut }) {
             <div style={{ fontSize: 13.5, color: T.dim, lineHeight: 1.5 }}>{t("account.guest")}</div>
           )}
         </Card>
+
+        {/* Leaderboard */}
+        {signedIn && (
+          <Card accent="#f2c14e">
+            <Eyebrow>{t("account.lb.label")}</Eyebrow>
+            <div style={{ fontSize: 13, color: T.dim, lineHeight: 1.55, marginBottom: 12 }}>{t("account.lb.desc")}</div>
+            <input value={lbName} onChange={(e) => setLbName(e.target.value)} placeholder={t("account.lb.namePlaceholder")} maxLength={40}
+              style={{ width: "100%", boxSizing: "border-box", padding: "11px 12px", borderRadius: 10, background: T.bg,
+                border: `1px solid ${T.line}`, color: T.snow, fontSize: 14, marginBottom: 10 }} />
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <span style={{ fontSize: 13.5, color: T.snow }}>{t("account.lb.optIn")}</span>
+              <button onClick={() => setLbOptIn((v) => !v)}
+                style={{ padding: "7px 14px", borderRadius: 9, cursor: "pointer", fontWeight: 700, fontSize: 13,
+                  border: `1px solid ${lbOptIn ? T.ice : T.line}`, background: lbOptIn ? "rgba(124,196,255,0.14)" : "transparent",
+                  color: lbOptIn ? T.ice : T.dim }}>{lbOptIn ? t("account.lb.on") : t("account.lb.off")}</button>
+            </div>
+            <button style={btn(T.ice, "#0c1218")} disabled={lbBusy} onClick={saveLb}>{t("account.lb.save")}</button>
+            {lbNote && <div style={{ fontSize: 12.5, color: T.dim, marginTop: 10 }}>{lbNote}</div>}
+          </Card>
+        )}
 
         {/* What we store */}
         <Card>
