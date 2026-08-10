@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 
 const ExamCfg = React.createContext(null);
 const useCfg = () => React.useContext(ExamCfg);

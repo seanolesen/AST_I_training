@@ -110,6 +110,25 @@ const TONE = { good: C.good, warn: C.warn, info: C.ice };
 
 const DEFAULTS = { difficulty: "moderate", count: 10, feedback: "full", record: true };
 
+const Seg = ({ label, hint, value, onChange, options }) => (
+  <div style={{ marginBottom: 14 }}>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+      <span style={{ fontSize: 13, fontWeight: 600 }}>{label}</span>
+      {hint && <span style={{ fontSize: 11.5, color: C.textMute }}>{hint}</span>}
+    </div>
+    <div style={{ display: "flex", gap: 6 }}>
+      {options.map((o) => {
+        const on = value === o.value;
+        return <button key={String(o.value)} onClick={() => onChange(o.value)}
+          style={{ flex: 1, padding: "9px", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: on ? 700 : 500,
+            background: on ? C.ice : C.slate2, color: on ? C.slate : C.textDim, border: `1px solid ${on ? C.ice : C.line}` }}>{o.label}</button>;
+      })}
+    </div>
+  </div>
+);
+
+const Eyebrow = ({ children }) => <div style={{ fontSize: 12, letterSpacing: "1.4px", textTransform: "uppercase", color: C.textDim }}>{children}</div>;
+
 export function TerrainApp({ onHome }) {
   const { t } = useLang();
   const [phase, setPhase] = useState("setup");
@@ -157,23 +176,6 @@ export function TerrainApp({ onHome }) {
   const panel = { background: C.slate2, border: `1px solid ${C.line}`, borderRadius: 16, padding: 16, marginBottom: 16 };
   const primaryBtn = { width: "100%", padding: "15px", borderRadius: 14, border: "none", cursor: "pointer", background: C.ice, color: C.slate, fontSize: 16, fontWeight: 800, marginTop: 8 };
   const ghostBtn = { width: "100%", padding: "13px", borderRadius: 12, border: "none", background: "transparent", color: C.textDim, cursor: "pointer", fontSize: 13, fontWeight: 600, marginTop: 8 };
-  const Eyebrow = ({ children }) => <div style={{ fontSize: 12, letterSpacing: "1.4px", textTransform: "uppercase", color: C.textDim }}>{children}</div>;
-  const Seg = ({ label, hint, value, onChange, options }) => (
-    <div style={{ marginBottom: 14 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
-        <span style={{ fontSize: 13, fontWeight: 600 }}>{label}</span>
-        {hint && <span style={{ fontSize: 11.5, color: C.textMute }}>{hint}</span>}
-      </div>
-      <div style={{ display: "flex", gap: 6 }}>
-        {options.map((o) => {
-          const on = value === o.value;
-          return <button key={String(o.value)} onClick={() => onChange(o.value)}
-            style={{ flex: 1, padding: "9px", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: on ? 700 : 500,
-              background: on ? C.ice : C.slate2, color: on ? C.slate : C.textDim, border: `1px solid ${on ? C.ice : C.line}` }}>{o.label}</button>;
-        })}
-      </div>
-    </div>
-  );
 
   // ---------- SETUP ----------
   if (phase === "setup") {

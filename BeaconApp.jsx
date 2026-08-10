@@ -62,6 +62,22 @@ const TONE = { good: C.good, warn: C.warn, info: C.ice };
 
 const DEFAULTS = { difficulty: "moderate", count: 5, record: true };
 
+const Seg = ({ label, value, onChange, options }) => (
+  <div style={{ marginBottom: 14 }}>
+    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>{label}</div>
+    <div style={{ display: "flex", gap: 6 }}>
+      {options.map((o) => {
+        const on = value === o.value;
+        return <button key={String(o.value)} onClick={() => onChange(o.value)}
+          style={{ flex: 1, padding: "9px", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: on ? 700 : 500,
+            background: on ? C.ice : C.slate2, color: on ? C.slate : C.textDim, border: `1px solid ${on ? C.ice : C.line}` }}>{o.label}</button>;
+      })}
+    </div>
+  </div>
+);
+
+const Eyebrow = ({ children }) => <div style={{ fontSize: 12, letterSpacing: "1.4px", textTransform: "uppercase", color: C.textDim }}>{children}</div>;
+
 export function BeaconApp({ onHome }) {
   const { t } = useLang();
   const [phase, setPhase] = useState("setup"); // setup | search | results
@@ -124,20 +140,6 @@ export function BeaconApp({ onHome }) {
   const panel = { background: C.slate2, border: `1px solid ${C.line}`, borderRadius: 16, padding: 16, marginBottom: 16 };
   const primaryBtn = { width: "100%", padding: "15px", borderRadius: 14, border: "none", cursor: "pointer", background: C.ice, color: C.slate, fontSize: 16, fontWeight: 800, marginTop: 8 };
   const ghostBtn = { width: "100%", padding: "13px", borderRadius: 12, border: "none", background: "transparent", color: C.textDim, cursor: "pointer", fontSize: 13, fontWeight: 600, marginTop: 8 };
-  const Eyebrow = ({ children }) => <div style={{ fontSize: 12, letterSpacing: "1.4px", textTransform: "uppercase", color: C.textDim }}>{children}</div>;
-  const Seg = ({ label, value, onChange, options }) => (
-    <div style={{ marginBottom: 14 }}>
-      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>{label}</div>
-      <div style={{ display: "flex", gap: 6 }}>
-        {options.map((o) => {
-          const on = value === o.value;
-          return <button key={String(o.value)} onClick={() => onChange(o.value)}
-            style={{ flex: 1, padding: "9px", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: on ? 700 : 500,
-              background: on ? C.ice : C.slate2, color: on ? C.slate : C.textDim, border: `1px solid ${on ? C.ice : C.line}` }}>{o.label}</button>;
-        })}
-      </div>
-    </div>
-  );
 
   // ---------- SETUP ----------
   if (phase === "setup") {
@@ -224,7 +226,7 @@ export function BeaconApp({ onHome }) {
         </div>
 
         {probed ? (
-          <div style={{ ...panel, marginBottom: 0, borderColor: probed.result === "strike" ? C.good : probed.result === "close" ? C.warn : C.bad }}>
+          <div style={{ ...panel, marginBottom: 0, border: `1px solid ${probed.result === "strike" ? C.good : probed.result === "close" ? C.warn : C.bad}` }}>
             <div style={{ fontWeight: 800, fontSize: 16, color: probed.result === "strike" ? C.good : probed.result === "close" ? C.warn : C.bad }}>
               {t("beacon.reveal." + probed.result)}
             </div>

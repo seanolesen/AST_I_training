@@ -52,7 +52,7 @@ function TopBar({ session, view, onHome, onAccount }) {
   const btn = { ...chip, cursor: "pointer" };
 
   const back = view !== "home"
-    ? <button onClick={onHome} style={{ ...btn, borderColor: T.ice, color: T.ice, fontWeight: 700 }}>{t("nav.allTools")}</button>
+    ? <button onClick={onHome} style={{ ...btn, border: `1px solid ${T.ice}`, color: T.ice, fontWeight: 700 }}>{t("nav.allTools")}</button>
     : <span />;
 
   let auth;

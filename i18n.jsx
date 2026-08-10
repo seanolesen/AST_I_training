@@ -1412,7 +1412,7 @@ export function LangToggle() {
   const { lang, setLang } = useLang();
   const base = { padding: "6px 9px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.12)",
     background: "#141c26", color: "#9fb0c0", cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: "inherit" };
-  const on = { ...base, borderColor: "#7cc4ff", color: "#e8eef4" };
+  const on = { ...base, border: "1px solid #7cc4ff", color: "#e8eef4" };
   return (
     <span style={{ display: "inline-flex", gap: 4 }} role="group" aria-label="Language">
       {SUPPORTED.map((l) => (
