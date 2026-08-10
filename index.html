@@ -15,6 +15,15 @@
       html, body { margin: 0; height: 100%; background: #0f1720; }
       #root { min-height: 100%; box-sizing: border-box; }
     </style>
+    <script>
+      /* Capture the install prompt early so the in-app hint can offer it. */
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault(); window.__bipEvent = e; window.dispatchEvent(new Event('astp-bip'));
+      });
+      window.addEventListener('appinstalled', function () {
+        window.__bipEvent = null; try { localStorage.setItem('astp_install_dismissed', '1'); } catch (e) {}
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>

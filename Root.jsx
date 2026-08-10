@@ -9,6 +9,7 @@ import { BeaconApp } from "./BeaconApp.jsx";
 import { Leaderboard } from "./Leaderboard.jsx";
 import { PwaStatus } from "./PwaStatus.jsx";
 import { LogoMark } from "./Logo.jsx";
+import { InstallHint } from "./InstallHint.jsx";
 import { Performance } from "./Performance.jsx";
 import { SiteAnalytics } from "./SiteAnalytics.jsx";
 import { AccountApp } from "./AccountApp.jsx";
@@ -136,6 +137,7 @@ function Home({ onPick, session, isAdmin }) {
   return (
     <div style={wrap}>
       <div style={inner}>
+        <InstallHint />
         <h1 style={{ fontSize: 24, fontWeight: 800, margin: "6px 0 2px", letterSpacing: "-0.3px" }}>{t("home.choose")}</h1>
         <p style={{ ...p, margin: "0 0 4px" }}>
           {session && session.user
