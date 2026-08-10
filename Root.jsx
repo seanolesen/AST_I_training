@@ -7,6 +7,7 @@ import { DangerApp } from "./DangerApp.jsx";
 import { TerrainApp } from "./TerrainApp.jsx";
 import { BeaconApp } from "./BeaconApp.jsx";
 import { Leaderboard } from "./Leaderboard.jsx";
+import { PwaStatus } from "./PwaStatus.jsx";
 import { Performance } from "./Performance.jsx";
 import { SiteAnalytics } from "./SiteAnalytics.jsx";
 import { AccountApp } from "./AccountApp.jsx";
@@ -227,6 +228,7 @@ export default function Root() {
       {view === "leaderboard" && <Leaderboard onHome={home} session={session} />}
       {view === "admin" && isAdmin && <SiteAnalytics onHome={home} session={session} />}
       {view === "account" && <AccountApp onHome={home} session={session} onSignOut={() => { try { supabase && supabase.auth.signOut(); } catch (e) {} home(); }} />}
+      <PwaStatus />
     </React.Fragment>
   );
 }

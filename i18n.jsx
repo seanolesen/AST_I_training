@@ -634,6 +634,11 @@ export const STRINGS = {
     "account.import.done": "Imported {n} records into your account.",
     "account.import.none": "Nothing new to import — this device’s history is already in your account.",
     "account.import.error": "Import failed ({error}). Make sure you’re signed in and the Supabase tables exist.",
+
+    "pwa.update.msg": "A new version is ready.",
+    "pwa.update.action": "Reload",
+    "pwa.offlineReady": "Ready to use offline.",
+    "pwa.offline": "Offline — practicing locally. Sign-in and sync resume when you reconnect.",
   },
   fr: {
     "lang.en": "EN", "lang.fr": "FR",
@@ -1261,6 +1266,11 @@ export const STRINGS = {
     "account.import.done": "{n} enregistrements importés dans votre compte.",
     "account.import.none": "Rien de nouveau à importer — l’historique de cet appareil est déjà dans votre compte.",
     "account.import.error": "Échec de l’importation ({error}). Assurez-vous d’être connecté et que les tables Supabase existent.",
+
+    "pwa.update.msg": "Une nouvelle version est prête.",
+    "pwa.update.action": "Recharger",
+    "pwa.offlineReady": "Prêt à utiliser hors ligne.",
+    "pwa.offline": "Hors ligne — entraînement local. La connexion et la synchronisation reprennent au retour du réseau.",
   },
 };
 
