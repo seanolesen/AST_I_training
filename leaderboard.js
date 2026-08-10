@@ -63,3 +63,16 @@ export function rankFor(rows, key) {
     .map((r) => ({ user_id: r.user_id, name: r.display_name, acc: r.stats[key].acc, n: r.stats[key].n }))
     .sort((a, b) => (b.acc - a.acc) || (b.n - a.n));
 }
+
+// ---- Admin moderation (requires the admin RLS policies in schema.sql) ----
+export async function adminResetName(userId) {
+  if (!supabase || !userId) return { ok: false };
+  const { error } = await supabase.from("leaderboard")
+    .update({ display_name: "", updated_at: new Date().toISOString() }).eq("user_id", userId);
+  return { ok: !error, error: error && error.message };
+}
+export async function adminRemoveEntry(userId) {
+  if (!supabase || !userId) return { ok: false };
+  const { error } = await supabase.from("leaderboard").delete().eq("user_id", userId);
+  return { ok: !error, error: error && error.message };
+}

@@ -56,3 +56,17 @@ drop policy if exists "update own leaderboard" on public.leaderboard;
 create policy "update own leaderboard" on public.leaderboard for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 drop policy if exists "delete own leaderboard" on public.leaderboard;
 create policy "delete own leaderboard" on public.leaderboard for delete using (auth.uid() = user_id);
+
+
+-- 3a) Leaderboard moderation: let an admin reset/remove ANY row.
+-- Admin = profiles.is_admin OR the super-admin email. SECURITY DEFINER so the
+-- check can read profiles regardless of that table's own RLS.
+create or replace function public.is_admin() returns boolean
+  language sql security definer stable set search_path = public as $$
+  select coalesce((select is_admin from public.profiles where id = auth.uid()), false)
+      or coalesce((auth.jwt() ->> 'email'), '') = 'sean.olesen@gmail.com';
+$$;
+drop policy if exists "admin update leaderboard" on public.leaderboard;
+create policy "admin update leaderboard" on public.leaderboard for update using (public.is_admin()) with check (true);
+drop policy if exists "admin delete leaderboard" on public.leaderboard;
+create policy "admin delete leaderboard" on public.leaderboard for delete using (public.is_admin());

@@ -270,7 +270,7 @@ export default function Root() {
       {view === "terrain" && <TerrainApp onHome={home} />}
       {view === "beacon" && <BeaconApp onHome={home} />}
       {view === "perf" && <Performance onHome={home} session={session} />}
-      {view === "leaderboard" && <Leaderboard onHome={home} session={session} />}
+      {view === "leaderboard" && <Leaderboard onHome={home} session={session} isAdmin={isAdmin} />}
       {view === "admin" && isAdmin && <SiteAnalytics onHome={home} session={session} />}
       {view === "account" && <AccountApp onHome={home} session={session} onSignOut={() => { try { supabase && supabase.auth.signOut(); } catch (e) {} home(); }} />}
       <PwaStatus />
