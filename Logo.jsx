@@ -34,3 +34,12 @@ export function LogoMark({ size = 28, title = "AST Prep" }) {
     </svg>
   );
 }
+
+// Standalone six-arm snowflake, for subtle brand motifs.
+export function Snowflake({ size = 24, color = "#7cc4ff", style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 256 256" aria-hidden="true" style={style}>
+      {crystal(128, 128, 0.95, color, 11)}
+    </svg>
+  );
+}

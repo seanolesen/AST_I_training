@@ -8,7 +8,7 @@ import { TerrainApp } from "./TerrainApp.jsx";
 import { BeaconApp } from "./BeaconApp.jsx";
 import { Leaderboard } from "./Leaderboard.jsx";
 import { PwaStatus } from "./PwaStatus.jsx";
-import { LogoMark } from "./Logo.jsx";
+import { LogoMark, Snowflake } from "./Logo.jsx";
 import { InstallHint } from "./InstallHint.jsx";
 import { Performance } from "./Performance.jsx";
 import { SiteAnalytics } from "./SiteAnalytics.jsx";
@@ -21,6 +21,20 @@ const SUPER_ADMIN = "sean.olesen@gmail.com";
 const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0",
   ice: "#7cc4ff", amber: "#f0812c", line: "rgba(255,255,255,0.12)" };
 const FONT = "system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+
+function Tile({ accent, name, desc, onClick }) {
+  const s = { position: "relative", overflow: "hidden", display: "block", width: "100%", textAlign: "left",
+    background: T.panel, border: `1px solid ${T.line}`, borderLeft: `4px solid ${accent}`, borderRadius: 14,
+    padding: "17px 40px 17px 18px", marginTop: 12, color: T.snow, cursor: "pointer", fontFamily: FONT };
+  return (
+    <button style={s} onClick={onClick}>
+      <Snowflake size={82} color={accent} style={{ position: "absolute", top: -20, right: -16, opacity: 0.07, pointerEvents: "none" }} />
+      <div style={{ position: "relative", margin: "0 0 4px", fontSize: 17, fontWeight: 800 }}>{name}</div>
+      <p style={{ position: "relative", margin: 0, fontSize: 13.5, color: T.dim, lineHeight: 1.5 }}>{desc}</p>
+      <span style={{ position: "absolute", right: 15, top: "50%", transform: "translateY(-50%)", color: T.dim, opacity: 0.5, fontSize: 18, lineHeight: 1 }}>&rarr;</span>
+    </button>
+  );
+}
 
 function TopBar({ session, view, onHome, onAccount }) {
   const { t } = useLang();
@@ -129,10 +143,18 @@ function Home({ onPick, session, isAdmin }) {
   const wrap = { minHeight: "calc(100vh - 44px)", background: T.bg, color: T.snow,
     fontFamily: FONT, padding: "30px 16px 44px", boxSizing: "border-box" };
   const inner = { maxWidth: 540, margin: "0 auto" };
-  const tile = (accent) => ({ display: "block", width: "100%", textAlign: "left", background: T.panel,
-    border: `1px solid ${T.line}`, borderLeft: `4px solid ${accent}`, borderRadius: 14,
-    padding: "18px", marginTop: 14, color: T.snow, cursor: "pointer" });
-  const h = { margin: "0 0 4px", fontSize: 17, fontWeight: 800 };
+  const signedIn = !!(session && session.user);
+  const tiles = [
+    { key: "slope", accent: T.amber },
+    { key: "card", accent: "#5AD1CF" },
+    { key: "danger", accent: "#ef8b2b" },
+    { key: "terrain", accent: "#A6754C" },
+    { key: "beacon", accent: "#3fb6c9" },
+    { key: "ast1", accent: T.ice },
+    { key: "ast2", accent: "#b98cff" },
+    ...(signedIn ? [{ key: "perf", accent: "#3FA372" }, { key: "leaderboard", accent: "#f2c14e" }] : []),
+    ...(isAdmin ? [{ key: "admin", accent: "#E0B93C" }] : []),
+  ];
   const p = { margin: 0, fontSize: 13.5, color: T.dim, lineHeight: 1.5 };
   return (
     <div style={wrap}>
@@ -144,52 +166,11 @@ function Home({ onPick, session, isAdmin }) {
             ? t("home.signedIn", { email: session.user.email })
             : t("home.localSub")}
         </p>
-        <button style={tile(T.amber)} onClick={() => onPick("slope")}>
-          <div style={h}>{t("tool.slope.name")}</div>
-          <p style={p}>{t("tool.slope.desc")}</p>
-        </button>
-        <button style={tile("#5AD1CF")} onClick={() => onPick("card")}>
-          <div style={h}>{t("tool.card.name")}</div>
-          <p style={p}>{t("tool.card.desc")}</p>
-        </button>
-        <button style={tile("#ef8b2b")} onClick={() => onPick("danger")}>
-          <div style={h}>{t("tool.danger.name")}</div>
-          <p style={p}>{t("tool.danger.desc")}</p>
-        </button>
-        <button style={tile("#A6754C")} onClick={() => onPick("terrain")}>
-          <div style={h}>{t("tool.terrain.name")}</div>
-          <p style={p}>{t("tool.terrain.desc")}</p>
-        </button>
-        <button style={tile("#3fb6c9")} onClick={() => onPick("beacon")}>
-          <div style={h}>{t("tool.beacon.name")}</div>
-          <p style={p}>{t("tool.beacon.desc")}</p>
-        </button>
-        <button style={tile(T.ice)} onClick={() => onPick("ast1")}>
-          <div style={h}>{t("tool.ast1.name")}</div>
-          <p style={p}>{t("tool.ast1.desc")}</p>
-        </button>
-        <button style={tile("#b98cff")} onClick={() => onPick("ast2")}>
-          <div style={h}>{t("tool.ast2.name")}</div>
-          <p style={p}>{lang === "en" ? ax(t("tool.ast2.desc"), on) : t("tool.ast2.desc")}</p>
-        </button>
-        {session && session.user && (
-          <button style={tile("#3FA372")} onClick={() => onPick("perf")}>
-            <div style={h}>{t("tool.perf.name")}</div>
-            <p style={p}>{t("tool.perf.desc")}</p>
-          </button>
-        )}
-        {session && session.user && (
-          <button style={tile("#f2c14e")} onClick={() => onPick("leaderboard")}>
-            <div style={h}>{t("tool.leaderboard.name")}</div>
-            <p style={p}>{t("tool.leaderboard.desc")}</p>
-          </button>
-        )}
-        {isAdmin && (
-          <button style={tile("#E0B93C")} onClick={() => onPick("admin")}>
-            <div style={h}>{t("tool.admin.name")}</div>
-            <p style={p}>{t("tool.admin.desc")}</p>
-          </button>
-        )}
+        {tiles.map((tl) => (
+          <Tile key={tl.key} accent={tl.accent} onClick={() => onPick(tl.key)}
+            name={t("tool." + tl.key + ".name")}
+            desc={tl.key === "ast2" && lang === "en" ? ax(t("tool.ast2.desc"), on) : t("tool." + tl.key + ".desc")} />
+        ))}
         <button onClick={() => onPick("account")}
           style={{ display: "block", width: "100%", textAlign: "left", background: "transparent", border: "none",
             color: T.dim, cursor: "pointer", fontSize: 13, padding: "20px 2px 0", textDecoration: "underline" }}>
