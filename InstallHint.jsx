@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useLang } from "./i18n.jsx";
-import { LogoMark } from "./Logo.jsx";
 
 const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0", ice: "#7cc4ff", line: "rgba(255,255,255,0.12)" };
 const FONT = "system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
@@ -43,22 +42,20 @@ export function InstallHint() {
   };
 
   if (!show) return null;
-  const card = { display: "flex", alignItems: "center", gap: 12, background: T.panel, border: `1px solid ${T.line}`,
-    borderLeft: `4px solid ${T.ice}`, borderRadius: 14, padding: "14px 14px 14px 16px", marginBottom: 16, fontFamily: FONT };
-  const primary = { padding: "8px 14px", borderRadius: 9, border: "none", cursor: "pointer", background: T.ice, color: "#0c1218", fontWeight: 800, fontSize: 13, flexShrink: 0 };
-  const ghost = { padding: "8px 10px", borderRadius: 9, border: `1px solid ${T.line}`, cursor: "pointer", background: "transparent", color: T.dim, fontWeight: 700, fontSize: 12.5, flexShrink: 0 };
+  const bar = { display: "flex", alignItems: "center", gap: 8, margin: "0 0 12px", fontSize: 12.5,
+    color: T.dim, fontFamily: FONT, lineHeight: 1.4 };
+  const link = { background: "none", border: "none", padding: 0, cursor: "pointer", color: T.ice,
+    fontWeight: 700, fontSize: 12.5, textDecoration: "underline", whiteSpace: "nowrap" };
+  const x = { background: "none", border: "none", padding: "0 2px", cursor: "pointer", color: T.dim,
+    fontSize: 17, lineHeight: 1, flexShrink: 0 };
 
   return (
-    <div style={card}>
-      <LogoMark size={34} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 14.5, fontWeight: 800, color: T.snow, margin: 0 }}>{t("install.title")}</p>
-        <p style={{ fontSize: 12.5, color: T.dim, margin: "3px 0 0", lineHeight: 1.45 }}>{ios ? t("install.iosSteps") : t("install.blurb")}</p>
-      </div>
-      <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
-        {!ios && <button style={primary} onClick={install}>{t("install.button")}</button>}
-        <button style={ghost} onClick={dismiss}>{ios ? t("install.gotIt") : t("install.dismiss")}</button>
-      </div>
+    <div style={bar}>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        {ios ? t("install.iosLine") : t("install.line")}
+        {!ios && <> <button style={link} onClick={install}>{t("install.button")}</button></>}
+      </span>
+      <button style={x} onClick={dismiss} aria-label={t("install.dismiss")} title={t("install.dismiss")}>&times;</button>
     </div>
   );
 }
