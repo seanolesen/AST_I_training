@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "prompt",
+      registerType: "autoUpdate",
       injectRegister: false,
       includeAssets: ["apple-touch-icon.png", "favicon-32.png", "icon.svg"],
       manifest: {
@@ -31,6 +31,7 @@ export default defineConfig({
         navigateFallback: "/index.html",
         cleanupOutdatedCaches: true,
         clientsClaim: true,
+        skipWaiting: true,
         maximumFileSizeToCacheInBytes: 3145728
       }
     })

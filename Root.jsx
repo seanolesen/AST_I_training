@@ -82,7 +82,7 @@ function TopBar({ session, view, onHome, onAccount }) {
           type="email" autoComplete="email" inputMode="email"
           style={{ ...chip, minWidth: 150, outline: "none" }} />
         <button style={btn} disabled={busy} onClick={sendLink}>{t("auth.linkBtn")}</button>
-        <button style={{ ...btn, border: "1px solid transparent", color: T.dim }} onClick={() => { setMode("password"); setStatus(""); }}>{t("auth.usePassword")}</button>
+        <button style={{ ...btn, border: `1px solid ${T.ice}`, color: T.ice, fontWeight: 700 }} onClick={() => { setMode("password"); setStatus(""); }}>{t("auth.usePassword")}</button>
         {status && <span style={{ color: T.dim }}>{status}</span>}
       </React.Fragment>
     ) : (
@@ -94,8 +94,8 @@ function TopBar({ session, view, onHome, onAccount }) {
           type="password" autoComplete="current-password"
           style={{ ...chip, minWidth: 120, outline: "none" }} />
         <button style={btn} disabled={busy} onClick={signInPw}>{t("auth.signIn")}</button>
-        <button style={{ ...btn, border: "1px solid transparent", color: T.ice }} disabled={busy} onClick={createAccount}>{t("auth.createAccount")}</button>
-        <button style={{ ...btn, border: "1px solid transparent", color: T.dim }} onClick={() => { setMode("link"); setStatus(""); }}>{t("auth.useLink")}</button>
+        <button style={{ ...btn, border: `1px solid ${T.ice}`, color: T.ice, fontWeight: 700 }} disabled={busy} onClick={createAccount}>{t("auth.createAccount")}</button>
+        <button style={{ ...btn, border: `1px solid ${T.ice}`, color: T.ice, fontWeight: 700 }} onClick={() => { setMode("link"); setStatus(""); }}>{t("auth.useLink")}</button>
         {status && <span style={{ color: T.dim }}>{status}</span>}
       </React.Fragment>
     );
