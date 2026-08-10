@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { exportAllData, deleteAllData, scanLocalHistory, importLocalHistory } from "./storage";
 import { getMyLeaderboard, upsertMyLeaderboard, deleteMyLeaderboard } from "./leaderboard.js";
 import { useLang } from "./i18n.jsx";
+import { supabase } from "./supabaseClient";
 
 const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0",
   ice: "#7cc4ff", amber: "#f0812c", good: "#3FA372", bad: "#D6483B",
@@ -36,6 +37,9 @@ export function AccountApp({ onHome, session, onSignOut }) {
   const [impScan, setImpScan] = useState(null);
   const [impBusy, setImpBusy] = useState(false);
   const [impNote, setImpNote] = useState("");
+  const [pwNew, setPwNew] = useState("");
+  const [pwBusy, setPwBusy] = useState(false);
+  const [pwNote, setPwNote] = useState("");
 
   useEffect(() => {
     let alive = true;
@@ -85,6 +89,17 @@ export function AccountApp({ onHome, session, onSignOut }) {
     opacity: busy ? 0.6 : 1 });
   const ghost = { width: "100%", padding: "12px", borderRadius: 12, cursor: "pointer",
     background: "transparent", border: `1px solid ${T.line}`, color: T.snow, fontSize: 14, fontWeight: 700 };
+
+  const savePassword = async () => {
+    if (pwNew.length < 6) { setPwNote(t("account.pw.short")); return; }
+    setPwBusy(true); setPwNote("");
+    try {
+      const { error } = await supabase.auth.updateUser({ password: pwNew });
+      if (error) { setPwNote(t("account.pw.error", { error: error.message })); }
+      else { setPwNew(""); setPwNote(t("account.pw.saved")); }
+    } catch (e) { setPwNote(t("account.pw.error", { error: e && e.message ? e.message : String(e) })); }
+    setPwBusy(false);
+  };
 
   const doExport = async () => {
     setBusy(true); setNote("");
@@ -140,6 +155,21 @@ export function AccountApp({ onHome, session, onSignOut }) {
             <div style={{ fontSize: 13.5, color: T.dim, lineHeight: 1.5 }}>{t("account.guest")}</div>
           )}
         </Card>
+
+        {/* Password & offline access */}
+        {signedIn && (
+          <Card accent="#f2c14e">
+            <Eyebrow>{t("account.pw.label")}</Eyebrow>
+            <div style={{ fontSize: 13, color: T.dim, lineHeight: 1.55, marginBottom: 10 }}>{t("account.pw.desc")}</div>
+            <div style={{ fontSize: 12.5, color: T.dim, lineHeight: 1.5, marginBottom: 12 }}>{t("account.pw.install")}</div>
+            <input type="password" value={pwNew} onChange={(e) => setPwNew(e.target.value)} placeholder={t("account.pw.placeholder")}
+              autoComplete="new-password"
+              style={{ width: "100%", boxSizing: "border-box", padding: "11px 12px", borderRadius: 10, background: T.bg,
+                border: `1px solid ${T.line}`, color: T.snow, fontSize: 14, marginBottom: 10 }} />
+            <button style={btn(T.ice, "#0c1218")} disabled={pwBusy} onClick={savePassword}>{t("account.pw.save")}</button>
+            {pwNote && <div style={{ fontSize: 12.5, color: T.dim, marginTop: 10 }}>{pwNote}</div>}
+          </Card>
+        )}
 
         {/* Leaderboard */}
         {signedIn && (
