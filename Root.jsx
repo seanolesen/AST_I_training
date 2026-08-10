@@ -23,7 +23,10 @@ const FONT = "system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
 function TopBar({ session, view, onHome, onAccount }) {
   const { t } = useLang();
   const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
   const [status, setStatus] = useState("");
+  const [phase, setPhase] = useState("email"); // email | code
+  const [busy, setBusy] = useState(false);
   const row = { display: "flex", gap: 8, alignItems: "center", justifyContent: "space-between",
     flexWrap: "wrap", padding: "10px 12px", background: T.bg,
     borderBottom: `1px solid ${T.line}`, fontFamily: FONT, fontSize: 12.5 };
@@ -46,19 +49,41 @@ function TopBar({ session, view, onHome, onAccount }) {
       </React.Fragment>
     );
   } else {
-    const send = async () => {
+    const sendCode = async () => {
       if (!email) { setStatus(t("auth.enterEmail")); return; }
-      setStatus(t("auth.sending"));
+      setBusy(true); setStatus(t("auth.sending"));
       const { error } = await supabase.auth.signInWithOtp({
-        email, options: { emailRedirectTo: window.location.origin },
+        email, options: { emailRedirectTo: window.location.origin, shouldCreateUser: true },
       });
-      setStatus(error ? (t("auth.errorPrefix") + error.message) : t("auth.checkEmail"));
+      setBusy(false);
+      if (error) { setStatus(t("auth.errorPrefix") + error.message); }
+      else { setPhase("code"); setStatus(t("auth.codeSent")); }
     };
-    auth = (
+    const verify = async () => {
+      const token = code.trim();
+      if (!token) { setStatus(t("auth.enterCode")); return; }
+      setBusy(true); setStatus(t("auth.verifying"));
+      const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+      setBusy(false);
+      if (error) { setStatus(t("auth.wrongCode")); }
+      else { setCode(""); setStatus(""); } // onAuthStateChange sets the session
+    };
+    const resetAuth = () => { setPhase("email"); setCode(""); setStatus(""); };
+    auth = phase === "email" ? (
       <React.Fragment>
         <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("auth.emailPlaceholder")}
+          type="email" autoComplete="email" inputMode="email"
           style={{ ...chip, minWidth: 150, outline: "none" }} />
-        <button style={btn} onClick={send}>{t("auth.signIn")}</button>
+        <button style={btn} disabled={busy} onClick={sendCode}>{t("auth.sendCode")}</button>
+        {status && <span style={{ color: T.dim }}>{status}</span>}
+      </React.Fragment>
+    ) : (
+      <React.Fragment>
+        <input value={code} onChange={(e) => setCode(e.target.value)} placeholder={t("auth.codePlaceholder")}
+          inputMode="numeric" autoComplete="one-time-code" maxLength={8}
+          style={{ ...chip, minWidth: 108, outline: "none", letterSpacing: "2px", textAlign: "center" }} />
+        <button style={btn} disabled={busy} onClick={verify}>{t("auth.verify")}</button>
+        <button style={{ ...btn, borderColor: "transparent", color: T.dim }} onClick={resetAuth}>{t("auth.useDifferent")}</button>
         {status && <span style={{ color: T.dim }}>{status}</span>}
       </React.Fragment>
     );
