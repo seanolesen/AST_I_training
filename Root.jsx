@@ -29,8 +29,9 @@ function TopBar({ session, view, onHome, onAccount }) {
   const [mode, setMode] = useState("link"); // link | password
   const [busy, setBusy] = useState(false);
   const row = { display: "flex", gap: 8, alignItems: "center", justifyContent: "space-between",
-    flexWrap: "wrap", padding: "10px 12px", background: T.bg,
-    borderBottom: `1px solid ${T.line}`, fontFamily: FONT, fontSize: 12.5 };
+    flexWrap: "wrap", padding: "calc(10px + env(safe-area-inset-top)) 12px 10px", background: T.bg,
+    borderBottom: `1px solid ${T.line}`, fontFamily: FONT, fontSize: 12.5,
+    position: "sticky", top: 0, zIndex: 50 };
   const chip = { padding: "7px 12px", borderRadius: 9, border: `1px solid ${T.line}`,
     background: T.panel, color: T.snow };
   const btn = { ...chip, cursor: "pointer" };
@@ -104,11 +105,15 @@ function TopBar({ session, view, onHome, onAccount }) {
 
   return (
     <div style={row}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <button onClick={onHome} title="Home" style={{ background: "transparent", border: "none", padding: 0, cursor: "pointer", lineHeight: 0 }}><LogoMark size={26} /></button>
-        {back}
-      </div>
+      <button onClick={onHome} title="Home" style={{ display: "flex", alignItems: "center", gap: 10, background: "transparent", border: "none", padding: 0, cursor: "pointer", textAlign: "left", minWidth: 0 }}>
+        <LogoMark size={30} />
+        <div style={{ lineHeight: 1.06, minWidth: 0 }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: T.snow, letterSpacing: "-0.3px" }}>AST Prep</div>
+          <div style={{ fontSize: 10.5, color: T.dim, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t("app.tagline")}</div>
+        </div>
+      </button>
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+        {back}
         <LangToggle />
         <ExpandToggle />
         {auth}
@@ -131,13 +136,6 @@ function Home({ onPick, session, isAdmin }) {
   return (
     <div style={wrap}>
       <div style={inner}>
-        <div style={{ display: "flex", alignItems: "center", gap: 13, marginBottom: 18 }}>
-          <LogoMark size={54} />
-          <div>
-            <div style={{ fontSize: 25, fontWeight: 800, letterSpacing: "-0.6px", color: T.snow, lineHeight: 1 }}>AST Prep</div>
-            <div style={{ fontSize: 12.5, color: T.dim, marginTop: 5 }}>{t("app.tagline")}</div>
-          </div>
-        </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, margin: "6px 0 2px", letterSpacing: "-0.3px" }}>{t("home.choose")}</h1>
         <p style={{ ...p, margin: "0 0 4px" }}>
           {session && session.user
