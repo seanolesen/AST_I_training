@@ -8,6 +8,7 @@ import { TerrainApp } from "./TerrainApp.jsx";
 import { BeaconApp } from "./BeaconApp.jsx";
 import { Leaderboard } from "./Leaderboard.jsx";
 import { PwaStatus } from "./PwaStatus.jsx";
+import { LogoMark } from "./Logo.jsx";
 import { Performance } from "./Performance.jsx";
 import { SiteAnalytics } from "./SiteAnalytics.jsx";
 import { AccountApp } from "./AccountApp.jsx";
@@ -103,7 +104,10 @@ function TopBar({ session, view, onHome, onAccount }) {
 
   return (
     <div style={row}>
-      {back}
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <button onClick={onHome} title="Home" style={{ background: "transparent", border: "none", padding: 0, cursor: "pointer", lineHeight: 0 }}><LogoMark size={26} /></button>
+        {back}
+      </div>
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
         <LangToggle />
         <ExpandToggle />
@@ -127,8 +131,12 @@ function Home({ onPick, session, isAdmin }) {
   return (
     <div style={wrap}>
       <div style={inner}>
-        <div style={{ fontSize: 12, letterSpacing: "1.6px", textTransform: "uppercase", color: T.dim }}>
-          Avalanche Safety Training Prep
+        <div style={{ display: "flex", alignItems: "center", gap: 13, marginBottom: 18 }}>
+          <LogoMark size={54} />
+          <div>
+            <div style={{ fontSize: 25, fontWeight: 800, letterSpacing: "-0.6px", color: T.snow, lineHeight: 1 }}>AST Prep</div>
+            <div style={{ fontSize: 12.5, color: T.dim, marginTop: 5 }}>{t("app.tagline")}</div>
+          </div>
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, margin: "6px 0 2px", letterSpacing: "-0.3px" }}>{t("home.choose")}</h1>
         <p style={{ ...p, margin: "0 0 4px" }}>
