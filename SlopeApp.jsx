@@ -470,7 +470,6 @@ function MissMap({ answers }) {
 }
 
 // ---- Cross-session tracking (persistent, recency-weighted) ---------
-const HKEY = "slopeTrainerHistory";
 const HALFLIFE = 40; // slopes; recent attempts dominate
 const DIFF_WEIGHT = { easy: 0.6, standard: 1.0, hard: 1.6 }; // hard calls count more
 const DIFF_LABEL = { easy: "Easy", standard: "Standard", hard: "Hard" };
