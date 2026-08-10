@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="gSlate" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#17222f"/><stop offset="1" stop-color="#0d131b"/></linearGradient>
+    <linearGradient id="gOrange" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7ad57"/><stop offset="1" stop-color="#df6f28"/></linearGradient>
+    <g id="flake" fill="none" stroke="#7cc4ff" stroke-width="22" stroke-linecap="round">
+      <g><line x1="0" y1="0" x2="0" y2="-120"/><line x1="0" y1="-82" x2="-28" y2="-108"/><line x1="0" y1="-82" x2="28" y2="-108"/></g>
+      <g transform="rotate(60)"><line x1="0" y1="0" x2="0" y2="-120"/><line x1="0" y1="-82" x2="-28" y2="-108"/><line x1="0" y1="-82" x2="28" y2="-108"/></g>
+      <g transform="rotate(120)"><line x1="0" y1="0" x2="0" y2="-120"/><line x1="0" y1="-82" x2="-28" y2="-108"/><line x1="0" y1="-82" x2="28" y2="-108"/></g>
+      <g transform="rotate(180)"><line x1="0" y1="0" x2="0" y2="-120"/><line x1="0" y1="-82" x2="-28" y2="-108"/><line x1="0" y1="-82" x2="28" y2="-108"/></g>
+      <g transform="rotate(240)"><line x1="0" y1="0" x2="0" y2="-120"/><line x1="0" y1="-82" x2="-28" y2="-108"/><line x1="0" y1="-82" x2="28" y2="-108"/></g>
+      <g transform="rotate(300)"><line x1="0" y1="0" x2="0" y2="-120"/><line x1="0" y1="-82" x2="-28" y2="-108"/><line x1="0" y1="-82" x2="28" y2="-108"/></g>
+    </g>
+    <g id="ocrys" fill="none" stroke="#ffd89a" stroke-width="26" stroke-linecap="round">
+      <g><line x1="0" y1="0" x2="0" y2="-118"/><line x1="0" y1="-80" x2="-30" y2="-106"/><line x1="0" y1="-80" x2="30" y2="-106"/></g>
+      <g transform="rotate(60)"><line x1="0" y1="0" x2="0" y2="-118"/><line x1="0" y1="-80" x2="-30" y2="-106"/><line x1="0" y1="-80" x2="30" y2="-106"/></g>
+      <g transform="rotate(120)"><line x1="0" y1="0" x2="0" y2="-118"/><line x1="0" y1="-80" x2="-30" y2="-106"/><line x1="0" y1="-80" x2="30" y2="-106"/></g>
+      <g transform="rotate(180)"><line x1="0" y1="0" x2="0" y2="-118"/><line x1="0" y1="-80" x2="-30" y2="-106"/><line x1="0" y1="-80" x2="30" y2="-106"/></g>
+      <g transform="rotate(240)"><line x1="0" y1="0" x2="0" y2="-118"/><line x1="0" y1="-80" x2="-30" y2="-106"/><line x1="0" y1="-80" x2="30" y2="-106"/></g>
+      <g transform="rotate(300)"><line x1="0" y1="0" x2="0" y2="-118"/><line x1="0" y1="-80" x2="-30" y2="-106"/><line x1="0" y1="-80" x2="30" y2="-106"/></g>
+    </g>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#gSlate)"/>
+  <polygon points="512,436 766,800 258,800" fill="#25374a"/>
+  <polygon points="336,688 688,688 766,800 258,800" fill="url(#gOrange)"/>
+  <polygon points="512,436 603,566 421,566" fill="#e8eef4"/>
+  <line x1="421" y1="566" x2="603" y2="566" stroke="#bcd0e2" stroke-width="5" opacity=".7"/>
+  <use href="#ocrys" transform="translate(430,742) scale(.15) rotate(9)"/>
+  <use href="#ocrys" transform="translate(566,736) scale(.13) rotate(-13)"/>
+  <use href="#ocrys" transform="translate(494,776) scale(.11) rotate(4)"/>
+  <path d="M258 800 L512 436 L766 800" fill="none" stroke="#7cc4ff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <use href="#flake" transform="translate(512,300) scale(.78)"/>
+</svg>
