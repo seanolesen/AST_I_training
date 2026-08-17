@@ -219,6 +219,7 @@ function QAMasterSheet() {
 
   const effAnswer = (q) => (ov[q.id] && ov[q.id].answer != null ? ov[q.id].answer : q.answer);
   const effExplain = (q) => (ov[q.id] && ov[q.id].explain ? ov[q.id].explain : q.explain);
+  const effQ = (q) => (ov[q.id] && ov[q.id].q ? ov[q.id].q : q.q);
 
   const topics = ["all", ...Array.from(new Set(bank.map((q) => q.topic)))];
   const ql = query.trim().toLowerCase();
@@ -228,11 +229,11 @@ function QAMasterSheet() {
   const CAP = 60;
   const shown = filtered.slice(0, CAP);
 
-  const startEdit = (q) => { setEditing(q.id); setDraft({ answer: effAnswer(q), explain: effExplain(q) || "" }); setNote(""); };
+  const startEdit = (q) => { setEditing(q.id); setDraft({ answer: effAnswer(q), explain: effExplain(q) || "", q: effQ(q) || "" }); setNote(""); };
   const cancel = () => { setEditing(null); setNote(""); };
   const save = async (q) => {
     setBusy(true); setNote("");
-    const fields = { explain: draft.explain };
+    const fields = { explain: draft.explain, q: draft.q };
     if (q.type === "mc" || q.type === "tf") fields.answer = draft.answer;
     const r = await adminSaveOverride(bankKey, q.id, fields);
     setBusy(false);
@@ -279,7 +280,7 @@ function QAMasterSheet() {
                     {edited && badge(t("qa.edited"), T.ice)}
                     <span style={{ marginLeft: "auto", fontFamily: "ui-monospace, Menlo, monospace", fontSize: 11, color: T.dim }}>{q.id}</span>
                   </div>
-                  <div style={{ fontSize: 14, color: T.snow, lineHeight: 1.5, marginBottom: 8 }}>{q.q}</div>
+                  <div style={{ fontSize: 14, color: T.snow, lineHeight: 1.5, marginBottom: 8 }}>{effQ(q)}</div>
 
                   {!isEd && (
                     <div>
@@ -298,6 +299,10 @@ function QAMasterSheet() {
 
                   {isEd && (
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      <div>
+                        <div style={{ fontSize: 12, color: T.dim, marginBottom: 5 }}>{t("qa.question")}</div>
+                        <textarea value={draft.q} onChange={(e) => setDraft((d) => ({ ...d, q: e.target.value }))} rows={2} style={{ ...inputStyle, resize: "vertical", fontFamily: FONT, lineHeight: 1.5 }} />
+                      </div>
                       {q.type === "mc" && Array.isArray(q.options) && (
                         <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                           <div style={{ fontSize: 12, color: T.dim }}>{t("qa.correct")}</div>
