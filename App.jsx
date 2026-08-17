@@ -1,5 +1,6 @@
 import React from "react";
 import { ExamApp } from "./ExamApp.jsx";
+import { fetchOverrides, applyOverrides } from "./overrides.js";
 import { BANK as BANK1 } from "./questions";
 import { BANK as BANK2 } from "./questions2";
 
@@ -49,5 +50,17 @@ const AST2 = {
   },
 };
 
-export function Ast1App({ onHome }) { return <ExamApp onHome={onHome} config={AST1} />; }
-export function Ast2App({ onHome }) { return <ExamApp onHome={onHome} config={AST2} />; }
+function ExamWithOverrides({ onHome, config, bankKey }) {
+  const [bank, setBank] = React.useState(config.bank);
+  React.useEffect(() => {
+    let alive = true;
+    fetchOverrides(bankKey).then((map) => {
+      if (alive && map && Object.keys(map).length) setBank(applyOverrides(config.bank, map));
+    });
+    return () => { alive = false; };
+  }, [bankKey]);
+  return <ExamApp onHome={onHome} config={{ ...config, bank }} />;
+}
+
+export function Ast1App({ onHome }) { return <ExamWithOverrides onHome={onHome} config={AST1} bankKey="ast1" />; }
+export function Ast2App({ onHome }) { return <ExamWithOverrides onHome={onHome} config={AST2} bankKey="ast2" />; }

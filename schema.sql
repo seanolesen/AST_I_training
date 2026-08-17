@@ -70,3 +70,22 @@ drop policy if exists "admin update leaderboard" on public.leaderboard;
 create policy "admin update leaderboard" on public.leaderboard for update using (public.is_admin()) with check (true);
 drop policy if exists "admin delete leaderboard" on public.leaderboard;
 create policy "admin delete leaderboard" on public.leaderboard for delete using (public.is_admin());
+
+-- 4) Editable question overrides (admin "Q&A master sheet").
+-- Corrections to answers/explanations that apply to ALL users at runtime,
+-- without a code redeploy. Readable by everyone; writable only by admins.
+create table if not exists public.question_overrides (
+  bank text not null,          -- "ast1" | "ast2"
+  qid text not null,           -- question id within that bank
+  answer jsonb,                -- corrected correct-answer (mc: index, tf: boolean)
+  explain text,                -- corrected explanation
+  q text,                      -- corrected question text (optional)
+  updated_at timestamptz not null default now(),
+  updated_by uuid,
+  primary key (bank, qid)
+);
+alter table public.question_overrides enable row level security;
+drop policy if exists "read overrides" on public.question_overrides;
+create policy "read overrides" on public.question_overrides for select using (true);
+drop policy if exists "admin write overrides" on public.question_overrides;
+create policy "admin write overrides" on public.question_overrides for all using (public.is_admin()) with check (public.is_admin());
