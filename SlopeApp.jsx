@@ -577,24 +577,20 @@ export function SlopeApp({ onHome }) {
           <Eyebrow>{t("slope.setup.eyebrow")}</Eyebrow>
           <h1 style={{ fontSize: 22, fontWeight: 700, margin: "6px 0 14px" }}>{t("slope.setup.title")}</h1>
 
-          <button onClick={() => setRecord(!settings.record)}
-            style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-              padding: "13px 15px", borderRadius: 14, cursor: "pointer", marginBottom: 18,
-              border: `2px solid ${settings.record ? C.line : "#F0812C"}`,
-              background: settings.record ? C.slate2 : "rgba(240,129,44,0.14)" }}>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: settings.record ? C.snow : "#F0812C" }}>
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 13.5, fontWeight: 600, color: C.snow }}>{t("slope.record.label")}</span>
+              <button onClick={() => setRecord(!settings.record)}
+                style={{ padding: "7px 14px", borderRadius: 9, cursor: "pointer", fontWeight: 600, fontSize: 13,
+                  border: `1px solid ${settings.record ? C.ice : C.line}`,
+                  background: settings.record ? "rgba(95,184,201,0.14)" : "transparent", color: settings.record ? C.ice : C.textDim }}>
                 {settings.record ? t("slope.record.on") : t("slope.record.off")}
-              </div>
-              <div style={{ fontSize: 11.5, color: C.textDim, marginTop: 3, lineHeight: 1.4 }}>
-                {settings.record ? t("slope.record.onSub") : t("slope.record.offSub")}
-              </div>
+              </button>
             </div>
-            <div style={{ width: 46, height: 27, borderRadius: 14, flexShrink: 0, position: "relative", transition: "background 140ms",
-              background: settings.record ? C.ice : "#7A5230" }}>
-              <div style={{ position: "absolute", top: 3, left: settings.record ? 22 : 3, width: 21, height: 21, borderRadius: "50%", background: "#fff", transition: "left 140ms" }} />
+            <div style={{ fontSize: 11.5, color: C.textDim, marginTop: 6, lineHeight: 1.4 }}>
+              {settings.record ? t("slope.record.onSub") : t("slope.record.offSub")}
             </div>
-          </button>
+          </div>
 
           <p style={{ color: C.textDim, fontSize: 13.5, lineHeight: 1.5, margin: "0 0 22px" }}>
             Call each slope <b style={{ color: C.snow }}>steeper</b> or <b style={{ color: C.snow }}>shallower</b> than 30° — the avalanche threshold. Every slope is drawn at a known angle, so grading is exact.

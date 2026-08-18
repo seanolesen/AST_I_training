@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 
 const ExamCfg = React.createContext(null);
 const useCfg = () => React.useContext(ExamCfg);
-import { loadRuns, saveRun, loadRecordPref, saveRecordPref } from "./storage";
+import { loadRuns, saveRun } from "./storage";
 import { useLang } from "./i18n.jsx";
 import { ax, useAcronyms } from "./glossary.jsx";
 
@@ -185,28 +185,23 @@ const DEFAULTS = { difficulty: "moderate", topic: "all", count: 25, feedback: "i
 function RecordSwitch({ recording, onToggle }) {
   const { t } = useLang();
   return (
-    <button onClick={onToggle}
-      style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "14px 16px", borderRadius: 14, cursor: "pointer", textAlign: "left",
-        background: recording ? "rgba(63,163,114,0.12)" : "rgba(240,129,44,0.14)",
-        border: `1.5px solid ${recording ? C.good : C.threshold}`,
-        transition: reduceMotion ? "none" : "all 140ms ease", marginBottom: 22 }}>
-      <div>
-        <div style={{ fontSize: 13.5, fontWeight: 700, color: recording ? C.good : C.threshold }}>
+    <div style={{ marginBottom: 22 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ fontSize: 13.5, fontWeight: 600, color: C.snow }}>{t("exam.record.label")}</span>
+        <button onClick={onToggle}
+          style={{ padding: "7px 14px", borderRadius: 9, cursor: "pointer", fontWeight: 600, fontSize: 13,
+            border: `1px solid ${recording ? C.ice : C.line}`,
+            background: recording ? "rgba(95,184,201,0.14)" : "transparent", color: recording ? C.ice : C.textDim }}>
           {recording ? t("exam.record.on") : t("exam.record.off")}
-        </div>
-        <div style={{ fontSize: 11.5, color: C.textDim, marginTop: 2 }}>
-          {recording ? t("exam.record.onSub") : t("exam.record.offSub")}
-        </div>
+        </button>
       </div>
-      <div style={{ position: "relative", width: 46, height: 26, borderRadius: 20, flexShrink: 0,
-        background: recording ? C.good : C.threshold, transition: reduceMotion ? "none" : "all 140ms ease" }}>
-        <div style={{ position: "absolute", top: 3, left: recording ? 23 : 3, width: 20, height: 20,
-          borderRadius: "50%", background: C.snow, transition: reduceMotion ? "none" : "all 140ms ease" }} />
+      <div style={{ fontSize: 11.5, color: C.textDim, marginTop: 6, lineHeight: 1.4 }}>
+        {recording ? t("exam.record.onSub") : t("exam.record.offSub")}
       </div>
-    </button>
+    </div>
   );
 }
+
 
 function Setup({ settings, setSettings, recording, setRecording, onStart, maxCount, onHome, recommendation, onUseRecommendation }) {
   const cfg = useCfg();
@@ -848,13 +843,7 @@ export function ExamApp({ onHome, config }) {
   const [hist, setHist] = useState([]);
   const [adaptiveSet, setAdaptiveSet] = useState(null); // { pool, targetCount } when adaptive
 
-  // load persisted record/guest preference
-  useEffect(() => {
-    let alive = true;
-    (async () => { const p = await loadRecordPref(); if (alive) setRecording(p); })();
-    return () => { alive = false; };
-  }, []);
-  useEffect(() => { saveRecordPref(recording); }, [recording]);
+  // Record defaults ON each session (matches the other trainers); not persisted.
 
   // History for the "recommended next session" surface; refreshes when we land on setup.
   useEffect(() => {
