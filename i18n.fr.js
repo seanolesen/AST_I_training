@@ -4,6 +4,12 @@ export default {
     "common.cancel": "Annuler",
 
     "nav.allTools": "← Tous les outils",
+
+    "trend.header": "Vos résultats récents",
+
+    "trend.overN": "sur {n} tentatives",
+
+    "trend.hint": "Choisissez la difficulté où vous êtes le plus faible — ou montez en niveau là où vous êtes fort.",
     "auth.localMode": "Mode local",
     "auth.signOut": "Déconnexion",
     "auth.emailPlaceholder": "vous@courriel.com",

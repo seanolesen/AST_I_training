@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { loadDoc, saveDoc } from "./storage";
+import { TrendGuide } from "./Trend.jsx";
 import { useLang } from "./i18n.jsx";
 
 const C = { slate: "#0f1720", slate2: "#141c26", panel: "#111823", snow: "#e8eef4",
@@ -146,6 +147,9 @@ export function BeaconApp({ onHome }) {
         <Eyebrow>{t("beacon.setup.eyebrow")}</Eyebrow>
         <h1 style={{ fontSize: 24, fontWeight: 800, margin: "6px 0 6px", letterSpacing: "-0.3px" }}>{t("beacon.setup.title")}</h1>
         <p style={{ fontSize: 13.5, color: C.textDim, lineHeight: 1.55, margin: "0 0 16px" }}>{t("beacon.setup.intro")}</p>
+        <TrendGuide attempts={history && history.attempts} C={C} t={t} MONO={MONO}
+          dl={{ easy: t("beacon.diff.easy"), moderate: t("beacon.diff.moderate"), hard: t("beacon.diff.hard") }} />
+
         <div style={panel}>
           <Seg label={t("beacon.seg.difficulty")} value={settings.difficulty} onChange={(v) => set("difficulty", v)}
             options={[{ label: t("beacon.diff.easy"), value: "easy" }, { label: t("beacon.diff.moderate"), value: "moderate" }, { label: t("beacon.diff.hard"), value: "hard" }]} />

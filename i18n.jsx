@@ -13,6 +13,12 @@ export const STRINGS = {
     "common.cancel": "Cancel",
 
     "nav.allTools": "← All tools",
+
+    "trend.header": "Your recent results",
+
+    "trend.overN": "over {n} attempts",
+
+    "trend.hint": "Pick the difficulty where you’re weakest — or level up where you’re strong.",
     "auth.localMode": "Local mode",
     "auth.signOut": "Sign out",
     "auth.emailPlaceholder": "you@email.com",

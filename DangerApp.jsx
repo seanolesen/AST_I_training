@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { loadDoc, saveDoc } from "./storage";
+import { TrendGuide } from "./Trend.jsx";
 import { useLang } from "./i18n.jsx";
 
 const C = { slate: "#0f1720", slate2: "#141c26", panel: "#111823", snow: "#e8eef4",
@@ -172,6 +173,9 @@ export function DangerApp({ onHome }) {
         <Eyebrow>{t("danger.setup.eyebrow")}</Eyebrow>
         <h1 style={{ fontSize: 24, fontWeight: 800, margin: "6px 0 6px", letterSpacing: "-0.3px" }}>{t("danger.setup.title")}</h1>
         <p style={{ fontSize: 13.5, color: C.textDim, lineHeight: 1.55, margin: "0 0 16px" }}>{t("danger.setup.intro")}</p>
+        <TrendGuide attempts={history && history.attempts} C={C} t={t} MONO={MONO}
+          dl={{ easy: t("danger.diff.easy"), moderate: t("danger.diff.moderate"), hard: t("danger.diff.hard") }} />
+
 
         <div style={panel}>
           <Seg label={t("danger.seg.difficulty")} value={settings.difficulty} onChange={(v) => set("difficulty", v)}
