@@ -12,7 +12,9 @@ export default defineConfig({
     {
       name: "build-stamp-meta",
       transformIndexHtml(html) {
-        return html.replace("</head>", '  <meta name="build" content="' + BUILD + '">\n</head>');
+        return html
+          .replace(/(<meta name="description" content=")([^"]*)("\s*\/?>)/, "$1$2 \u00b7 build " + BUILD + "$3")
+          .replace("</head>", '  <meta name="build" content="' + BUILD + '">\n</head>');
       },
     },
     react(),
