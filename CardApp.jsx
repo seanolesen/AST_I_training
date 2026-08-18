@@ -15,7 +15,7 @@ import { ax, useAcronyms } from "./glossary.jsx";
 // ---- Palette: the card is a dark, translucent-blue field ------------
 const C = {
   slate: "#0E1621", slate2: "#16232F", panel: "#1B2A38", line: "#2C3E4E",
-  snow: "#EAF0F4", ice: "#5AD1CF", aqua: "#5AD1CF", threshold: "#F0812C",
+  snow: "#EAF0F4", ice: "#7cc4ff", aqua: "#5AD1CF", threshold: "#F0812C",
   field: "#0A1A2A", fieldEdge: "#0E2740", grid: "#2E6C7E", gridMaj: "#4FB6C4",
   crystal: "#E6F1F7", textDim: "#8AA0B0", textMute: "#5E7789",
   good: "#3FA372", warn: "#F0812C", bad: "#D6483B",
@@ -551,6 +551,7 @@ export function CardApp({ onHome }) {
   if (phase === "setup") {
     return (
       <div style={wrap}><div style={inner}>
+        {onHome && <button onClick={onHome} style={{ background: "transparent", border: "none", color: C.ice, cursor: "pointer", fontSize: 13, padding: "2px 0 10px", fontWeight: 700 }}>← {t("nav.allTools")}</button>}
         <Eyebrow>{lang === "en" ? ax(t("card.setup.eyebrow"), on) : t("card.setup.eyebrow")}</Eyebrow>
         <h1 style={{ fontSize: 24, fontWeight: 800, margin: "6px 0 6px", letterSpacing: "-0.3px" }}>{t("card.setup.title")}</h1>
         <p style={{ fontSize: 13.5, color: C.textDim, lineHeight: 1.55, margin: "0 0 16px" }}>
@@ -608,7 +609,6 @@ export function CardApp({ onHome }) {
         </div>
         <button style={primaryBtn} onClick={start}>{t("card.start", { count: settings.count })}</button>
         <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
-          {onHome && <button style={{ ...ghostBtn, marginTop: 0 }} onClick={onHome}>{t("nav.allTools")}</button>}
           {trends && trends.n > 0 && <button style={{ ...ghostBtn, marginTop: 0 }} onClick={resetAll}>{t("card.resetHistory")}</button>}
         </div>
       </div></div>

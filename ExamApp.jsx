@@ -22,7 +22,7 @@ import { ax, useAcronyms } from "./glossary.jsx";
 // ---- Palette (shared with the slope trainer) ------------------------
 const C = {
   slate: "#0E1621", slate2: "#16232F", panel: "#1B2A38", panel2: "#213443",
-  line: "#2C3E4E", snow: "#EAF0F4", ice: "#5FB8C9", threshold: "#F0812C",
+  line: "#2C3E4E", snow: "#EAF0F4", ice: "#7cc4ff", threshold: "#F0812C",
   good: "#3FA372", bad: "#D6483B", warn: "#E0B93C",
   textDim: "#8AA0B0", textMute: "#5E7789",
 };

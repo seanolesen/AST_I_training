@@ -24,7 +24,7 @@ const bandFor = (a) => BANDS.find((b) => a < b.max) || BANDS[BANDS.length - 1];
 // ---- Palette --------------------------------------------------------
 const C = {
   slate: "#0E1621", slate2: "#16232F", panel: "#1B2A38", line: "#2C3E4E",
-  snow: "#EAF0F4", ice: "#5FB8C9", threshold: "#F0812C",
+  snow: "#EAF0F4", ice: "#7cc4ff", threshold: "#F0812C",
   textDim: "#8AA0B0", textMute: "#5E7789",
 };
 
@@ -572,7 +572,7 @@ export function SlopeApp({ onHome }) {
       <div style={shell}>
         <div style={card}>
           {onHome && (
-            <button onClick={onHome} style={{ background: "transparent", border: "none", color: C.textDim, cursor: "pointer", fontSize: 13, padding: "0 0 10px", fontWeight: 600 }}>← All tools</button>
+            <button onClick={onHome} style={{ background: "transparent", border: "none", color: C.ice, cursor: "pointer", fontSize: 13, padding: "2px 0 10px", fontWeight: 700 }}>← {t("nav.allTools")}</button>
           )}
           <Eyebrow>{t("slope.setup.eyebrow")}</Eyebrow>
           <h1 style={{ fontSize: 22, fontWeight: 700, margin: "6px 0 14px" }}>{t("slope.setup.title")}</h1>

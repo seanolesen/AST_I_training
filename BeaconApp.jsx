@@ -142,7 +142,7 @@ export function BeaconApp({ onHome }) {
   if (phase === "setup") {
     return (
       <div style={wrap}><div style={inner}>
-        {onHome && <button onClick={onHome} style={{ background: "transparent", border: "none", color: C.textDim, cursor: "pointer", fontSize: 13, padding: "0 0 10px", fontWeight: 600 }}>{t("nav.allTools")}</button>}
+        {onHome && <button onClick={onHome} style={{ background: "transparent", border: "none", color: C.ice, cursor: "pointer", fontSize: 13, padding: "2px 0 10px", fontWeight: 700 }}>← {t("nav.allTools")}</button>}
         <Eyebrow>{t("beacon.setup.eyebrow")}</Eyebrow>
         <h1 style={{ fontSize: 24, fontWeight: 800, margin: "6px 0 6px", letterSpacing: "-0.3px" }}>{t("beacon.setup.title")}</h1>
         <p style={{ fontSize: 13.5, color: C.textDim, lineHeight: 1.55, margin: "0 0 16px" }}>{t("beacon.setup.intro")}</p>
