@@ -101,10 +101,14 @@ export async function loadDoc(app, fallback) {
     const { data, error } = await supabase
       .from("docs")
       .select("data")
+      .eq("user_id", uid)
       .eq("app", app)
       .maybeSingle();
-    if (!error) return data ? data.data : fallback;
-    // on error, fall through to local
+    if (!error && data && data.data != null) return data.data;
+    // cloud missing / empty / errored -> use a local copy if we have one
+    const local = localDocGet(app, null);
+    if (local != null) return local;
+    return fallback;
   }
   return localDocGet(app, fallback);
 }
@@ -118,10 +122,14 @@ export async function saveDoc(app, obj) {
         { user_id: uid, app, data: obj, updated_at: new Date().toISOString() },
         { onConflict: "user_id,app" }
       );
-    if (!error) return;
-    // fall through to local if it failed
+    if (!error) return { ok: true, where: "cloud" };
+    // cloud write failed -> keep a local copy AND report why
+    localDocSet(app, obj);
+    const msg = (error && (error.message || error.code || error.details || error.hint)) || "unknown";
+    return { ok: false, where: "local(fallback)", error: String(msg) };
   }
   localDocSet(app, obj);
+  return { ok: true, where: "local(guest)" };
 }
 
 // ---- Account & privacy: export / delete everything for the current identity ----

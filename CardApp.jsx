@@ -360,7 +360,7 @@ function Sparkline({ sessions }) {
 // ---- Cross-session tracking (recency + difficulty weighted) ---------
 const EMPTY_HISTORY = { version: 1, nextSid: 1, attempts: [] };
 async function loadHistory() { return await loadDoc("card", EMPTY_HISTORY); }
-async function saveHistory(data) { await saveDoc("card", data); }
+async function saveHistory(data) { return await saveDoc("card", data); }
 async function clearHistory() { await saveDoc("card", EMPTY_HISTORY); }
 
 const HALFLIFE = 40;
@@ -486,6 +486,7 @@ export function CardApp({ onHome }) {
   const [settings, setSettings] = useState(DEFAULTS);
   const [history, setHistory] = useState(null);
   const [authMode, setAuthMode] = useState("\u2026");
+  const [saveStatus, setSaveStatus] = useState("");
   useEffect(() => { let ok = true; (async () => { try { const r = supabase ? await supabase.auth.getSession() : null; if (ok) setAuthMode(r && r.data && r.data.session ? "cloud \u00b7 signed in" : "this device only"); } catch (e) { if (ok) setAuthMode("this device only"); } })(); return () => { ok = false; }; }, []);
   const [queue, setQueue] = useState([]);
   const [idx, setIdx] = useState(0);
@@ -531,13 +532,13 @@ export function CardApp({ onHome }) {
     // Persist each attempt as it is answered (not only at the end of the deck),
     // so partial sessions still count toward history and the leaderboard.
     if (settings.record) {
-      setHistory((prev) => {
-        const h = prev || EMPTY_HISTORY;
-        const nextSid = h.nextSid <= sessionSid ? sessionSid + 1 : h.nextSid;
-        const updated = { ...h, nextSid, attempts: [...h.attempts, rec].slice(-1200) };
-        saveHistory(updated);
-        return updated;
-      });
+      const h = history || EMPTY_HISTORY;
+      const nextSid = h.nextSid <= sessionSid ? sessionSid + 1 : h.nextSid;
+      const updated = { ...h, nextSid, attempts: [...(h.attempts || []), rec].slice(-1200) };
+      setHistory(updated);
+      saveHistory(updated)
+        .then((r) => setSaveStatus(r && r.ok ? ("saved " + updated.attempts.length + " \u00b7 " + r.where) : ("SAVE FAILED \u00b7 " + (r && r.error))))
+        .catch((e) => setSaveStatus("THREW \u00b7 " + ((e && e.message) || e)));
     }
     if (idx + 1 < queue.length) {
       setIdx(idx + 1); setLocked(null); setSizeGuess(2);
@@ -635,6 +636,7 @@ export function CardApp({ onHome }) {
         <div style={{ height: 4, background: C.slate2, borderRadius: 3, overflow: "hidden", marginBottom: 14 }}>
           <div style={{ height: "100%", width: `${(idx / queue.length) * 100}%`, background: C.ice, transition: reduceMotion ? "none" : "width 200ms ease" }} />
         </div>
+        {saveStatus && <div style={{ fontSize: 11, fontFamily: MONO, marginBottom: 10, color: saveStatus.indexOf("saved") === 0 ? C.textMute : "#ff8a80" }}>save: {saveStatus}</div>}
 
         <div style={{ ...panel, marginBottom: 14, padding: 10 }}>
           <CrystalCard q={q} style={settings.style} loupe={settings.loupe && !revealed} showMeasure={revealed && q.mode === "size"} />
