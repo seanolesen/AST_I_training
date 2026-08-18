@@ -224,7 +224,7 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
     <div style={shell}>
       <div style={card}>
         {onHome && (
-          <button onClick={onHome} style={{ background: "transparent", border: "none", color: C.textDim, cursor: "pointer", fontSize: 13, padding: "2px 0 10px", fontWeight: 600 }}>{t("nav.allTools")}</button>
+          <button onClick={onHome} style={{ background: "transparent", border: "none", color: C.ice, cursor: "pointer", fontSize: 13, padding: "2px 0 10px", fontWeight: 700 }}>{"\u2190 "}{t("nav.allTools")}</button>
         )}
         <Eyebrow>{cfg.eyebrow}</Eyebrow>
         <h1 style={{ fontSize: 23, fontWeight: 700, margin: "6px 0 4px", letterSpacing: "-0.3px" }}>{t("exam.setup.title")}</h1>

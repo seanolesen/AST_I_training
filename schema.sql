@@ -89,3 +89,12 @@ drop policy if exists "read overrides" on public.question_overrides;
 create policy "read overrides" on public.question_overrides for select using (true);
 drop policy if exists "admin write overrides" on public.question_overrides;
 create policy "admin write overrides" on public.question_overrides for all using (public.is_admin()) with check (public.is_admin());
+
+-- 5) Admin "delete user" (Site Administration): let admins remove another
+-- user's data. (Leaderboard already has an admin-delete policy above.)
+drop policy if exists "admin delete runs" on public.runs;
+create policy "admin delete runs" on public.runs for delete using (public.is_admin());
+drop policy if exists "admin delete docs" on public.docs;
+create policy "admin delete docs" on public.docs for delete using (public.is_admin());
+drop policy if exists "admin delete profiles" on public.profiles;
+create policy "admin delete profiles" on public.profiles for delete using (public.is_admin());

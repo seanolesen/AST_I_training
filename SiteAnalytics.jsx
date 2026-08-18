@@ -75,9 +75,23 @@ export function SiteAnalytics({ onHome, session }) {
     } finally { setBusyId(null); }
   };
 
+  const [confirmDel, setConfirmDel] = useState(null);
+  const [delBusy, setDelBusy] = useState(false);
+  const deleteUser = async (p) => {
+    setDelBusy(true);
+    try {
+      await supabase.from("runs").delete().eq("user_id", p.id);
+      await supabase.from("docs").delete().eq("user_id", p.id);
+      await supabase.from("leaderboard").delete().eq("user_id", p.id);
+      await supabase.from("profiles").delete().eq("id", p.id);
+      setState((s2) => ({ ...s2, profiles: s2.profiles.filter((x) => x.id !== p.id) }));
+      setSelected(null); setConfirmDel(null);
+    } finally { setDelBusy(false); }
+  };
+
   const wrap = { minHeight: "calc(100vh - 44px)", background: T.bg, color: T.snow, fontFamily: FONT, padding: "22px 14px 44px", boxSizing: "border-box" };
   const inner = { maxWidth: 720, margin: "0 auto" };
-  const back = (label, fn) => <button onClick={fn} style={{ background: "transparent", border: "none", color: T.dim, cursor: "pointer", fontSize: 13, padding: "0 0 12px", fontWeight: 600 }}>{label}</button>;
+  const back = (label, fn) => <button onClick={fn} style={{ background: "transparent", border: "none", color: T.ice, cursor: "pointer", fontSize: 13, padding: "0 0 12px", fontWeight: 700 }}>{"\u2190 "}{label}</button>;
   const eyebrow = <div style={{ fontSize: 12, letterSpacing: "1.6px", textTransform: "uppercase", color: T.dim }}>{t("sa.eyebrow")}</div>;
   const gate = state.loading ? t("sa.loading")
     : state.error === "signin" ? t("sa.signin")
@@ -145,12 +159,19 @@ export function SiteAnalytics({ onHome, session }) {
                       {sup ? (
                         <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.4px", color: T.good, border: `1px solid ${T.good}`, borderRadius: 6, padding: "2px 7px" }}>{t("sa.superAdmin")}</span>
                       ) : (
-                        <button onClick={() => toggleAdmin(p)} disabled={busyId === p.id}
-                          style={{ fontSize: 11.5, fontWeight: 700, cursor: "pointer", borderRadius: 6, padding: "4px 9px",
-                            border: `1px solid ${p.is_admin ? T.ice : T.line}`, background: p.is_admin ? "rgba(124,196,255,0.14)" : "transparent",
-                            color: p.is_admin ? T.ice : T.dim }}>
-                          {p.is_admin ? t("sa.adminYes") : t("sa.makeAdmin")}
-                        </button>
+                        <React.Fragment>
+                          <button onClick={() => toggleAdmin(p)} disabled={busyId === p.id}
+                            style={{ fontSize: 11.5, fontWeight: 700, cursor: "pointer", borderRadius: 6, padding: "4px 9px",
+                              border: `1px solid ${p.is_admin ? T.ice : T.line}`, background: p.is_admin ? "rgba(124,196,255,0.14)" : "transparent",
+                              color: p.is_admin ? T.ice : T.dim }}>
+                            {p.is_admin ? t("sa.adminYes") : t("sa.makeAdmin")}
+                          </button>
+                          <button onClick={() => setConfirmDel(p.id)}
+                            style={{ fontSize: 11.5, fontWeight: 700, cursor: "pointer", borderRadius: 6, padding: "4px 9px",
+                              border: `1px solid ${T.bad}`, background: "transparent", color: T.bad }}>
+                            {t("sa.deleteUser")}
+                          </button>
+                        </React.Fragment>
                       )}
                     </div>
                   </div>
@@ -161,6 +182,17 @@ export function SiteAnalytics({ onHome, session }) {
                     <span><b style={{ color: T.snow, fontFamily: "ui-monospace, Menlo, monospace" }}>{st.slope}</b> {t("sa.slopeCalls")}</span>
                     <span>{t("sa.lastActive", { date: fmtDate(st.last) })}</span>
                   </div>
+                  {confirmDel === p.id && (
+                    <div style={{ marginTop: 10, padding: "10px 12px", borderRadius: 10, background: "rgba(214,72,59,0.10)", border: `1px solid ${T.bad}` }}>
+                      <div style={{ fontSize: 12.5, color: T.snow, marginBottom: 8, lineHeight: 1.5 }}>{t("sa.deleteConfirm")}</div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button disabled={delBusy} onClick={() => deleteUser(p)}
+                          style={{ padding: "6px 12px", borderRadius: 8, border: "none", cursor: "pointer", background: T.bad, color: "#fff", fontWeight: 800, fontSize: 12.5 }}>{t("sa.deleteYes")}</button>
+                        <button disabled={delBusy} onClick={() => setConfirmDel(null)}
+                          style={{ padding: "6px 12px", borderRadius: 8, border: `1px solid ${T.line}`, cursor: "pointer", background: "transparent", color: T.dim, fontSize: 12.5 }}>{t("sa.deleteCancel")}</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
