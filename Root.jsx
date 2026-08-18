@@ -21,6 +21,8 @@ const SUPER_ADMIN = "sean.olesen@gmail.com";
 const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0",
   ice: "#7cc4ff", amber: "#f0812c", line: "rgba(255,255,255,0.12)" };
 const FONT = "system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+const BUILD = (typeof __BUILD__ !== "undefined") ? __BUILD__ : "dev";
+try { console.log("AST Prep build:", BUILD); } catch (e) {}
 
 function Tile({ accent, name, desc, onClick }) {
   const s = { position: "relative", overflow: "hidden", display: "block", width: "100%", textAlign: "left",
@@ -176,6 +178,7 @@ function Home({ onPick, session, isAdmin }) {
             color: T.dim, cursor: "pointer", fontSize: 13, padding: "20px 2px 0", textDecoration: "underline" }}>
           {t("account.title")}
         </button>
+        <div style={{ marginTop: 20, fontSize: 10.5, color: T.dim, opacity: 0.55, textAlign: "center", letterSpacing: "0.3px" }}>build {BUILD}</div>
       </div>
     </div>
   );
