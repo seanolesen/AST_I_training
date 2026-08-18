@@ -3,7 +3,7 @@
 import { supabase } from "./supabaseClient";
 import { TOOLS } from "./Performance.jsx";
 
-export const QUALIFY = 10; // minimum recorded attempts to appear on a board
+export const QUALIFY = 5; // minimum recorded attempts to appear on a board
 
 async function uid() {
   if (!supabase) return null;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLang } from "./i18n.jsx";
 import { TOOLS } from "./Performance.jsx";
-import { fetchLeaderboard, rankFor, QUALIFY, adminResetName, adminRemoveEntry, refreshMyStats } from "./leaderboard.js";
+import { fetchLeaderboard, rankFor, QUALIFY, adminResetName, adminRemoveEntry, refreshMyStats, computeMyStats } from "./leaderboard.js";
 
 const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0", mute: "#6b7c8c",
   ice: "#7cc4ff", good: "#3FA372", warn: "#f0812c", line: "rgba(255,255,255,0.12)" };
@@ -14,6 +14,7 @@ export function Leaderboard({ onHome, session, isAdmin }) {
   const signedIn = !!(session && session.user);
   const myId = signedIn ? session.user.id : null;
   const [rows, setRows] = useState(null); // null = loading
+  const [myStats, setMyStats] = useState(null);
   const [tab, setTab] = useState(TOOLS[0].key);
   const [modId, setModId] = useState(null);
   const [modBusy, setModBusy] = useState(false);
@@ -23,6 +24,8 @@ export function Leaderboard({ onHome, session, isAdmin }) {
     (async () => {
       if (!signedIn) { if (alive) setRows([]); return; }
       await refreshMyStats();
+      const ms = await computeMyStats();
+      if (alive) setMyStats(ms);
       const data = await fetchLeaderboard();
       if (alive) setRows(data);
     })();
@@ -37,6 +40,8 @@ export function Leaderboard({ onHome, session, isAdmin }) {
   const inner = { maxWidth: 560, margin: "0 auto" };
   const ranked = rows ? rankFor(rows, tab) : [];
   const myRank = ranked.findIndex((r) => r.user_id === myId);
+  const myN = (myStats && myStats[tab] && myStats[tab].n) || 0;
+  const need = Math.max(0, QUALIFY - myN);
 
   return (
     <div style={wrap}>
@@ -109,7 +114,9 @@ export function Leaderboard({ onHome, session, isAdmin }) {
             )}
 
             <div style={{ fontSize: 11.5, color: T.mute, marginTop: 14, lineHeight: 1.5 }}>
-              {myRank < 0 ? t("lb.notOnBoard") : t("lb.yourRank", { rank: myRank + 1, total: ranked.length })}
+              {myRank >= 0
+                ? t("lb.yourRank", { rank: myRank + 1, total: ranked.length })
+                : need > 0 ? t("lb.progress", { n: myN, q: QUALIFY, need }) : t("lb.notOnBoard")}
               {" "}{t("lb.optInHint")}
             </div>
           </>
