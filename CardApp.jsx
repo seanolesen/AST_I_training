@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { loadDoc, saveDoc } from "./storage";
+import { supabase } from "./supabaseClient";
 import { ax, useAcronyms } from "./glossary.jsx";
 
 /* ------------------------------------------------------------------ *
@@ -484,6 +485,8 @@ export function CardApp({ onHome }) {
   const [phase, setPhase] = useState("setup"); // setup | play | summary
   const [settings, setSettings] = useState(DEFAULTS);
   const [history, setHistory] = useState(null);
+  const [authMode, setAuthMode] = useState("\u2026");
+  useEffect(() => { let ok = true; (async () => { try { const r = supabase ? await supabase.auth.getSession() : null; if (ok) setAuthMode(r && r.data && r.data.session ? "cloud \u00b7 signed in" : "this device only"); } catch (e) { if (ok) setAuthMode("this device only"); } })(); return () => { ok = false; }; }, []);
   const [queue, setQueue] = useState([]);
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState([]);
@@ -609,6 +612,7 @@ export function CardApp({ onHome }) {
           </div>
         </div>
 
+        <div style={{ fontSize: 11.5, color: C.textMute, margin: "0 0 10px" }}>Stored history: {(history && history.attempts ? history.attempts.length : 0)} cards · {authMode}</div>
         <button style={primaryBtn} onClick={start}>{t("card.start", { count: settings.count })}</button>
         <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
           {onHome && <button style={{ ...ghostBtn, marginTop: 0 }} onClick={onHome}>{t("nav.allTools")}</button>}

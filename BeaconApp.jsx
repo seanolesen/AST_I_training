@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { loadDoc, saveDoc } from "./storage";
+import { supabase } from "./supabaseClient";
 import { useLang } from "./i18n.jsx";
 
 const C = { slate: "#0f1720", slate2: "#141c26", panel: "#111823", snow: "#e8eef4",
@@ -91,6 +92,8 @@ export function BeaconApp({ onHome }) {
   const [probed, setProbed] = useState(null); // {result, dist}
   const [answers, setAnswers] = useState([]);
   const [history, setHistory] = useState(null);
+  const [authMode, setAuthMode] = useState("\u2026");
+  useEffect(() => { let ok = true; (async () => { try { const r = supabase ? await supabase.auth.getSession() : null; if (ok) setAuthMode(r && r.data && r.data.session ? "cloud \u00b7 signed in" : "this device only"); } catch (e) { if (ok) setAuthMode("this device only"); } })(); return () => { ok = false; }; }, []);
 
   useEffect(() => { let alive = true; (async () => { const d = await loadDoc("beacon", { attempts: [] }); if (alive) setHistory(d && d.attempts ? d : { attempts: [] }); })(); return () => { alive = false; }; }, []);
 
@@ -161,6 +164,7 @@ export function BeaconApp({ onHome }) {
           </div>
           <div style={{ fontSize: 11.5, color: C.textMute, marginTop: 6, lineHeight: 1.4 }}>{settings.record ? t("beacon.record.onSub") : t("beacon.record.offSub")}</div>
         </div>
+        <div style={{ fontSize: 11.5, color: C.textMute, margin: "0 0 10px" }}>Stored history: {(history && history.attempts ? history.attempts.length : 0)} searches · {authMode}</div>
         <button style={primaryBtn} onClick={begin}>{t("beacon.start", { count: settings.count })}</button>
         <p style={{ color: C.textMute, fontSize: 11.5, lineHeight: 1.6, marginTop: 14 }}>{t("beacon.setup.footer")}</p>
       </div></div>
