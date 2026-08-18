@@ -227,8 +227,6 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
           {cfg.intro}
         </p>
 
-        <RecordSwitch recording={recording} onToggle={() => setRecording((r) => !r)} />
-
         {recommendation && (
           <button onClick={onUseRecommendation}
             style={{ width: "100%", textAlign: "left", cursor: "pointer", marginBottom: 18,
@@ -306,6 +304,8 @@ function Setup({ settings, setSettings, recording, setRecording, onStart, maxCou
             value={settings.feedback} onChange={(v) => set("feedback", v)}
             options={[{ value: "immediate", label: t("exam.fb.immediate") }, { value: "end", label: t("exam.fb.end") }]} />
         )}
+
+        <RecordSwitch recording={recording} onToggle={() => setRecording((r) => !r)} />
 
         <button onClick={onStart}
           style={{ width: "100%", padding: "16px", borderRadius: 14, border: "none", cursor: "pointer",

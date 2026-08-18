@@ -577,21 +577,6 @@ export function SlopeApp({ onHome }) {
           <Eyebrow>{t("slope.setup.eyebrow")}</Eyebrow>
           <h1 style={{ fontSize: 22, fontWeight: 700, margin: "6px 0 14px" }}>{t("slope.setup.title")}</h1>
 
-          <div style={{ marginBottom: 18 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 13.5, fontWeight: 600, color: C.snow }}>{t("slope.record.label")}</span>
-              <button onClick={() => setRecord(!settings.record)}
-                style={{ padding: "7px 14px", borderRadius: 9, cursor: "pointer", fontWeight: 600, fontSize: 13,
-                  border: `1px solid ${settings.record ? C.ice : C.line}`,
-                  background: settings.record ? "rgba(95,184,201,0.14)" : "transparent", color: settings.record ? C.ice : C.textDim }}>
-                {settings.record ? t("slope.record.on") : t("slope.record.off")}
-              </button>
-            </div>
-            <div style={{ fontSize: 11.5, color: C.textDim, marginTop: 6, lineHeight: 1.4 }}>
-              {settings.record ? t("slope.record.onSub") : t("slope.record.offSub")}
-            </div>
-          </div>
-
           <p style={{ color: C.textDim, fontSize: 13.5, lineHeight: 1.5, margin: "0 0 22px" }}>
             Call each slope <b style={{ color: C.snow }}>steeper</b> or <b style={{ color: C.snow }}>shallower</b> than 30° — the avalanche threshold. Every slope is drawn at a known angle, so grading is exact.
           </p>
@@ -646,6 +631,21 @@ export function SlopeApp({ onHome }) {
           <Segmented label={t("slope.seg.feedback")} hint={settings.feedback === "full" ? t("slope.fbHint.full") : t("slope.fbHint.minimal")}
             value={settings.feedback} onChange={(v) => set("feedback", v)}
             options={[{ label: t("slope.fb.minimal"), value: "minimal" }, { label: t("slope.fb.full"), value: "full" }]} />
+
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 13.5, fontWeight: 600, color: C.snow }}>{t("slope.record.label")}</span>
+              <button onClick={() => setRecord(!settings.record)}
+                style={{ padding: "7px 14px", borderRadius: 9, cursor: "pointer", fontWeight: 600, fontSize: 13,
+                  border: `1px solid ${settings.record ? C.ice : C.line}`,
+                  background: settings.record ? "rgba(95,184,201,0.14)" : "transparent", color: settings.record ? C.ice : C.textDim }}>
+                {settings.record ? t("slope.record.on") : t("slope.record.off")}
+              </button>
+            </div>
+            <div style={{ fontSize: 11.5, color: C.textDim, marginTop: 6, lineHeight: 1.4 }}>
+              {settings.record ? t("slope.record.onSub") : t("slope.record.offSub")}
+            </div>
+          </div>
 
           <button onClick={begin} style={primaryBtn}>{t("slope.start", { count: settings.count })}</button>
           <p style={{ color: C.textMute, fontSize: 11.5, lineHeight: 1.6, marginTop: 16 }}>
