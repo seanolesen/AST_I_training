@@ -158,16 +158,12 @@ export function TerrainApp({ onHome }) {
       return { feature: f.type, trap: f.trap, youSaid, correct: youSaid === f.trap, difficulty: settings.difficulty, ts: Date.now() };
     });
     setAnswers((prev) => [...prev, ...results]);
+    if (settings.record && history) setHistory((prev) => { const h = prev || { attempts: [] }; const up = { ...h, attempts: [...(h.attempts || []), ...results] }; saveDoc("terrain", up); return up; });
     setRevealed(true);
   };
 
   const next = async () => {
     if (idx + 1 < queue.length) { setIdx(idx + 1); setSelected({}); setRevealed(false); return; }
-    if (settings.record && history) {
-      const merged = { attempts: [...(history.attempts || []), ...answers] };
-      setHistory(merged);
-      try { await saveDoc("terrain", merged); } catch (e) {}
-    }
     setPhase("results");
   };
 

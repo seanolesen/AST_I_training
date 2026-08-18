@@ -489,6 +489,7 @@ export function CardApp({ onHome }) {
   const [answers, setAnswers] = useState([]);
   const [sizeGuess, setSizeGuess] = useState(2);
   const [locked, setLocked] = useState(null); // {correct, ...} once submitted
+  const [sessionSid, setSessionSid] = useState(1);
 
   useEffect(() => { let ok = true; (async () => { const h = await loadHistory(); if (ok) setHistory(h); })(); return () => { ok = false; }; }, []);
 
@@ -500,7 +501,7 @@ export function CardApp({ onHome }) {
     const base = (Date.now() ^ (Math.random() * 1e9)) | 0;
     const qs = Array.from({ length: settings.count }, (_, i) => makeQuestion(settings, (base + i * 2654435761) | 0));
     setQueue(qs); setIdx(0); setAnswers([]); setLocked(null);
-    setSizeGuess(2); setPhase("play");
+    setSizeGuess(2); setSessionSid(history ? history.nextSid : 1); setPhase("play");
   };
 
   const q = queue[idx];
@@ -518,22 +519,26 @@ export function CardApp({ onHome }) {
 
   const next = async () => {
     const rec = {
-      sid: history ? history.nextSid : 1, ts: Date.now(),
+      sid: sessionSid, ts: Date.now(),
       mode: q.mode, diff: settings.difficulty, code: q.code, size: q.size,
       correct: locked.correct, guess: q.mode === "size" ? locked.guess : null,
       pick: q.mode === "type" ? locked.pick : null, style: settings.style,
     };
-    const nextAnswers = [...answers, rec];
-    setAnswers(nextAnswers);
+    setAnswers((a) => [...a, rec]);
+    // Persist each attempt as it is answered (not only at the end of the deck),
+    // so partial sessions still count toward history and the leaderboard.
+    if (settings.record) {
+      setHistory((prev) => {
+        const h = prev || EMPTY_HISTORY;
+        const nextSid = h.nextSid <= sessionSid ? sessionSid + 1 : h.nextSid;
+        const updated = { ...h, nextSid, attempts: [...h.attempts, rec].slice(-1200) };
+        saveHistory(updated);
+        return updated;
+      });
+    }
     if (idx + 1 < queue.length) {
       setIdx(idx + 1); setLocked(null); setSizeGuess(2);
     } else {
-      if (settings.record) {
-        const h = history || EMPTY_HISTORY;
-        const stamped = nextAnswers.map((a) => ({ ...a, sid: h.nextSid }));
-        const updated = { ...h, nextSid: h.nextSid + 1, attempts: [...h.attempts, ...stamped].slice(-1200) };
-        setHistory(updated); saveHistory(updated);
-      }
       setPhase("summary");
     }
   };

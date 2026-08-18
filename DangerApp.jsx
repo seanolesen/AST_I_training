@@ -146,17 +146,13 @@ export function DangerApp({ onHome }) {
     const q = queue[idx];
     const rating = q.rose[q.ask];
     setPick(n);
-    setAnswers((prev) => [...prev, { band: q.ask, rating, guess: n, correct: n === rating, difficulty: settings.difficulty, ts: Date.now() }]);
+    const rec = { band: q.ask, rating, guess: n, correct: n === rating, difficulty: settings.difficulty, ts: Date.now() };
+    setAnswers((prev) => [...prev, rec]);
+    if (settings.record && history) setHistory((prev) => { const h = prev || { attempts: [] }; const up = { ...h, attempts: [...(h.attempts || []), rec] }; saveDoc("danger", up); return up; });
   };
 
   const next = async () => {
     if (idx + 1 < queue.length) { setIdx(idx + 1); setPick(null); return; }
-    // finalize
-    if (settings.record && history) {
-      const merged = { attempts: [...(history.attempts || []), ...answers] };
-      setHistory(merged);
-      try { await saveDoc("danger", merged); } catch (e) {}
-    }
     setPhase("results");
   };
 

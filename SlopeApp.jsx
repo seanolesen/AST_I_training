@@ -537,6 +537,7 @@ export function SlopeApp({ onHome }) {
   const [questions, setQuestions] = useState([]);
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState([]);
+  const [sessionSid, setSessionSid] = useState(1);
   const [pick, setPick] = useState(null);
   const [history, setHistory] = useState(null); // null until loaded
   const [resetArmed, setResetArmed] = useState(false);
@@ -548,21 +549,12 @@ export function SlopeApp({ onHome }) {
   const setRecord = (v) => set("record", v); // holds within this sitting; resets to record on reload
   const begin = useCallback(() => {
     savedRef.current = false; setResetArmed(false);
-    setQuestions(newSet(settings)); setAnswers([]); setIdx(0); setPick(null); setPhase("quiz");
+    setQuestions(newSet(settings)); setAnswers([]); setIdx(0); setPick(null); setSessionSid(history ? history.nextSid : 1); setPhase("quiz");
   }, [settings]);
 
   const done = idx >= questions.length && phase === "quiz";
 
-  // Persist a completed session once, then fold into history.
-  useEffect(() => {
-    if (!done || savedRef.current || !history || answers.length === 0) return;
-    savedRef.current = true;
-    if (!settings.record) return; // guest run — do not touch history
-    const sid = history.nextSid, ts = Date.now();
-    const recs = answers.map((a) => ({ sid, ts, angle: a.angle, correct: a.correct, view: a.view, over: a.guessOver, diff: settings.difficulty }));
-    const data = { version: 1, nextSid: sid + 1, attempts: [...history.attempts, ...recs].slice(-500) };
-    setHistory(data); saveHistory(data);
-  }, [done, history, answers, settings.record]);
+  // Attempts are persisted per guess in answer(); no batch save on completion.
 
   const trends = useMemo(() => (history ? computeTrends(history.attempts, settings.easyWeight) : null), [history, settings.easyWeight]);
   const resetStats = () => {
@@ -798,7 +790,16 @@ export function SlopeApp({ onHome }) {
   const answer = (guessOver) => {
     if (pick !== null) return;
     setPick(guessOver);
-    setAnswers((prev) => [...prev, { angle: q.angle, guessOver, correct: guessOver === isOver, view: q.view }]);
+    const correct = guessOver === isOver;
+    setAnswers((prev) => [...prev, { angle: q.angle, guessOver, correct, view: q.view }]);
+    if (settings.record && history) setHistory((prev) => {
+      const h = prev || EMPTY_HISTORY;
+      const nextSid = h.nextSid <= sessionSid ? sessionSid + 1 : h.nextSid;
+      const rec = { sid: sessionSid, ts: Date.now(), angle: q.angle, correct, view: q.view, over: guessOver, diff: settings.difficulty };
+      const data = { ...h, nextSid, attempts: [...h.attempts, rec].slice(-500) };
+      saveHistory(data);
+      return data;
+    });
   };
   const next = () => { setPick(null); setIdx((i) => i + 1); };
 

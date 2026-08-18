@@ -122,16 +122,13 @@ export function BeaconApp({ onHome }) {
     const result = d <= srch.strikeTol ? "strike" : d <= 1.6 ? "close" : "miss";
     const optimal = Math.round(Math.hypot(srch.start.x - srch.tx.x, srch.start.y - srch.tx.y));
     setProbed({ result, dist: d });
-    setAnswers((prev) => [...prev, { result, correct: result === "strike", finalDist: +d.toFixed(2), moves, optimal, difficulty: settings.difficulty, ts: Date.now() }]);
+    const rec = { result, correct: result === "strike", finalDist: +d.toFixed(2), moves, optimal, difficulty: settings.difficulty, ts: Date.now() };
+    setAnswers((prev) => [...prev, rec]);
+    if (settings.record && history) setHistory((prev) => { const h = prev || { attempts: [] }; const up = { ...h, attempts: [...(h.attempts || []), rec] }; saveDoc("beacon", up); return up; });
   };
 
   const next = async () => {
     if (idx + 1 < count) { newSearch(idx + 1, answers); return; }
-    if (settings.record && history) {
-      const merged = { attempts: [...(history.attempts || []), ...answers] };
-      setHistory(merged);
-      try { await saveDoc("beacon", merged); } catch (e) {}
-    }
     setPhase("results");
   };
 
