@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLang } from "./i18n.jsx";
 import { TOOLS } from "./Performance.jsx";
-import { fetchLeaderboard, rankFor, QUALIFY, adminResetName, adminRemoveEntry } from "./leaderboard.js";
+import { fetchLeaderboard, rankFor, QUALIFY, adminResetName, adminRemoveEntry, refreshMyStats } from "./leaderboard.js";
 
 const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0", mute: "#6b7c8c",
   ice: "#7cc4ff", good: "#3FA372", warn: "#f0812c", line: "rgba(255,255,255,0.12)" };
@@ -22,6 +22,7 @@ export function Leaderboard({ onHome, session, isAdmin }) {
     let alive = true;
     (async () => {
       if (!signedIn) { if (alive) setRows([]); return; }
+      await refreshMyStats();
       const data = await fetchLeaderboard();
       if (alive) setRows(data);
     })();

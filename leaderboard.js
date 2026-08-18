@@ -49,6 +49,22 @@ export async function upsertMyLeaderboard(displayName) {
   return error ? { ok: false, error: error.message } : { ok: true };
 }
 
+// Recompute this user's stats from their latest play and re-upload — but only
+// if they've already opted in (have a display name). Called when the board opens
+// so newly played tools (e.g. Card, Beacon) show up without re-saving the name.
+export async function refreshMyStats() {
+  try {
+    const id = await uid();
+    if (!id || !supabase) return { ok: false };
+    const mine = await getMyLeaderboard();
+    if (!mine || !mine.display_name) return { ok: false, skipped: true };
+    const stats = await computeMyStats();
+    const { error } = await supabase.from("leaderboard")
+      .upsert({ user_id: id, display_name: mine.display_name, stats, updated_at: new Date().toISOString() });
+    return error ? { ok: false, error: error.message } : { ok: true };
+  } catch (e) { return { ok: false, error: e && e.message }; }
+}
+
 export async function deleteMyLeaderboard() {
   const id = await uid();
   if (!id || !supabase) return { ok: false, error: "not signed in" };
