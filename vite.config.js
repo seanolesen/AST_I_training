@@ -2,9 +2,19 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
+// Build stamp: baked in at build time so both the app UI and the page HTML
+// reflect exactly which build is deployed (helps diagnose stale caches).
+const BUILD = new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC";
+
 export default defineConfig({
-  define: { __BUILD__: JSON.stringify(new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC") },
+  define: { __BUILD__: JSON.stringify(BUILD) },
   plugins: [
+    {
+      name: "build-stamp-meta",
+      transformIndexHtml(html) {
+        return html.replace("</head>", '  <meta name="build" content="' + BUILD + '">\n</head>');
+      },
+    },
     react(),
     VitePWA({
       registerType: "autoUpdate",
