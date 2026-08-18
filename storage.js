@@ -79,56 +79,69 @@ export async function saveRecordPref(v) {
 
 // ---- Per-user document store (a single JSON blob per app namespace) ----
 // Used by tools that keep one history object (e.g. the slope trainer).
-function localDocGet(app, fallback) {
+function localDocGetRaw(app) {
+  // returns { data, updated_at } or null; wraps legacy raw entries as oldest
   try {
     const v = localStorage.getItem("doc:" + app);
-    return v == null ? fallback : JSON.parse(v);
+    if (v == null) return null;
+    const p = JSON.parse(v);
+    if (p && typeof p === "object" && "data" in p && "updated_at" in p) return p;
+    return { data: p, updated_at: "0" };
   } catch {
-    return fallback;
+    return null;
   }
 }
-function localDocSet(app, obj) {
+function localDocGet(app, fallback) {
+  const r = localDocGetRaw(app);
+  return r && r.data != null ? r.data : fallback;
+}
+function localDocSet(app, obj, updated_at) {
   try {
-    localStorage.setItem("doc:" + app, JSON.stringify(obj));
+    localStorage.setItem("doc:" + app, JSON.stringify({ data: obj, updated_at: updated_at || new Date().toISOString() }));
   } catch {
     /* ignore */
   }
 }
 
 export async function loadDoc(app, fallback) {
+  const localRaw = localDocGetRaw(app);
   const uid = await currentUserId();
   if (uid) {
     const { data, error } = await supabase
       .from("docs")
-      .select("data")
+      .select("data, updated_at")
       .eq("user_id", uid)
       .eq("app", app)
       .maybeSingle();
-    if (!error && data && data.data != null) return data.data;
-    // cloud missing / empty / errored -> use a local copy if we have one
-    const local = localDocGet(app, null);
-    if (local != null) return local;
+    if (!error && data && data.data != null) {
+      // Prefer whichever copy is newer, so a just-played session on THIS
+      // device isn't hidden by an in-flight cloud write.
+      if (localRaw && localRaw.data != null && String(localRaw.updated_at) > String(data.updated_at || "")) return localRaw.data;
+      return data.data;
+    }
+    if (localRaw && localRaw.data != null) return localRaw.data;
     return fallback;
   }
-  return localDocGet(app, fallback);
+  return localRaw && localRaw.data != null ? localRaw.data : fallback;
 }
 
 export async function saveDoc(app, obj) {
+  const now = new Date().toISOString();
+  // Always cache locally first so THIS device reflects the change instantly,
+  // with no dependence on the cloud round-trip.
+  localDocSet(app, obj, now);
   const uid = await currentUserId();
   if (uid) {
     const { error } = await supabase
       .from("docs")
       .upsert(
-        { user_id: uid, app, data: obj, updated_at: new Date().toISOString() },
+        { user_id: uid, app, data: obj, updated_at: now },
         { onConflict: "user_id,app" }
       );
     if (!error) return { ok: true, where: "cloud" };
-    // cloud write failed -> keep a local copy AND report why
-    localDocSet(app, obj);
     const msg = (error && (error.message || error.code || error.details || error.hint)) || "unknown";
     return { ok: false, where: "local(fallback)", error: String(msg) };
   }
-  localDocSet(app, obj);
   return { ok: true, where: "local(guest)" };
 }
 

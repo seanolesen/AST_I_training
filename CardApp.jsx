@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { loadDoc, saveDoc } from "./storage";
-import { supabase } from "./supabaseClient";
 import { ax, useAcronyms } from "./glossary.jsx";
 
 /* ------------------------------------------------------------------ *
@@ -485,9 +484,6 @@ export function CardApp({ onHome }) {
   const [phase, setPhase] = useState("setup"); // setup | play | summary
   const [settings, setSettings] = useState(DEFAULTS);
   const [history, setHistory] = useState(null);
-  const [authMode, setAuthMode] = useState("\u2026");
-  const [saveStatus, setSaveStatus] = useState("");
-  useEffect(() => { let ok = true; (async () => { try { const r = supabase ? await supabase.auth.getSession() : null; if (ok) setAuthMode(r && r.data && r.data.session ? "cloud \u00b7 signed in" : "this device only"); } catch (e) { if (ok) setAuthMode("this device only"); } })(); return () => { ok = false; }; }, []);
   const [queue, setQueue] = useState([]);
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState([]);
@@ -536,9 +532,7 @@ export function CardApp({ onHome }) {
       const nextSid = h.nextSid <= sessionSid ? sessionSid + 1 : h.nextSid;
       const updated = { ...h, nextSid, attempts: [...(h.attempts || []), rec].slice(-1200) };
       setHistory(updated);
-      saveHistory(updated)
-        .then((r) => setSaveStatus(r && r.ok ? ("saved " + updated.attempts.length + " \u00b7 " + r.where) : ("SAVE FAILED \u00b7 " + (r && r.error))))
-        .catch((e) => setSaveStatus("THREW \u00b7 " + ((e && e.message) || e)));
+      saveHistory(updated);
     }
     if (idx + 1 < queue.length) {
       setIdx(idx + 1); setLocked(null); setSizeGuess(2);
@@ -612,8 +606,6 @@ export function CardApp({ onHome }) {
             {settings.record ? t("card.record.onSub") : t("card.record.offSub")}
           </div>
         </div>
-
-        <div style={{ fontSize: 11.5, color: C.textMute, margin: "0 0 10px" }}>Stored history: {(history && history.attempts ? history.attempts.length : 0)} cards · {authMode}</div>
         <button style={primaryBtn} onClick={start}>{t("card.start", { count: settings.count })}</button>
         <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
           {onHome && <button style={{ ...ghostBtn, marginTop: 0 }} onClick={onHome}>{t("nav.allTools")}</button>}
@@ -636,7 +628,6 @@ export function CardApp({ onHome }) {
         <div style={{ height: 4, background: C.slate2, borderRadius: 3, overflow: "hidden", marginBottom: 14 }}>
           <div style={{ height: "100%", width: `${(idx / queue.length) * 100}%`, background: C.ice, transition: reduceMotion ? "none" : "width 200ms ease" }} />
         </div>
-        {saveStatus && <div style={{ fontSize: 11, fontFamily: MONO, marginBottom: 10, color: saveStatus.indexOf("saved") === 0 ? C.textMute : "#ff8a80" }}>save: {saveStatus}</div>}
 
         <div style={{ ...panel, marginBottom: 14, padding: 10 }}>
           <CrystalCard q={q} style={settings.style} loupe={settings.loupe && !revealed} showMeasure={revealed && q.mode === "size"} />
