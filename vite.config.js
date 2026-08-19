@@ -8,6 +8,14 @@ const BUILD = new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC";
 
 export default defineConfig({
   define: { __BUILD__: JSON.stringify(BUILD) },
+  build: {
+    rollupOptions: {
+      output: {
+        // Keep rarely-changing libraries in their own long-cached chunk.
+        manualChunks: { vendor: ["react", "react-dom", "@supabase/supabase-js"] },
+      },
+    },
+  },
   plugins: [
     {
       name: "build-stamp-meta",
@@ -42,6 +50,10 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
         navigateFallback: "/index.html",
+        // Don't let the SPA fallback hijack navigations to real static files
+        // (e.g. opening a PDF in a new tab) — let those hit the network so the
+        // file in /public is served instead of the app shell.
+        navigateFallbackDenylist: [/\.pdf$/i, /\.(png|jpe?g|svg|ico|txt|csv|xlsx|zip|woff2?)$/i],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
