@@ -17,6 +17,7 @@ const DangerApp = lazy(() => import("./DangerApp.jsx").then((m) => ({ default: m
 const TerrainApp = lazy(() => import("./TerrainApp.jsx").then((m) => ({ default: m.TerrainApp })));
 const AtesApp = lazy(() => import("./AtesApp.jsx").then((m) => ({ default: m.AtesApp })));
 const BeaconApp = lazy(() => import("./BeaconApp.jsx").then((m) => ({ default: m.BeaconApp })));
+const ChecklistApp = lazy(() => import("./ChecklistApp.jsx").then((m) => ({ default: m.ChecklistApp })));
 const Performance = lazy(() => import("./Performance.jsx").then((m) => ({ default: m.Performance })));
 const Leaderboard = lazy(() => import("./Leaderboard.jsx").then((m) => ({ default: m.Leaderboard })));
 const SiteAnalytics = lazy(() => import("./SiteAnalytics.jsx").then((m) => ({ default: m.SiteAnalytics })));
@@ -195,6 +196,7 @@ function Home({ onPick, session, isAdmin }) {
     { key: "terrain", accent: "#A6754C" },
     { key: "ates", accent: "#7fae6b" },
     { key: "beacon", accent: "#3fb6c9" },
+    { key: "checklist", accent: "#c2a35a" },
     { key: "ast1", accent: T.ice },
     { key: "ast2", accent: "#b98cff" },
     ...(signedIn ? [{ key: "perf", accent: "#3FA372" }, { key: "leaderboard", accent: "#f2c14e" }] : []),
@@ -391,6 +393,7 @@ export default function Root() {
             {view === "terrain" && <TerrainApp onHome={home} />}
             {view === "ates" && <AtesApp onHome={home} />}
             {view === "beacon" && <BeaconApp onHome={home} />}
+            {view === "checklist" && <ChecklistApp onHome={home} />}
             {view === "perf" && <Performance onHome={home} session={session} />}
             {view === "leaderboard" && <Leaderboard onHome={home} session={session} isAdmin={isAdmin} />}
             {view === "admin" && isAdmin && <SiteAnalytics onHome={home} session={session} />}
