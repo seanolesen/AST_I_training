@@ -14,6 +14,7 @@ const AST2_TOPIC = { snowpack: "Snowpack & Tests", problems: "Avalanche Problems
 const FORMAT_LABEL = { mc: "Multiple choice", tf: "True / False", match: "Matching" };
 
 import { normalizeDanger } from "./DangerApp.jsx";
+import { normalizeSnowtest } from "./SnowTestApp.jsx";
 import { normalizeTerrain } from "./TerrainApp.jsx";
 import { normalizeBeacon } from "./BeaconApp.jsx";
 
@@ -63,6 +64,8 @@ export const TOOLS = [
     load: async () => { try { return normalizeSlope(await loadDoc("slope", { attempts: [] })); } catch (e) { return []; } } },
   { key: "card", name: "Crystal Card Trainer", accent: "#5AD1CF", dims: ["Skill", "Grain", "Difficulty"],
     load: async () => { try { return normalizeCard(await loadDoc("card", { attempts: [] })); } catch (e) { return []; } } },
+  { key: "snowtest", name: "Snowpack-Test Interpreter", accent: "#8bd0c0", dims: ["Test", "Difficulty"],
+    load: async () => { try { return normalizeSnowtest(await loadDoc("snowtest", { attempts: [] })); } catch (e) { return []; } } },
   { key: "danger", name: "Danger-Rating Trainer", accent: "#ef8b2b", dims: ["Band", "Difficulty"],
     load: async () => { try { return normalizeDanger(await loadDoc("danger", { attempts: [] })); } catch (e) { return []; } } },
   { key: "terrain", name: "Terrain-Trap Trainer", accent: "#A6754C", dims: ["Feature", "Difficulty"],

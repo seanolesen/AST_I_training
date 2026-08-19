@@ -12,6 +12,7 @@ const Ast1App = lazy(() => import("./App.jsx").then((m) => ({ default: m.Ast1App
 const Ast2App = lazy(() => import("./App.jsx").then((m) => ({ default: m.Ast2App })));
 const SlopeApp = lazy(() => import("./SlopeApp.jsx").then((m) => ({ default: m.SlopeApp })));
 const CardApp = lazy(() => import("./CardApp.jsx").then((m) => ({ default: m.CardApp })));
+const SnowTestApp = lazy(() => import("./SnowTestApp.jsx").then((m) => ({ default: m.SnowTestApp })));
 const DangerApp = lazy(() => import("./DangerApp.jsx").then((m) => ({ default: m.DangerApp })));
 const TerrainApp = lazy(() => import("./TerrainApp.jsx").then((m) => ({ default: m.TerrainApp })));
 const BeaconApp = lazy(() => import("./BeaconApp.jsx").then((m) => ({ default: m.BeaconApp })));
@@ -188,6 +189,7 @@ function Home({ onPick, session, isAdmin }) {
   const tiles = [
     { key: "slope", accent: T.amber },
     { key: "card", accent: "#5AD1CF" },
+    { key: "snowtest", accent: "#8bd0c0" },
     { key: "danger", accent: "#ef8b2b" },
     { key: "terrain", accent: "#A6754C" },
     { key: "beacon", accent: "#3fb6c9" },
@@ -382,6 +384,7 @@ export default function Root() {
             {view === "ast2" && <Ast2App onHome={home} />}
             {view === "slope" && <SlopeApp onHome={home} />}
             {view === "card" && <CardApp onHome={home} />}
+            {view === "snowtest" && <SnowTestApp onHome={home} />}
             {view === "danger" && <DangerApp onHome={home} />}
             {view === "terrain" && <TerrainApp onHome={home} />}
             {view === "beacon" && <BeaconApp onHome={home} />}
