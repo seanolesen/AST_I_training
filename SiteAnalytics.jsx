@@ -398,6 +398,7 @@ function SessionsAdmin() {
   const { t } = useLang();
   const [sessions, setSessions] = useState(null);
   const [weeks, setWeeks] = useState("");
+  const [reqLogin, setReqLogin] = useState(false);
   const [label, setLabel] = useState("");
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
@@ -413,6 +414,8 @@ function SessionsAdmin() {
       setSessions(data || []);
       const { data: s } = await supabase.from("app_settings").select("value").eq("key", "default_access_weeks").maybeSingle();
       if (s && s.value != null) setWeeks(String(s.value));
+      const { data: s2 } = await supabase.from("app_settings").select("value").eq("key", "require_login").maybeSingle();
+      if (s2 && s2.value != null) setReqLogin(!!s2.value);
     } catch (e) { setSessions([]); }
   };
   useEffect(() => { load(); }, []);
@@ -429,6 +432,12 @@ function SessionsAdmin() {
     if (!(n > 0)) { setNote(t("sess.weeksBad")); return; }
     const { error } = await supabase.from("app_settings").update({ value: n, updated_at: new Date().toISOString() }).eq("key", "default_access_weeks");
     setNote(error ? error.message : t("sess.weeksSaved"));
+  };
+  const toggleReqLogin = async () => {
+    const next = !reqLogin;
+    const { error } = await supabase.from("app_settings").upsert({ key: "require_login", value: next, updated_at: new Date().toISOString() });
+    if (error) { setNote(error.message); return; }
+    setReqLogin(next); setNote(next ? t("sess.loginOn") : t("sess.loginOff"));
   };
   const openMembers = async (s) => { setSel(s); setMembers(null); setAddEmail(""); setNote(""); const { data } = await supabase.rpc("admin_session_members", { p_session: s.id }); setMembers(data || []); };
   const addMember = async () => {
@@ -510,6 +519,11 @@ function SessionsAdmin() {
           <button style={pill(T.ice)} onClick={saveWeeks}>{t("sess.save")}</button>
         </div>
         <div style={{ fontSize: 11.5, color: T.dim, marginTop: 8 }}>{t("sess.defaultHint")}</div>
+      </div>
+      <div style={box}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 8 }}>{t("sess.requireLogin")}</div>
+        <button style={pill(reqLogin ? "#3FA372" : T.dim)} onClick={toggleReqLogin}>{reqLogin ? t("sess.on") : t("sess.off")}</button>
+        <div style={{ fontSize: 11.5, color: T.dim, marginTop: 8 }}>{t("sess.loginHint")}</div>
       </div>
       {note && <div style={{ fontSize: 12.5, color: T.dim, marginBottom: 10 }}>{note}</div>}
       {sessions === null ? <div style={{ color: T.dim, fontSize: 13 }}>{t("sess.loading")}</div> : sessions.map((s) => (

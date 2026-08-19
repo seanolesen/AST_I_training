@@ -263,6 +263,20 @@ function ExpiredScreen({ until, onSignOut }) {
   );
 }
 
+function LoginRequired() {
+  const { t } = useLang();
+  const wrap = { minHeight: "calc(100vh - 44px)", background: T.bg, color: T.snow, fontFamily: FONT, padding: "44px 16px", boxSizing: "border-box" };
+  const card = { maxWidth: 440, margin: "0 auto", background: T.panel, border: `1px solid ${T.line}`, borderRadius: 16, padding: 24, textAlign: "center" };
+  return (
+    <div style={wrap}><div style={card}>
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}><Snowflake size={38} color={T.ice} style={{ opacity: 0.5 }} /></div>
+      <h1 style={{ fontSize: 21, fontWeight: 800, margin: "0 0 10px" }}>{t("login.title")}</h1>
+      <p style={{ fontSize: 14, color: T.dim, lineHeight: 1.55, margin: "0 0 8px" }}>{t("login.sub")}</p>
+      <p style={{ fontSize: 13, color: T.dim, lineHeight: 1.55, margin: 0 }}>{t("login.hint")}</p>
+    </div></div>
+  );
+}
+
 export default function Root() {
   const [session, setSession] = useState(null);
   const on = useAcronyms();
@@ -270,6 +284,8 @@ export default function Root() {
   const [view, setView] = useState("home"); // home | ast1 | ast2 | slope | card | perf | admin | account
   const [isAdmin, setIsAdmin] = useState(false);
   const [access, setAccess] = useState({ active: true, until: null, loaded: false });
+  const [requireLogin, setRequireLogin] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
@@ -277,6 +293,17 @@ export default function Root() {
     supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => { try { sub.subscription.unsubscribe(); } catch (e) {} };
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) { setSettingsLoaded(true); return; }
+    let alive = true;
+    (async () => {
+      try { const { data } = await supabase.rpc("require_login"); if (alive) setRequireLogin(!!data); }
+      catch (e) {}
+      finally { if (alive) setSettingsLoaded(true); }
+    })();
+    return () => { alive = false; };
   }, []);
 
   useEffect(() => {
@@ -311,11 +338,14 @@ export default function Root() {
   }, []);
 
   const home = () => setView("home");
-  const blocked = !!(session && session.user) && !isAdmin && access.loaded && !access.active;
+  const signedInNow = !!(session && session.user);
+  const blocked = signedInNow && !isAdmin && access.loaded && !access.active;
+  const needLogin = !signedInNow && requireLogin;
+  const gatingUnknown = !signedInNow && !settingsLoaded;
 
   return (
     <React.Fragment>
-      {showIntro && (
+      {showIntro && !needLogin && !gatingUnknown && (
         <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(6,10,15,0.72)",
           display: "flex", alignItems: "center", justifyContent: "center", padding: 18 }}>
           <div style={{ maxWidth: 440, width: "100%", background: T.panel, border: `1px solid ${T.line}`,
@@ -338,7 +368,11 @@ export default function Root() {
         </div>
       )}
       <TopBar session={session} view={view} onHome={home} onAccount={() => setView("account")} />
-      {blocked ? (
+      {needLogin ? (
+        <LoginRequired />
+      ) : gatingUnknown ? (
+        <ToolFallback />
+      ) : blocked ? (
         <ExpiredScreen until={access.until} onSignOut={() => { try { supabase && supabase.auth.signOut(); } catch (e) {} }} />
       ) : (
         <React.Fragment>
