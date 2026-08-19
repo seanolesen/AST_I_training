@@ -739,7 +739,7 @@ export default {
     "auth.sendCode": "M’envoyer un code",
     "auth.codeSent": "Code envoyé — vérifiez votre courriel.",
     "auth.enterCode": "Entrez le code.",
-    "auth.codePlaceholder": "Code à 6 chiffres",
+    "auth.codePlaceholder": "Entrez le code de séance",
     "auth.verify": "Vérifier",
     "auth.verifying": "Vérification…",
     "auth.wrongCode": "Ce code n’a pas fonctionné — vérifiez ou renvoyez.",

@@ -504,6 +504,11 @@ function SessionsAdmin() {
       <h2 style={{ fontSize: 18, fontWeight: 800, margin: "0 0 2px" }}>{t("sess.title")}</h2>
       <p style={{ fontSize: 13, color: T.dim, margin: "0 0 14px", lineHeight: 1.5 }}>{t("sess.intro")}</p>
       <div style={box}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 8 }}>{t("sess.requireLogin")}</div>
+        <button style={pill(reqLogin ? "#3FA372" : T.dim)} onClick={toggleReqLogin}>{reqLogin ? t("sess.on") : t("sess.off")}</button>
+        <div style={{ fontSize: 11.5, color: T.dim, marginTop: 8 }}>{t("sess.loginHint")}</div>
+      </div>
+      <div style={box}>
         <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 8 }}>{t("sess.newSession")}</div>
         <div style={{ display: "flex", gap: 8 }}>
           <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder={t("sess.labelPlaceholder")} style={{ ...inputS, flex: 1 }} />
@@ -519,11 +524,6 @@ function SessionsAdmin() {
           <button style={pill(T.ice)} onClick={saveWeeks}>{t("sess.save")}</button>
         </div>
         <div style={{ fontSize: 11.5, color: T.dim, marginTop: 8 }}>{t("sess.defaultHint")}</div>
-      </div>
-      <div style={box}>
-        <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 8 }}>{t("sess.requireLogin")}</div>
-        <button style={pill(reqLogin ? "#3FA372" : T.dim)} onClick={toggleReqLogin}>{reqLogin ? t("sess.on") : t("sess.off")}</button>
-        <div style={{ fontSize: 11.5, color: T.dim, marginTop: 8 }}>{t("sess.loginHint")}</div>
       </div>
       {note && <div style={{ fontSize: 12.5, color: T.dim, marginBottom: 10 }}>{note}</div>}
       {sessions === null ? <div style={{ color: T.dim, fontSize: 13 }}>{t("sess.loading")}</div> : sessions.map((s) => (

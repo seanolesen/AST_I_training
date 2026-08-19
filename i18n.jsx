@@ -748,7 +748,7 @@ export const STRINGS = {
     "auth.sendCode": "Email me a code",
     "auth.codeSent": "Code sent — check your email.",
     "auth.enterCode": "Enter the code.",
-    "auth.codePlaceholder": "6-digit code",
+    "auth.codePlaceholder": "Enter session code",
     "auth.verify": "Verify",
     "auth.verifying": "Verifying…",
     "auth.wrongCode": "That code didn’t work — check it or resend.",
