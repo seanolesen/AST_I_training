@@ -1,20 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { supabase } from "./supabaseClient";
-import { Ast1App, Ast2App } from "./App.jsx";
-import { SlopeApp } from "./SlopeApp.jsx";
-import { CardApp } from "./CardApp.jsx";
-import { DangerApp } from "./DangerApp.jsx";
-import { TerrainApp } from "./TerrainApp.jsx";
-import { BeaconApp } from "./BeaconApp.jsx";
-import { Leaderboard } from "./Leaderboard.jsx";
 import { PwaStatus } from "./PwaStatus.jsx";
 import { LogoMark, Snowflake } from "./Logo.jsx";
 import { InstallHint } from "./InstallHint.jsx";
-import { Performance } from "./Performance.jsx";
-import { SiteAnalytics } from "./SiteAnalytics.jsx";
-import { AccountApp } from "./AccountApp.jsx";
 import { ExpandToggle, ax, useAcronyms } from "./glossary.jsx";
 import { useLang, LangToggle } from "./i18n.jsx";
+
+// Code-split each tool so only the shell + Home load up front; each tool
+// (and the large question banks) load on demand the first time it's opened.
+const Ast1App = lazy(() => import("./App.jsx").then((m) => ({ default: m.Ast1App })));
+const Ast2App = lazy(() => import("./App.jsx").then((m) => ({ default: m.Ast2App })));
+const SlopeApp = lazy(() => import("./SlopeApp.jsx").then((m) => ({ default: m.SlopeApp })));
+const CardApp = lazy(() => import("./CardApp.jsx").then((m) => ({ default: m.CardApp })));
+const DangerApp = lazy(() => import("./DangerApp.jsx").then((m) => ({ default: m.DangerApp })));
+const TerrainApp = lazy(() => import("./TerrainApp.jsx").then((m) => ({ default: m.TerrainApp })));
+const BeaconApp = lazy(() => import("./BeaconApp.jsx").then((m) => ({ default: m.BeaconApp })));
+const Performance = lazy(() => import("./Performance.jsx").then((m) => ({ default: m.Performance })));
+const Leaderboard = lazy(() => import("./Leaderboard.jsx").then((m) => ({ default: m.Leaderboard })));
+const SiteAnalytics = lazy(() => import("./SiteAnalytics.jsx").then((m) => ({ default: m.SiteAnalytics })));
+const AccountApp = lazy(() => import("./AccountApp.jsx").then((m) => ({ default: m.AccountApp })));
 
 const SUPER_ADMIN = "sean.olesen@gmail.com";
 
@@ -22,6 +26,14 @@ const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0",
   ice: "#7cc4ff", amber: "#f0812c", line: "rgba(255,255,255,0.12)" };
 const FONT = "system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
 const BUILD = (typeof __BUILD__ !== "undefined") ? __BUILD__ : "dev";
+
+function ToolFallback() {
+  return (
+    <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FONT }}>
+      <Snowflake size={44} color={T.ice} style={{ opacity: 0.45 }} />
+    </div>
+  );
+}
 try { console.log("AST Prep build:", BUILD); } catch (e) {}
 
 function Tile({ accent, name, desc, onClick }) {
@@ -43,7 +55,8 @@ function TopBar({ session, view, onHome, onAccount }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
-  const [mode, setMode] = useState("link"); // link | password
+  const [mode, setMode] = useState("link"); // link | password | signup
+  const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const row = { display: "flex", gap: 8, alignItems: "center", justifyContent: "space-between",
     flexWrap: "wrap", padding: "calc(10px + env(safe-area-inset-top)) 12px 10px", background: T.bg,
@@ -72,7 +85,7 @@ function TopBar({ session, view, onHome, onAccount }) {
       if (!email) { setStatus(t("auth.enterEmail")); return; }
       setBusy(true); setStatus(t("auth.sending"));
       const { error } = await supabase.auth.signInWithOtp({
-        email, options: { emailRedirectTo: window.location.origin, shouldCreateUser: true },
+        email, options: { emailRedirectTo: window.location.origin, shouldCreateUser: false },
       });
       setBusy(false);
       setStatus(error ? (t("auth.errorPrefix") + error.message) : t("auth.linkSent"));
@@ -88,36 +101,62 @@ function TopBar({ session, view, onHome, onAccount }) {
     const createAccount = async () => {
       if (!email || !password) { setStatus(t("auth.enterBoth")); return; }
       if (password.length < 6) { setStatus(t("auth.passwordShort")); return; }
+      if (!code.trim()) { setStatus(t("auth.needCode")); return; }
       setBusy(true); setStatus(t("auth.creating"));
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({
+        email, password, options: { data: { join_code: code.trim().toUpperCase() } },
+      });
       setBusy(false);
-      if (error) { setStatus(/already|registered/i.test(error.message) ? t("auth.exists") : (t("auth.errorPrefix") + error.message)); }
-      else if (data && data.session) { setPassword(""); setStatus(""); } // signed in (email confirmation off)
+      if (error) {
+        const m = error.message || "";
+        if (/already|registered/i.test(m)) setStatus(t("auth.exists"));
+        else if (/code|active|sign up|create an account/i.test(m)) setStatus(m); // server-side gate message
+        else setStatus(t("auth.errorPrefix") + m);
+      } else if (data && data.session) { setPassword(""); setCode(""); setStatus(""); }
       else { setStatus(t("auth.confirmSent")); }
     };
-    auth = mode === "link" ? (
-      <React.Fragment>
-        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("auth.emailPlaceholder")}
-          type="email" autoComplete="email" inputMode="email"
-          style={{ ...chip, minWidth: 150, outline: "none" }} />
-        <button style={btn} disabled={busy} onClick={sendLink}>{t("auth.linkBtn")}</button>
-        <button style={{ ...btn, border: `1px solid ${T.ice}`, color: T.ice, fontWeight: 700 }} onClick={() => { setMode("password"); setStatus(""); }}>{t("auth.usePassword")}</button>
-        {status && <span style={{ color: T.dim }}>{status}</span>}
-      </React.Fragment>
-    ) : (
-      <React.Fragment>
-        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("auth.emailPlaceholder")}
-          type="email" autoComplete="email" inputMode="email"
-          style={{ ...chip, minWidth: 140, outline: "none" }} />
-        <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("auth.passwordPlaceholder")}
-          type="password" autoComplete="current-password"
-          style={{ ...chip, minWidth: 120, outline: "none" }} />
-        <button style={btn} disabled={busy} onClick={signInPw}>{t("auth.signIn")}</button>
-        <button style={{ ...btn, border: `1px solid ${T.ice}`, color: T.ice, fontWeight: 700 }} disabled={busy} onClick={createAccount}>{t("auth.createAccount")}</button>
-        <button style={{ ...btn, border: `1px solid ${T.ice}`, color: T.ice, fontWeight: 700 }} onClick={() => { setMode("link"); setStatus(""); }}>{t("auth.useLink")}</button>
-        {status && <span style={{ color: T.dim }}>{status}</span>}
-      </React.Fragment>
+    const iceBtn = { ...btn, border: `1px solid ${T.ice}`, color: T.ice, fontWeight: 700 };
+    const emailInput = (
+      <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("auth.emailPlaceholder")}
+        type="email" autoComplete="email" inputMode="email" style={{ ...chip, minWidth: 140, outline: "none" }} />
     );
+    const pwInput = (
+      <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("auth.passwordPlaceholder")}
+        type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} style={{ ...chip, minWidth: 120, outline: "none" }} />
+    );
+    if (mode === "signup") {
+      auth = (
+        <React.Fragment>
+          {emailInput}{pwInput}
+          <input value={code} onChange={(e) => setCode(e.target.value)} placeholder={t("auth.codePlaceholder")}
+            autoCapitalize="characters" autoComplete="off"
+            style={{ ...chip, minWidth: 120, outline: "none", textTransform: "uppercase", letterSpacing: "0.5px" }} />
+          <button style={iceBtn} disabled={busy} onClick={createAccount}>{t("auth.createAccount")}</button>
+          <button style={btn} onClick={() => { setMode("password"); setStatus(""); }}>{t("auth.backToSignIn")}</button>
+          {status && <span style={{ color: T.dim }}>{status}</span>}
+        </React.Fragment>
+      );
+    } else if (mode === "link") {
+      auth = (
+        <React.Fragment>
+          {emailInput}
+          <button style={btn} disabled={busy} onClick={sendLink}>{t("auth.linkBtn")}</button>
+          <button style={iceBtn} onClick={() => { setMode("password"); setStatus(""); }}>{t("auth.usePassword")}</button>
+          <button style={iceBtn} onClick={() => { setMode("signup"); setStatus(""); }}>{t("auth.createAccount")}</button>
+          {status && <span style={{ color: T.dim }}>{status}</span>}
+        </React.Fragment>
+      );
+    } else {
+      auth = (
+        <React.Fragment>
+          {emailInput}{pwInput}
+          <button style={btn} disabled={busy} onClick={signInPw}>{t("auth.signIn")}</button>
+          <button style={iceBtn} onClick={() => { setMode("signup"); setStatus(""); }}>{t("auth.createAccount")}</button>
+          <button style={btn} onClick={() => { setMode("link"); setStatus(""); }}>{t("auth.useLink")}</button>
+          {status && <span style={{ color: T.dim }}>{status}</span>}
+        </React.Fragment>
+      );
+    }
   }
 
   return (
@@ -184,12 +223,53 @@ function Home({ onPick, session, isAdmin }) {
   );
 }
 
+function ExpiredScreen({ until, onSignOut }) {
+  const { t } = useLang();
+  const [busy, setBusy] = useState(false);
+  const [confirm, setConfirm] = useState(null); // "data" | "account"
+  const [msg, setMsg] = useState("");
+  const wrap = { minHeight: "calc(100vh - 44px)", background: T.bg, color: T.snow, fontFamily: FONT, padding: "40px 16px", boxSizing: "border-box" };
+  const card = { maxWidth: 460, margin: "0 auto", background: T.panel, border: `1px solid ${T.line}`, borderRadius: 16, padding: 22 };
+  const bBtn = (extra) => ({ padding: "10px 14px", borderRadius: 10, border: `1px solid ${T.line}`, background: "transparent", color: T.snow, cursor: "pointer", fontFamily: FONT, fontSize: 13.5, width: "100%", ...extra });
+  const delData = async () => { setBusy(true); try { await supabase.rpc("delete_my_data"); setMsg(t("expired.dataDeleted")); } catch (e) {} setBusy(false); setConfirm(null); };
+  const delAccount = async () => { setBusy(true); try { await supabase.rpc("delete_my_account"); } catch (e) {} try { await supabase.auth.signOut(); } catch (e) {} };
+  const danger = { border: "1px solid #D6483B", color: "#ff8a80", fontWeight: 700 };
+  return (
+    <div style={wrap}><div style={card}>
+      <h1 style={{ fontSize: 21, fontWeight: 800, margin: "0 0 10px" }}>{t("expired.title")}</h1>
+      <p style={{ fontSize: 14, color: T.dim, lineHeight: 1.55, margin: "0 0 8px" }}>{t("expired.sub")}</p>
+      <p style={{ fontSize: 13, color: T.dim, lineHeight: 1.55, margin: "0 0 18px" }}>{t("expired.contact")}</p>
+      {msg && <p style={{ fontSize: 13, color: "#3FA372", margin: "0 0 14px" }}>{msg}</p>}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <button style={bBtn({ border: `1px solid ${T.ice}`, color: T.ice, fontWeight: 700 })} onClick={onSignOut}>{t("auth.signOut")}</button>
+        {confirm === "data" ? (
+          <div style={{ display: "flex", gap: 8 }}>
+            <button style={bBtn({ ...danger })} disabled={busy} onClick={delData}>{t("expired.confirmDelete")}</button>
+            <button style={bBtn({})} onClick={() => setConfirm(null)}>{t("common.cancel")}</button>
+          </div>
+        ) : (
+          <button style={bBtn({})} onClick={() => { setConfirm("data"); setMsg(""); }}>{t("expired.deleteData")}</button>
+        )}
+        {confirm === "account" ? (
+          <div style={{ display: "flex", gap: 8 }}>
+            <button style={bBtn({ ...danger })} disabled={busy} onClick={delAccount}>{t("expired.confirmDelete")}</button>
+            <button style={bBtn({})} onClick={() => setConfirm(null)}>{t("common.cancel")}</button>
+          </div>
+        ) : (
+          <button style={bBtn({})} onClick={() => { setConfirm("account"); setMsg(""); }}>{t("expired.deleteAccount")}</button>
+        )}
+      </div>
+    </div></div>
+  );
+}
+
 export default function Root() {
   const [session, setSession] = useState(null);
   const on = useAcronyms();
   const { t, lang } = useLang();
   const [view, setView] = useState("home"); // home | ast1 | ast2 | slope | card | perf | admin | account
   const [isAdmin, setIsAdmin] = useState(false);
+  const [access, setAccess] = useState({ active: true, until: null, loaded: false });
   const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
@@ -215,10 +295,23 @@ export default function Root() {
   }, [session]);
 
   useEffect(() => {
+    let alive = true;
+    (async () => {
+      if (!supabase || !(session && session.user)) { if (alive) setAccess({ active: true, until: null, loaded: false }); return; }
+      try {
+        const [a, u] = await Promise.all([supabase.rpc("am_i_active"), supabase.rpc("my_access")]);
+        if (alive) setAccess({ active: (a && a.error) ? true : !!(a && a.data), until: (u && u.error) ? null : (u && u.data), loaded: true });
+      } catch (e) { if (alive) setAccess({ active: true, until: null, loaded: true }); }
+    })();
+    return () => { alive = false; };
+  }, [session]);
+
+  useEffect(() => {
     try { if (!localStorage.getItem("avy_onboarded")) setShowIntro(true); } catch (e) {}
   }, []);
 
   const home = () => setView("home");
+  const blocked = !!(session && session.user) && !isAdmin && access.loaded && !access.active;
 
   return (
     <React.Fragment>
@@ -245,18 +338,26 @@ export default function Root() {
         </div>
       )}
       <TopBar session={session} view={view} onHome={home} onAccount={() => setView("account")} />
-      {view === "home" && <Home onPick={setView} session={session} isAdmin={isAdmin} />}
-      {view === "ast1" && <Ast1App onHome={home} />}
-      {view === "ast2" && <Ast2App onHome={home} />}
-      {view === "slope" && <SlopeApp onHome={home} />}
-      {view === "card" && <CardApp onHome={home} />}
-      {view === "danger" && <DangerApp onHome={home} />}
-      {view === "terrain" && <TerrainApp onHome={home} />}
-      {view === "beacon" && <BeaconApp onHome={home} />}
-      {view === "perf" && <Performance onHome={home} session={session} />}
-      {view === "leaderboard" && <Leaderboard onHome={home} session={session} isAdmin={isAdmin} />}
-      {view === "admin" && isAdmin && <SiteAnalytics onHome={home} session={session} />}
-      {view === "account" && <AccountApp onHome={home} session={session} onSignOut={() => { try { supabase && supabase.auth.signOut(); } catch (e) {} home(); }} />}
+      {blocked ? (
+        <ExpiredScreen until={access.until} onSignOut={() => { try { supabase && supabase.auth.signOut(); } catch (e) {} }} />
+      ) : (
+        <React.Fragment>
+          {view === "home" && <Home onPick={setView} session={session} isAdmin={isAdmin} />}
+          <Suspense fallback={<ToolFallback />}>
+            {view === "ast1" && <Ast1App onHome={home} />}
+            {view === "ast2" && <Ast2App onHome={home} />}
+            {view === "slope" && <SlopeApp onHome={home} />}
+            {view === "card" && <CardApp onHome={home} />}
+            {view === "danger" && <DangerApp onHome={home} />}
+            {view === "terrain" && <TerrainApp onHome={home} />}
+            {view === "beacon" && <BeaconApp onHome={home} />}
+            {view === "perf" && <Performance onHome={home} session={session} />}
+            {view === "leaderboard" && <Leaderboard onHome={home} session={session} isAdmin={isAdmin} />}
+            {view === "admin" && isAdmin && <SiteAnalytics onHome={home} session={session} />}
+            {view === "account" && <AccountApp onHome={home} session={session} access={access} onSignOut={() => { try { supabase && supabase.auth.signOut(); } catch (e) {} home(); }} />}
+          </Suspense>
+        </React.Fragment>
+      )}
       <PwaStatus />
     </React.Fragment>
   );

@@ -21,7 +21,7 @@ function Eyebrow({ children }) {
   return <div style={{ fontSize: 11, letterSpacing: "0.9px", textTransform: "uppercase", color: T.dim, marginBottom: 8 }}>{children}</div>;
 }
 
-export function AccountApp({ onHome, session, onSignOut }) {
+export function AccountApp({ onHome, session, onSignOut, access }) {
   const { t } = useLang();
   const signedIn = !!(session && session.user);
   const email = signedIn ? session.user.email : null;
@@ -34,6 +34,7 @@ export function AccountApp({ onHome, session, onSignOut }) {
   const [lbOptIn, setLbOptIn] = useState(false);
   const [lbBusy, setLbBusy] = useState(false);
   const [lbNote, setLbNote] = useState("");
+  const [mySessions, setMySessions] = useState(null);
   const [impScan, setImpScan] = useState(null);
   const [impBusy, setImpBusy] = useState(false);
   const [impNote, setImpNote] = useState("");
@@ -45,6 +46,13 @@ export function AccountApp({ onHome, session, onSignOut }) {
     let alive = true;
     if (!signedIn) return;
     (async () => { const row = await getMyLeaderboard(); if (alive && row) { setLbName(row.display_name || ""); setLbOptIn(true); } })();
+    return () => { alive = false; };
+  }, [signedIn]);
+
+  useEffect(() => {
+    let alive = true;
+    if (!signedIn || !supabase) { setMySessions([]); return; }
+    (async () => { try { const { data } = await supabase.rpc("my_sessions"); if (alive) setMySessions(data || []); } catch (e) { if (alive) setMySessions([]); } })();
     return () => { alive = false; };
   }, [signedIn]);
 
@@ -155,6 +163,23 @@ export function AccountApp({ onHome, session, onSignOut }) {
             <div style={{ fontSize: 13.5, color: T.dim, lineHeight: 1.5 }}>{t("account.guest")}</div>
           )}
         </Card>
+
+        {/* Course access */}
+        {signedIn && (
+          <Card accent="#3FA372">
+            <Eyebrow>{t("account.access.label")}</Eyebrow>
+            <div style={{ fontSize: 14, color: T.snow, marginBottom: 6 }}>
+              {access && access.loaded && access.until == null ? t("account.access.unlimited")
+                : (access && access.until) ? t("account.access.until", { date: new Date(access.until).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) })
+                : t("account.access.default")}
+            </div>
+            <div style={{ fontSize: 12.5, color: T.dim, lineHeight: 1.5 }}>
+              {mySessions === null ? t("account.access.loading")
+                : mySessions.length === 0 ? t("account.access.none")
+                : t("account.access.inLabel") + " " + mySessions.map((s) => s.label).join(", ")}
+            </div>
+          </Card>
+        )}
 
         {/* Password & offline access */}
         {signedIn && (

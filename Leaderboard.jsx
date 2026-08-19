@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLang } from "./i18n.jsx";
 import { TOOLS } from "./Performance.jsx";
 import { fetchLeaderboard, rankFor, QUALIFY, adminResetName, adminRemoveEntry, refreshMyStats, computeMyStats } from "./leaderboard.js";
+import { supabase } from "./supabaseClient";
 
 const T = { bg: "#0f1720", panel: "#141c26", snow: "#e8eef4", dim: "#9fb0c0", mute: "#6b7c8c",
   ice: "#7cc4ff", good: "#3FA372", warn: "#f0812c", line: "rgba(255,255,255,0.12)" };
@@ -18,6 +19,8 @@ export function Leaderboard({ onHome, session, isAdmin }) {
   const [tab, setTab] = useState(TOOLS[0].key);
   const [modId, setModId] = useState(null);
   const [modBusy, setModBusy] = useState(false);
+  const [mySessions, setMySessions] = useState([]);
+  const [scope, setScope] = useState("global");
 
   useEffect(() => {
     let alive = true;
@@ -26,13 +29,27 @@ export function Leaderboard({ onHome, session, isAdmin }) {
       await refreshMyStats();
       const ms = await computeMyStats();
       if (alive) setMyStats(ms);
-      const data = await fetchLeaderboard();
-      if (alive) setRows(data);
+      try {
+        const { data } = await supabase.rpc("my_sessions");
+        const sess = data || [];
+        if (alive) { setMySessions(sess); setScope(sess.length ? sess[0].id : "global"); }
+      } catch (e) { if (alive) setScope("global"); }
     })();
     return () => { alive = false; };
   }, [signedIn]);
 
-  const refresh = async () => { const data = await fetchLeaderboard(); setRows(data); };
+  const loadRows = async (sc) => {
+    if (sc === "global") return await fetchLeaderboard();
+    const r = await supabase.rpc("session_leaderboard", { p_session: sc });
+    return (r && r.data) || [];
+  };
+  useEffect(() => {
+    let alive = true;
+    (async () => { if (!signedIn) return; setRows(null); const d = await loadRows(scope); if (alive) setRows(d); })();
+    return () => { alive = false; };
+  }, [scope, signedIn]);
+
+  const refresh = async () => { const data = await loadRows(scope); setRows(data); };
   const doReset = async (uid) => { setModBusy(true); await adminResetName(uid); await refresh(); setModBusy(false); setModId(null); };
   const doRemove = async (uid) => { setModBusy(true); await adminRemoveEntry(uid); await refresh(); setModBusy(false); setModId(null); };
 
@@ -55,6 +72,15 @@ export function Leaderboard({ onHome, session, isAdmin }) {
           <div style={{ background: T.panel, border: `1px solid ${T.line}`, borderRadius: 14, padding: 16, fontSize: 13.5, color: T.dim }}>{t("lb.signIn")}</div>
         ) : (
           <>
+            {mySessions.length > 0 && (
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+                {(() => { const sp = (a) => ({ padding: "6px 11px", borderRadius: 8, border: `1px solid ${a ? T.ice : T.line}`, background: a ? "rgba(124,196,255,0.14)" : "transparent", color: a ? T.ice : T.dim, cursor: "pointer", fontSize: 12.5, fontWeight: 600, fontFamily: FONT });
+                  return (<>
+                    <button onClick={() => setScope("global")} style={sp(scope === "global")}>{t("lb.scope.global")}</button>
+                    {mySessions.map((s) => (<button key={s.id} onClick={() => setScope(s.id)} style={sp(scope === s.id)}>{s.label}</button>))}
+                  </>); })()}
+              </div>
+            )}
             {/* tool tabs (canonical order) */}
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
               {TOOLS.map((tool) => {

@@ -36,7 +36,7 @@ export function SiteAnalytics({ onHome, session }) {
   const [state, setState] = useState({ loading: true, error: null, profiles: [], runsByUser: {}, docsByUser: {} });
   const [selected, setSelected] = useState(null);
   const [busyId, setBusyId] = useState(null);
-  const [page, setPage] = useState("home"); // home | users | qa
+  const [page, setPage] = useState("home"); // home | users | qa | sessions
 
   const myEmail = session && session.user && session.user.email;
 
@@ -203,6 +203,16 @@ export function SiteAnalytics({ onHome, session }) {
     );
   }
 
+  if (page === "sessions") {
+    return (
+      <div style={wrap}><div style={inner}>
+        {back(t("sa.backAdmin"), () => setPage("home"))}
+        {eyebrow}
+        <SessionsAdmin />
+      </div></div>
+    );
+  }
+
   // ---------- Landing ----------
   const card = (title, desc, onClick) => (
     <button onClick={onClick} style={{ display: "block", width: "100%", textAlign: "left", background: T.panel, border: `1px solid ${T.line}`,
@@ -222,6 +232,7 @@ export function SiteAnalytics({ onHome, session }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {card(t("sa.card.users"), t("sa.card.usersDesc"), () => { setSelected(null); setPage("users"); })}
           {card(t("qa.title"), t("sa.card.qaDesc"), () => setPage("qa"))}
+          {card(t("sess.title"), t("sess.desc"), () => setPage("sessions"))}
         </div>
       )}
     </div></div>
@@ -375,6 +386,146 @@ function QAMasterSheet() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+
+// ================= Sessions & access (admin) =================
+function fmtD(v) { if (!v) return null; try { return new Date(v).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }); } catch (e) { return String(v); } }
+
+function SessionsAdmin() {
+  const { t } = useLang();
+  const [sessions, setSessions] = useState(null);
+  const [weeks, setWeeks] = useState("");
+  const [label, setLabel] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState("");
+  const [sel, setSel] = useState(null);
+  const [members, setMembers] = useState(null);
+  const [addEmail, setAddEmail] = useState("");
+  const [dateFor, setDateFor] = useState(null);
+  const [dateVal, setDateVal] = useState("");
+
+  const load = async () => {
+    try {
+      const { data } = await supabase.rpc("admin_sessions");
+      setSessions(data || []);
+      const { data: s } = await supabase.from("app_settings").select("value").eq("key", "default_access_weeks").maybeSingle();
+      if (s && s.value != null) setWeeks(String(s.value));
+    } catch (e) { setSessions([]); }
+  };
+  useEffect(() => { load(); }, []);
+
+  const create = async () => {
+    if (!label.trim()) return;
+    setBusy(true); setNote("");
+    const { error } = await supabase.rpc("admin_create_session", { p_label: label.trim() });
+    setNote(error ? error.message : t("sess.created")); setLabel(""); await load(); setBusy(false);
+  };
+  const toggle = async (s) => { await supabase.from("sessions").update({ active: !s.active }).eq("id", s.id); await load(); if (sel && sel.id === s.id) setSel({ ...sel, active: !s.active }); };
+  const saveWeeks = async () => {
+    const n = parseInt(weeks, 10);
+    if (!(n > 0)) { setNote(t("sess.weeksBad")); return; }
+    const { error } = await supabase.from("app_settings").update({ value: n, updated_at: new Date().toISOString() }).eq("key", "default_access_weeks");
+    setNote(error ? error.message : t("sess.weeksSaved"));
+  };
+  const openMembers = async (s) => { setSel(s); setMembers(null); setAddEmail(""); setNote(""); const { data } = await supabase.rpc("admin_session_members", { p_session: s.id }); setMembers(data || []); };
+  const addMember = async () => {
+    if (!addEmail.trim()) return; setBusy(true);
+    const { error } = await supabase.rpc("admin_add_member", { p_email: addEmail.trim(), p_session: sel.id });
+    setNote(error ? error.message : t("sess.added")); setAddEmail(""); await openMembers(sel); setBusy(false);
+  };
+  const removeMember = async (uid) => { await supabase.rpc("admin_remove_member", { p_user: uid, p_session: sel.id }); await openMembers(sel); };
+  const setAccess = async (uid, mode, until) => { await supabase.rpc("admin_set_access", { p_user: uid, p_mode: mode, p_until: until || null }); setDateFor(null); setDateVal(""); await openMembers(sel); };
+
+  const pill = (fg) => ({ padding: "5px 10px", borderRadius: 8, border: `1px solid ${fg}`, background: "transparent", color: fg, cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: FONT });
+  const box = { background: T.panel, border: `1px solid ${T.line}`, borderRadius: 12, padding: 14, marginBottom: 12 };
+  const inputS = { background: T.bg, border: `1px solid ${T.line}`, borderRadius: 8, padding: "8px 10px", color: T.snow, fontSize: 13, outline: "none", fontFamily: FONT };
+
+  if (sel) {
+    return (
+      <div>
+        <button onClick={() => { setSel(null); setMembers(null); }} style={{ background: "transparent", border: "none", color: T.ice, cursor: "pointer", fontSize: 13, padding: "0 0 12px", fontWeight: 700 }}>{"\u2190 "}{t("sess.backList")}</button>
+        <h2 style={{ fontSize: 18, fontWeight: 800, margin: "0 0 2px" }}>{sel.label}</h2>
+        <div style={{ fontSize: 12.5, color: T.dim, marginBottom: 14 }}>{t("sess.code")}: <b style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", color: T.snow }}>{sel.join_code}</b> {"\u00b7"} {sel.active ? t("sess.active") : t("sess.inactive")}</div>
+        <div style={box}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 8 }}>{t("sess.addMember")}</div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input value={addEmail} onChange={(e) => setAddEmail(e.target.value)} placeholder={t("sess.emailPlaceholder")} type="email" style={{ ...inputS, flex: 1 }} />
+            <button style={pill(T.ice)} disabled={busy} onClick={addMember}>{t("sess.add")}</button>
+          </div>
+          <div style={{ fontSize: 11.5, color: T.dim, marginTop: 8 }}>{t("sess.addHint")}</div>
+        </div>
+        {note && <div style={{ fontSize: 12.5, color: T.dim, marginBottom: 10 }}>{note}</div>}
+        {members === null ? <div style={{ color: T.dim, fontSize: 13 }}>{t("sess.loading")}</div> : members.length === 0 ? <div style={{ color: T.dim, fontSize: 13 }}>{t("sess.noMembers")}</div> : members.map((m) => {
+          const expired = !m.access_unlimited && m.access_until && new Date(m.access_until) < new Date();
+          const status = m.is_admin ? t("sess.adminUser") : m.access_unlimited ? t("sess.unlimited") : m.access_until ? (expired ? t("sess.expiredOn", { date: fmtD(m.access_until) }) : t("sess.untilDate", { date: fmtD(m.access_until) })) : t("sess.defaultWindow");
+          return (
+            <div key={m.user_id} style={box}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, wordBreak: "break-all" }}>{m.email}</div>
+                <div style={{ fontSize: 12, color: expired ? "#ff8a80" : T.dim }}>{status}</div>
+              </div>
+              {!m.is_admin && (
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+                  <button style={pill(T.dim)} onClick={() => setAccess(m.user_id, "unlimited")}>{t("sess.setUnlimited")}</button>
+                  <button style={pill(T.dim)} onClick={() => setAccess(m.user_id, "default")}>{t("sess.setDefault")}</button>
+                  {dateFor === m.user_id ? (
+                    <React.Fragment>
+                      <input type="date" value={dateVal} onChange={(e) => setDateVal(e.target.value)} style={inputS} />
+                      <button style={pill(T.ice)} disabled={!dateVal} onClick={() => setAccess(m.user_id, "until", dateVal ? new Date(dateVal + "T23:59:59").toISOString() : null)}>{t("sess.save")}</button>
+                      <button style={pill(T.dim)} onClick={() => { setDateFor(null); setDateVal(""); }}>{t("common.cancel")}</button>
+                    </React.Fragment>
+                  ) : (
+                    <button style={pill(T.dim)} onClick={() => { setDateFor(m.user_id); setDateVal(""); }}>{t("sess.setDate")}</button>
+                  )}
+                  <button style={pill("#D6483B")} onClick={() => removeMember(m.user_id)}>{t("sess.remove")}</button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h2 style={{ fontSize: 18, fontWeight: 800, margin: "0 0 2px" }}>{t("sess.title")}</h2>
+      <p style={{ fontSize: 13, color: T.dim, margin: "0 0 14px", lineHeight: 1.5 }}>{t("sess.intro")}</p>
+      <div style={box}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 8 }}>{t("sess.newSession")}</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder={t("sess.labelPlaceholder")} style={{ ...inputS, flex: 1 }} />
+          <button style={pill(T.ice)} disabled={busy} onClick={create}>{t("sess.create")}</button>
+        </div>
+        <div style={{ fontSize: 11.5, color: T.dim, marginTop: 8 }}>{t("sess.newHint")}</div>
+      </div>
+      <div style={box}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 8 }}>{t("sess.defaultAccess")}</div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <input value={weeks} onChange={(e) => setWeeks(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric" style={{ ...inputS, width: 70 }} />
+          <span style={{ fontSize: 13, color: T.dim }}>{t("sess.weeksLabel")}</span>
+          <button style={pill(T.ice)} onClick={saveWeeks}>{t("sess.save")}</button>
+        </div>
+        <div style={{ fontSize: 11.5, color: T.dim, marginTop: 8 }}>{t("sess.defaultHint")}</div>
+      </div>
+      {note && <div style={{ fontSize: 12.5, color: T.dim, marginBottom: 10 }}>{note}</div>}
+      {sessions === null ? <div style={{ color: T.dim, fontSize: 13 }}>{t("sess.loading")}</div> : sessions.map((s) => (
+        <div key={s.id} style={box}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 14.5, fontWeight: 700 }}>{s.label}<span style={{ fontSize: 11.5, color: T.dim, fontWeight: 400 }}>{s.is_legacy ? " \u00b7 " + t("sess.legacy") : ""}</span></div>
+            <div style={{ fontSize: 12, color: T.dim }}>{t("sess.members", { n: Number(s.members) })}</div>
+          </div>
+          <div style={{ fontSize: 12.5, color: T.dim, marginTop: 6 }}>{t("sess.code")}: <b style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", color: T.snow, letterSpacing: "1px" }}>{s.join_code}</b></div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+            <button style={pill(T.ice)} onClick={() => openMembers(s)}>{t("sess.manage")}</button>
+            {!s.is_legacy && <button style={pill(s.active ? "#D6483B" : "#3FA372")} onClick={() => toggle(s)}>{s.active ? t("sess.deactivate") : t("sess.activate")}</button>}
+            <span style={{ fontSize: 12, color: s.active ? "#3FA372" : T.dim, alignSelf: "center" }}>{s.active ? t("sess.active") : t("sess.inactive")}</span>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
