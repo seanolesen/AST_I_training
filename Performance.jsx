@@ -14,6 +14,7 @@ const AST2_TOPIC = { snowpack: "Snowpack & Tests", problems: "Avalanche Problems
 const FORMAT_LABEL = { mc: "Multiple choice", tf: "True / False", match: "Matching" };
 
 import { normalizeDanger } from "./DangerApp.jsx";
+import { normalizeBulletin } from "./BulletinApp.jsx";
 import { normalizeSnowtest } from "./SnowTestApp.jsx";
 import { normalizeTerrain } from "./TerrainApp.jsx";
 import { normalizeAtes } from "./AtesApp.jsx";
@@ -69,6 +70,8 @@ export const TOOLS = [
     load: async () => { try { return normalizeSnowtest(await loadDoc("snowtest", { attempts: [] })); } catch (e) { return []; } } },
   { key: "danger", name: "Danger-Rating Trainer", accent: "#ef8b2b", dims: ["Band", "Difficulty"],
     load: async () => { try { return normalizeDanger(await loadDoc("danger", { attempts: [] })); } catch (e) { return []; } } },
+  { key: "bulletin", name: "Bulletin Trainer", accent: "#7aa2c2", dims: ["Skill", "Difficulty"],
+    load: async () => { try { return normalizeBulletin(await loadDoc("bulletin", { attempts: [] })); } catch (e) { return []; } } },
   { key: "terrain", name: "Terrain-Trap Trainer", accent: "#A6754C", dims: ["Feature", "Difficulty"],
     load: async () => { try { return normalizeTerrain(await loadDoc("terrain", { attempts: [] })); } catch (e) { return []; } } },
   { key: "ates", name: "ATES Terrain Classifier", accent: "#7fae6b", dims: ["Class", "Difficulty"],
