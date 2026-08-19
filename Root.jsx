@@ -18,6 +18,7 @@ const BulletinApp = lazy(() => import("./BulletinApp.jsx").then((m) => ({ defaul
 const TerrainApp = lazy(() => import("./TerrainApp.jsx").then((m) => ({ default: m.TerrainApp })));
 const AtesApp = lazy(() => import("./AtesApp.jsx").then((m) => ({ default: m.AtesApp })));
 const BeaconApp = lazy(() => import("./BeaconApp.jsx").then((m) => ({ default: m.BeaconApp })));
+const ScenarioApp = lazy(() => import("./ScenarioApp.jsx").then((m) => ({ default: m.ScenarioApp })));
 const ChecklistApp = lazy(() => import("./ChecklistApp.jsx").then((m) => ({ default: m.ChecklistApp })));
 const TripApp = lazy(() => import("./TripApp.jsx").then((m) => ({ default: m.TripApp })));
 const Performance = lazy(() => import("./Performance.jsx").then((m) => ({ default: m.Performance })));
@@ -199,6 +200,7 @@ function Home({ onPick, session, isAdmin }) {
     { key: "terrain", accent: "#A6754C" },
     { key: "ates", accent: "#7fae6b" },
     { key: "beacon", accent: "#3fb6c9" },
+    { key: "scenario", accent: "#8fb0d9" },
     { key: "checklist", accent: "#c2a35a" },
     { key: "trip", accent: "#59b39a" },
     { key: "ast1", accent: T.ice },
@@ -398,6 +400,7 @@ export default function Root() {
             {view === "terrain" && <TerrainApp onHome={home} />}
             {view === "ates" && <AtesApp onHome={home} />}
             {view === "beacon" && <BeaconApp onHome={home} />}
+            {view === "scenario" && <ScenarioApp onHome={home} />}
             {view === "checklist" && <ChecklistApp onHome={home} />}
             {view === "trip" && <TripApp onHome={home} />}
             {view === "perf" && <Performance onHome={home} session={session} />}

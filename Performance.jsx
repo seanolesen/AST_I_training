@@ -19,6 +19,7 @@ import { normalizeSnowtest } from "./SnowTestApp.jsx";
 import { normalizeTerrain } from "./TerrainApp.jsx";
 import { normalizeAtes } from "./AtesApp.jsx";
 import { normalizeBeacon } from "./BeaconApp.jsx";
+import { normalizeScenario } from "./ScenarioApp.jsx";
 
 // ---- Pure normalizers: raw stored data -> flat attempts {correct, ts, dims{}} ----
 function normalizeExam(payloads, topicMap) {
@@ -78,6 +79,8 @@ export const TOOLS = [
     load: async () => { try { return normalizeAtes(await loadDoc("ates", { attempts: [] })); } catch (e) { return []; } } },
   { key: "beacon", name: "Beacon Search Simulator", accent: "#3fb6c9", dims: ["Result", "Difficulty"],
     load: async () => { try { return normalizeBeacon(await loadDoc("beacon", { attempts: [] })); } catch (e) { return []; } } },
+  { key: "scenario", name: "Scenario Decisions", accent: "#8fb0d9", dims: ["Theme"],
+    load: async () => { try { return normalizeScenario(await loadDoc("scenario", { attempts: [] })); } catch (e) { return []; } } },
   { key: "ast1", name: "AST 1 Practice", accent: T.ice, dims: ["Subject", "Format", "Difficulty"], learner: true, nTopics: 7,
     load: async () => { try { return normalizeAst1(await loadRuns("ast1")); } catch (e) { return []; } } },
   { key: "ast2", name: "AST 2 Practice", accent: "#b98cff", dims: ["Subject", "Format", "Difficulty"], learner: true, nTopics: 7,
