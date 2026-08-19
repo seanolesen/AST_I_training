@@ -399,6 +399,7 @@ function SessionsAdmin() {
   const [sessions, setSessions] = useState(null);
   const [weeks, setWeeks] = useState("");
   const [reqLogin, setReqLogin] = useState(false);
+  const [defSections, setDefSections] = useState({ ast1: true, ast2: true, practical: true });
   const [label, setLabel] = useState("");
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
@@ -416,6 +417,8 @@ function SessionsAdmin() {
       if (s && s.value != null) setWeeks(String(s.value));
       const { data: s2 } = await supabase.from("app_settings").select("value").eq("key", "require_login").maybeSingle();
       if (s2 && s2.value != null) setReqLogin(!!s2.value);
+      const { data: s3 } = await supabase.from("app_settings").select("value").eq("key", "default_sections").maybeSingle();
+      if (s3 && s3.value) setDefSections({ ast1: s3.value.ast1 !== false, ast2: s3.value.ast2 !== false, practical: s3.value.practical !== false });
     } catch (e) { setSessions([]); }
   };
   useEffect(() => { load(); }, []);
@@ -438,6 +441,18 @@ function SessionsAdmin() {
     const { error } = await supabase.from("app_settings").upsert({ key: "require_login", value: next, updated_at: new Date().toISOString() });
     if (error) { setNote(error.message); return; }
     setReqLogin(next); setNote(next ? t("sess.loginOn") : t("sess.loginOff"));
+  };
+  const setSections = async (sn, patch) => {
+    const nx = { show_ast1: sn.show_ast1, show_ast2: sn.show_ast2, show_practical: sn.show_practical, ...patch };
+    await supabase.rpc("admin_set_session_sections", { p_session: sn.id, p_ast1: nx.show_ast1, p_ast2: nx.show_ast2, p_practical: nx.show_practical });
+    if (sel && sel.id === sn.id) setSel({ ...sel, ...nx });
+    await load();
+  };
+  const setDefaultSection = async (field) => {
+    const next = { ...defSections, [field]: !defSections[field] };
+    setDefSections(next);
+    const { error } = await supabase.rpc("admin_set_default_sections", { p_ast1: next.ast1, p_ast2: next.ast2, p_practical: next.practical });
+    setNote(error ? error.message : t("sess.sectionsSaved"));
   };
   const openMembers = async (s) => { setSel(s); setMembers(null); setAddEmail(""); setNote(""); const { data } = await supabase.rpc("admin_session_members", { p_session: s.id }); setMembers(data || []); };
   const addMember = async () => {
@@ -465,6 +480,17 @@ function SessionsAdmin() {
             <button style={pill(T.ice)} disabled={busy} onClick={addMember}>{t("sess.add")}</button>
           </div>
           <div style={{ fontSize: 11.5, color: T.dim, marginTop: 8 }}>{t("sess.addHint")}</div>
+        </div>
+        <div style={box}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 4 }}>{t("sess.sections")}</div>
+          <div style={{ fontSize: 11.5, color: T.dim, marginBottom: 10 }}>{t("sess.sectionsHint")}</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[["ast1", "show_ast1"], ["ast2", "show_ast2"], ["practical", "show_practical"]].map(([k, fld]) => (
+              <button key={k} style={pill(sel[fld] ? "#3FA372" : T.dim)} onClick={() => setSections(sel, { [fld]: !sel[fld] })}>
+                {t("sess.sec." + k)} {sel[fld] ? "✓" : "✕"}
+              </button>
+            ))}
+          </div>
         </div>
         {note && <div style={{ fontSize: 12.5, color: T.dim, marginBottom: 10 }}>{note}</div>}
         {members === null ? <div style={{ color: T.dim, fontSize: 13 }}>{t("sess.loading")}</div> : members.length === 0 ? <div style={{ color: T.dim, fontSize: 13 }}>{t("sess.noMembers")}</div> : members.map((m) => {
@@ -525,6 +551,17 @@ function SessionsAdmin() {
         </div>
         <div style={{ fontSize: 11.5, color: T.dim, marginTop: 8 }}>{t("sess.defaultHint")}</div>
       </div>
+      <div style={box}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 4 }}>{t("sess.defaultSections")}</div>
+        <div style={{ fontSize: 11.5, color: T.dim, marginBottom: 10 }}>{t("sess.defaultSectionsHint")}</div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {["ast1", "ast2", "practical"].map((k) => (
+            <button key={k} style={pill(defSections[k] ? "#3FA372" : T.dim)} onClick={() => setDefaultSection(k)}>
+              {t("sess.sec." + k)} {defSections[k] ? "✓" : "✕"}
+            </button>
+          ))}
+        </div>
+      </div>
       {note && <div style={{ fontSize: 12.5, color: T.dim, marginBottom: 10 }}>{note}</div>}
       {sessions === null ? <div style={{ color: T.dim, fontSize: 13 }}>{t("sess.loading")}</div> : sessions.map((s) => (
         <div key={s.id} style={box}>
@@ -533,6 +570,7 @@ function SessionsAdmin() {
             <div style={{ fontSize: 12, color: T.dim }}>{t("sess.members", { n: Number(s.members) })}</div>
           </div>
           <div style={{ fontSize: 12.5, color: T.dim, marginTop: 6 }}>{t("sess.code")}: <b style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", color: T.snow, letterSpacing: "1px" }}>{s.join_code}</b></div>
+          <div style={{ fontSize: 11.5, color: T.dim, marginTop: 4 }}>{t("sess.visible")}: {[s.show_ast1 && t("sess.sec.ast1"), s.show_ast2 && t("sess.sec.ast2"), s.show_practical && t("sess.sec.practical")].filter(Boolean).join(", ") || t("sess.visibleNone")}</div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
             <button style={pill(T.ice)} onClick={() => openMembers(s)}>{t("sess.manage")}</button>
             {!s.is_legacy && <button style={pill(s.active ? "#D6483B" : "#3FA372")} onClick={() => toggle(s)}>{s.active ? t("sess.deactivate") : t("sess.activate")}</button>}

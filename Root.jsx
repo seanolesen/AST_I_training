@@ -198,7 +198,7 @@ const GROUPS = [
   { key: "practical", accent: "#59b39a", tools: ["checklist", "trip"] },
 ];
 
-function Home({ onGroup, onPick, session, isAdmin }) {
+function Home({ onGroup, onPick, session, isAdmin, sections }) {
   const { t } = useLang();
   const wrap = { minHeight: "calc(100vh - 44px)", background: T.bg, color: T.snow,
     fontFamily: FONT, padding: "30px 16px 44px", boxSizing: "border-box" };
@@ -217,10 +217,13 @@ function Home({ onGroup, onPick, session, isAdmin }) {
         <p style={{ ...p, margin: "0 0 4px" }}>
           {signedIn ? t("home.signedIn", { email: session.user.email }) : t("home.localSub")}
         </p>
-        {GROUPS.map((g) => (
+        {GROUPS.filter((g) => !sections || sections[g.key] !== false).map((g) => (
           <Tile key={g.key} accent={g.accent} onClick={() => onGroup(g.key)}
             name={t("group." + g.key + ".name")} desc={t("group." + g.key + ".desc")} />
         ))}
+        {sections && !sections.ast1 && !sections.ast2 && !sections.practical && (
+          <div style={{ ...p, marginTop: 14, padding: "14px 16px", background: T.panel, border: `1px solid ${T.line}`, borderRadius: 12 }}>{t("home.noSections")}</div>
+        )}
         {meta.length > 0 && (
           <div style={{ marginTop: 22, marginBottom: 2, fontSize: 11.5, letterSpacing: "1px", textTransform: "uppercase", color: T.dim, opacity: 0.7 }}>{t("home.more")}</div>
         )}
@@ -328,6 +331,7 @@ export default function Root() {
   const [requireLogin, setRequireLogin] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
+  const [sections, setSections] = useState({ ast1: true, ast2: true, practical: true });
 
   useEffect(() => {
     if (!supabase) return;
@@ -370,6 +374,18 @@ export default function Root() {
         const [a, u] = await Promise.all([supabase.rpc("am_i_active"), supabase.rpc("my_access")]);
         if (alive) setAccess({ active: (a && a.error) ? true : !!(a && a.data), until: (u && u.error) ? null : (u && u.data), loaded: true });
       } catch (e) { if (alive) setAccess({ active: true, until: null, loaded: true }); }
+    })();
+    return () => { alive = false; };
+  }, [session]);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      if (!supabase || !(session && session.user)) { if (alive) setSections({ ast1: true, ast2: true, practical: true }); return; }
+      try {
+        const { data } = await supabase.rpc("my_sections");
+        if (alive && data) setSections({ ast1: data.ast1 !== false, ast2: data.ast2 !== false, practical: data.practical !== false });
+      } catch (e) { if (alive) setSections({ ast1: true, ast2: true, practical: true }); }
     })();
     return () => { alive = false; };
   }, [session]);
@@ -419,7 +435,7 @@ export default function Root() {
         <ExpiredScreen until={access.until} onSignOut={() => { try { supabase && supabase.auth.signOut(); } catch (e) {} }} />
       ) : (
         <React.Fragment>
-          {view === "home" && <Home onGroup={openGroup} onPick={setView} session={session} isAdmin={isAdmin} />}
+          {view === "home" && <Home onGroup={openGroup} onPick={setView} session={session} isAdmin={isAdmin} sections={sections} />}
           {view === "group" && <GroupPage group={group} onPick={setView} onBack={home} />}
           <Suspense fallback={<ToolFallback />}>
             {view === "ast1" && <Ast1App onHome={back} />}
