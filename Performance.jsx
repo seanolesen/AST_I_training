@@ -16,6 +16,7 @@ const FORMAT_LABEL = { mc: "Multiple choice", tf: "True / False", match: "Matchi
 import { normalizeDanger } from "./DangerApp.jsx";
 import { normalizeSnowtest } from "./SnowTestApp.jsx";
 import { normalizeTerrain } from "./TerrainApp.jsx";
+import { normalizeAtes } from "./AtesApp.jsx";
 import { normalizeBeacon } from "./BeaconApp.jsx";
 
 // ---- Pure normalizers: raw stored data -> flat attempts {correct, ts, dims{}} ----
@@ -70,6 +71,8 @@ export const TOOLS = [
     load: async () => { try { return normalizeDanger(await loadDoc("danger", { attempts: [] })); } catch (e) { return []; } } },
   { key: "terrain", name: "Terrain-Trap Trainer", accent: "#A6754C", dims: ["Feature", "Difficulty"],
     load: async () => { try { return normalizeTerrain(await loadDoc("terrain", { attempts: [] })); } catch (e) { return []; } } },
+  { key: "ates", name: "ATES Terrain Classifier", accent: "#7fae6b", dims: ["Class", "Difficulty"],
+    load: async () => { try { return normalizeAtes(await loadDoc("ates", { attempts: [] })); } catch (e) { return []; } } },
   { key: "beacon", name: "Beacon Search Simulator", accent: "#3fb6c9", dims: ["Result", "Difficulty"],
     load: async () => { try { return normalizeBeacon(await loadDoc("beacon", { attempts: [] })); } catch (e) { return []; } } },
   { key: "ast1", name: "AST 1 Practice", accent: T.ice, dims: ["Subject", "Format", "Difficulty"], learner: true, nTopics: 7,

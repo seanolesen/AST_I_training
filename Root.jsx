@@ -15,6 +15,7 @@ const CardApp = lazy(() => import("./CardApp.jsx").then((m) => ({ default: m.Car
 const SnowTestApp = lazy(() => import("./SnowTestApp.jsx").then((m) => ({ default: m.SnowTestApp })));
 const DangerApp = lazy(() => import("./DangerApp.jsx").then((m) => ({ default: m.DangerApp })));
 const TerrainApp = lazy(() => import("./TerrainApp.jsx").then((m) => ({ default: m.TerrainApp })));
+const AtesApp = lazy(() => import("./AtesApp.jsx").then((m) => ({ default: m.AtesApp })));
 const BeaconApp = lazy(() => import("./BeaconApp.jsx").then((m) => ({ default: m.BeaconApp })));
 const Performance = lazy(() => import("./Performance.jsx").then((m) => ({ default: m.Performance })));
 const Leaderboard = lazy(() => import("./Leaderboard.jsx").then((m) => ({ default: m.Leaderboard })));
@@ -192,6 +193,7 @@ function Home({ onPick, session, isAdmin }) {
     { key: "snowtest", accent: "#8bd0c0" },
     { key: "danger", accent: "#ef8b2b" },
     { key: "terrain", accent: "#A6754C" },
+    { key: "ates", accent: "#7fae6b" },
     { key: "beacon", accent: "#3fb6c9" },
     { key: "ast1", accent: T.ice },
     { key: "ast2", accent: "#b98cff" },
@@ -387,6 +389,7 @@ export default function Root() {
             {view === "snowtest" && <SnowTestApp onHome={home} />}
             {view === "danger" && <DangerApp onHome={home} />}
             {view === "terrain" && <TerrainApp onHome={home} />}
+            {view === "ates" && <AtesApp onHome={home} />}
             {view === "beacon" && <BeaconApp onHome={home} />}
             {view === "perf" && <Performance onHome={home} session={session} />}
             {view === "leaderboard" && <Leaderboard onHome={home} session={session} isAdmin={isAdmin} />}
