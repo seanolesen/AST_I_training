@@ -29,6 +29,7 @@ export function AccountApp({ onHome, session, onSignOut, access }) {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
   const [confirming, setConfirming] = useState(false);
+  const [acctConfirm, setAcctConfirm] = useState(false);
   const [done, setDone] = useState(false);
   const [lbName, setLbName] = useState("");
   const [lbOptIn, setLbOptIn] = useState(false);
@@ -97,6 +98,7 @@ export function AccountApp({ onHome, session, onSignOut, access }) {
     opacity: busy ? 0.6 : 1 });
   const ghost = { width: "100%", padding: "12px", borderRadius: 12, cursor: "pointer",
     background: "transparent", border: `1px solid ${T.line}`, color: T.snow, fontSize: 14, fontWeight: 700 };
+  const warnBox = { fontSize: 13, color: T.snow, lineHeight: 1.5, marginBottom: 10, padding: "10px 12px", background: "rgba(214,72,59,0.12)", border: `1px solid ${T.bad}`, borderRadius: 10 };
 
   const savePassword = async () => {
     if (pwNew.length < 6) { setPwNote(t("account.pw.short")); return; }
@@ -138,6 +140,20 @@ export function AccountApp({ onHome, session, onSignOut, access }) {
       setNote(t("account.deleteFail", { msg: e && e.message ? e.message : String(e) }));
     }
     setConfirming(false); setBusy(false);
+  };
+
+  const doDeleteAccount = async () => {
+    setBusy(true); setNote("");
+    try {
+      if (supabase) {
+        const { error } = await supabase.rpc("delete_my_account");
+        if (error) { setNote(t("account.deleteFail", { msg: error.message })); setBusy(false); setAcctConfirm(false); return; }
+      }
+      try { await deleteAllData(); } catch (e) {}
+      setBusy(false); setAcctConfirm(false);
+      if (onSignOut) onSignOut();
+      else { try { if (supabase) await supabase.auth.signOut(); } catch (e) {} }
+    } catch (e) { setNote(t("account.deleteFail", { msg: e && e.message ? e.message : String(e) })); setBusy(false); setAcctConfirm(false); }
   };
 
   return (
@@ -264,20 +280,30 @@ export function AccountApp({ onHome, session, onSignOut, access }) {
           </div>
           {done ? (
             <div style={{ fontSize: 13.5, color: T.good, fontWeight: 700 }}>{t("account.deletedDone")}</div>
-          ) : !confirming ? (
-            <button style={btn("transparent", T.bad)} onClick={() => { setNote(""); setConfirming(true); }}>
-              {t("account.deleteBtn")}
-            </button>
           ) : (
-            <div>
-              <div style={{ fontSize: 13, color: T.snow, lineHeight: 1.5, marginBottom: 10,
-                padding: "10px 12px", background: "rgba(214,72,59,0.12)", border: `1px solid ${T.bad}`, borderRadius: 10 }}>
-                {t("account.confirmWarn")}
-              </div>
-              <div style={{ display: "flex", gap: 10 }}>
-                <button style={{ ...btn(T.bad, "#fff"), flex: 1 }} disabled={busy} onClick={doDelete}>{t("account.confirmYes")}</button>
-                <button style={{ ...ghost, flex: 1 }} disabled={busy} onClick={() => setConfirming(false)}>{t("common.cancel")}</button>
-              </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {confirming ? (
+                <div>
+                  <div style={warnBox}>{t("account.confirmWarn")}</div>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <button style={{ ...btn(T.bad, "#fff"), flex: 1 }} disabled={busy} onClick={doDelete}>{t("account.confirmYes")}</button>
+                    <button style={{ ...ghost, flex: 1 }} disabled={busy} onClick={() => setConfirming(false)}>{t("common.cancel")}</button>
+                  </div>
+                </div>
+              ) : (
+                <button style={btn("transparent", T.bad)} onClick={() => { setNote(""); setConfirming(true); setAcctConfirm(false); }}>{t("account.deleteBtn")}</button>
+              )}
+              {signedIn && (acctConfirm ? (
+                <div>
+                  <div style={warnBox}>{t("account.acct.confirmWarn")}</div>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <button style={{ ...btn(T.bad, "#fff"), flex: 1 }} disabled={busy} onClick={doDeleteAccount}>{t("account.acct.confirmYes")}</button>
+                    <button style={{ ...ghost, flex: 1 }} disabled={busy} onClick={() => setAcctConfirm(false)}>{t("common.cancel")}</button>
+                  </div>
+                </div>
+              ) : (
+                <button style={btn("transparent", T.bad)} onClick={() => { setNote(""); setAcctConfirm(true); setConfirming(false); }}>{t("account.acct.deleteBtn")}</button>
+              ))}
             </div>
           )}
         </Card>
