@@ -1,0 +1,31 @@
+Documentation area in Site Admin  (+ contact email removed from the 2-pager)
+============================================================================
+WHAT CHANGED
+  • The marketing 2-pager no longer shows any contact email (verified: 0
+    occurrences in either PDF). The app URL remains as the call to action.
+  • Site Admin now has a "Documentation" card. It opens a page listing both
+    PDFs — the Administrator & Instructor Manual and the Program Overview
+    (2-pager) — each with Open (new tab) and Download. Admin-only, bilingual.
+
+HOW THE PDFs ARE SERVED
+  The app already serves everything in the repo's /public folder at the site
+  root (that's where the icons live). The Documentation page links to:
+      /AST-Prep-Admin-Manual.pdf
+      /AST-Prep-Overview.pdf
+  So the two PDFs must live in the repo's public/ folder.
+
+DEPLOY — TWO PARTS
+  1) Upload the PDFs to the repo's public/ folder (GitHub → Add file → Upload
+     files, inside the existing public/ directory):
+        public/AST-Prep-Admin-Manual.pdf
+        public/AST-Prep-Overview.pdf
+     (They're in the "public" subfolder of this zip, ready to upload.)
+  2) Upload to the repo ROOT and commit (code):
+        SiteAnalytics.jsx   (adds the Documentation card + page)
+        i18n.jsx  i18n.fr.js  (new strings)
+     No SQL, no other files.
+
+  After deploy: hard-reload, sign in as an admin → Site Admin → Documentation.
+  If a link 404s, the PDF isn't in public/ yet (or the build hasn't finished).
+
+The finalized PDFs are also at the top level of the outputs for your own use.
