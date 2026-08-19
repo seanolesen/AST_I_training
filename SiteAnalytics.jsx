@@ -36,7 +36,7 @@ export function SiteAnalytics({ onHome, session }) {
   const [state, setState] = useState({ loading: true, error: null, profiles: [], runsByUser: {}, docsByUser: {} });
   const [selected, setSelected] = useState(null);
   const [busyId, setBusyId] = useState(null);
-  const [page, setPage] = useState("home"); // home | users | qa | sessions
+  const [page, setPage] = useState("home"); // home | users | qa | sessions | docs
 
   const myEmail = session && session.user && session.user.email;
 
@@ -213,6 +213,39 @@ export function SiteAnalytics({ onHome, session }) {
     );
   }
 
+  // ---------- Documentation ----------
+  if (page === "docs") {
+    const DOCS = [
+      { file: "/AST-Prep-Admin-Manual.pdf", title: t("docs.manual.title"), desc: t("docs.manual.desc") },
+      { file: "/AST-Prep-Overview.pdf", title: t("docs.overview.title"), desc: t("docs.overview.desc") },
+    ];
+    return (
+      <div style={wrap}><div style={inner}>
+        {back(t("sa.backAdmin"), () => setPage("home"))}
+        {eyebrow}
+        <h1 style={{ fontSize: 23, fontWeight: 800, margin: "6px 0 4px" }}>{t("docs.title")}</h1>
+        <p style={{ fontSize: 13, color: T.dim, margin: "0 0 16px", lineHeight: 1.5 }}>{t("docs.intro")}</p>
+        {gate ? gateBox(gate) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {DOCS.map((d) => (
+              <div key={d.file} style={{ background: T.panel, border: `1px solid ${T.line}`, borderRadius: 14, padding: "16px 18px" }}>
+                <div style={{ fontSize: 16.5, fontWeight: 800, marginBottom: 3 }}>{d.title}</div>
+                <p style={{ margin: "0 0 12px", fontSize: 13, color: T.dim, lineHeight: 1.5 }}>{d.desc}</p>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <a href={d.file} target="_blank" rel="noopener noreferrer"
+                    style={{ textDecoration: "none", background: T.ice, color: T.bg, fontWeight: 800, fontSize: 13, padding: "9px 16px", borderRadius: 10 }}>{t("docs.open")}</a>
+                  <a href={d.file} download
+                    style={{ textDecoration: "none", background: "transparent", color: T.ice, fontWeight: 700, fontSize: 13, padding: "9px 16px", borderRadius: 10, border: `1px solid ${T.line}` }}>{t("docs.download")}</a>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <p style={{ fontSize: 11.5, color: T.dim, opacity: 0.8, marginTop: 16, lineHeight: 1.5 }}>{t("docs.footnote")}</p>
+      </div></div>
+    );
+  }
+
   // ---------- Landing ----------
   const card = (title, desc, onClick) => (
     <button onClick={onClick} style={{ display: "block", width: "100%", textAlign: "left", background: T.panel, border: `1px solid ${T.line}`,
@@ -233,6 +266,7 @@ export function SiteAnalytics({ onHome, session }) {
           {card(t("sa.card.users"), t("sa.card.usersDesc"), () => { setSelected(null); setPage("users"); })}
           {card(t("qa.title"), t("sa.card.qaDesc"), () => setPage("qa"))}
           {card(t("sess.title"), t("sess.desc"), () => setPage("sessions"))}
+          {card(t("docs.title"), t("docs.cardDesc"), () => setPage("docs"))}
         </div>
       )}
     </div></div>
