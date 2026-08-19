@@ -184,27 +184,27 @@ function TopBar({ session, view, onHome, onAccount }) {
   );
 }
 
-function Home({ onPick, session, isAdmin }) {
-  const on = useAcronyms();
-  const { t, lang } = useLang();
+const TOOL_ACCENT = {
+  slope: T.amber, card: "#5AD1CF", snowtest: "#8bd0c0", danger: "#ef8b2b", bulletin: "#7aa2c2",
+  terrain: "#A6754C", ates: "#7fae6b", beacon: "#3fb6c9", scenario: "#8fb0d9",
+  checklist: "#c2a35a", trip: "#59b39a", ast1: T.ice, ast2: "#b98cff",
+};
+// Curriculum groups. AST 2 is cumulative — it repeats the AST 1 drills and adds
+// the AST 2-only tools; each level ends with its own exam trainer. The Checklist
+// and Trip Planner are general planning utilities in their own group.
+const GROUPS = [
+  { key: "ast1", accent: T.ice, tools: ["slope", "danger", "bulletin", "terrain", "ates", "beacon", "ast1"] },
+  { key: "ast2", accent: "#b98cff", tools: ["slope", "card", "snowtest", "danger", "bulletin", "terrain", "ates", "beacon", "scenario", "ast2"] },
+  { key: "practical", accent: "#59b39a", tools: ["checklist", "trip"] },
+];
+
+function Home({ onGroup, onPick, session, isAdmin }) {
+  const { t } = useLang();
   const wrap = { minHeight: "calc(100vh - 44px)", background: T.bg, color: T.snow,
     fontFamily: FONT, padding: "30px 16px 44px", boxSizing: "border-box" };
   const inner = { maxWidth: 540, margin: "0 auto" };
   const signedIn = !!(session && session.user);
-  const tiles = [
-    { key: "slope", accent: T.amber },
-    { key: "card", accent: "#5AD1CF" },
-    { key: "snowtest", accent: "#8bd0c0" },
-    { key: "danger", accent: "#ef8b2b" },
-    { key: "bulletin", accent: "#7aa2c2" },
-    { key: "terrain", accent: "#A6754C" },
-    { key: "ates", accent: "#7fae6b" },
-    { key: "beacon", accent: "#3fb6c9" },
-    { key: "scenario", accent: "#8fb0d9" },
-    { key: "checklist", accent: "#c2a35a" },
-    { key: "trip", accent: "#59b39a" },
-    { key: "ast1", accent: T.ice },
-    { key: "ast2", accent: "#b98cff" },
+  const meta = [
     ...(signedIn ? [{ key: "perf", accent: "#3FA372" }, { key: "leaderboard", accent: "#f2c14e" }] : []),
     ...(isAdmin ? [{ key: "admin", accent: "#E0B93C" }] : []),
   ];
@@ -213,16 +213,20 @@ function Home({ onPick, session, isAdmin }) {
     <div style={wrap}>
       <div style={inner}>
         <InstallHint />
-        <h1 style={{ fontSize: 24, fontWeight: 800, margin: "6px 0 2px", letterSpacing: "-0.3px" }}>{t("home.choose")}</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 800, margin: "6px 0 2px", letterSpacing: "-0.3px" }}>{t("home.sections")}</h1>
         <p style={{ ...p, margin: "0 0 4px" }}>
-          {session && session.user
-            ? t("home.signedIn", { email: session.user.email })
-            : t("home.localSub")}
+          {signedIn ? t("home.signedIn", { email: session.user.email }) : t("home.localSub")}
         </p>
-        {tiles.map((tl) => (
-          <Tile key={tl.key} accent={tl.accent} onClick={() => onPick(tl.key)}
-            name={t("tool." + tl.key + ".name")}
-            desc={tl.key === "ast2" && lang === "en" ? ax(t("tool.ast2.desc"), on) : t("tool." + tl.key + ".desc")} />
+        {GROUPS.map((g) => (
+          <Tile key={g.key} accent={g.accent} onClick={() => onGroup(g.key)}
+            name={t("group." + g.key + ".name")} desc={t("group." + g.key + ".desc")} />
+        ))}
+        {meta.length > 0 && (
+          <div style={{ marginTop: 22, marginBottom: 2, fontSize: 11.5, letterSpacing: "1px", textTransform: "uppercase", color: T.dim, opacity: 0.7 }}>{t("home.more")}</div>
+        )}
+        {meta.map((m) => (
+          <Tile key={m.key} accent={m.accent} onClick={() => onPick(m.key)}
+            name={t("tool." + m.key + ".name")} desc={t("tool." + m.key + ".desc")} />
         ))}
         <button onClick={() => onPick("account")}
           style={{ display: "block", width: "100%", textAlign: "left", background: "transparent", border: "none",
@@ -230,6 +234,30 @@ function Home({ onPick, session, isAdmin }) {
           {t("account.title")}
         </button>
         <div style={{ marginTop: 20, fontSize: 10.5, color: T.dim, opacity: 0.55, textAlign: "center", letterSpacing: "0.3px" }}>build {BUILD}</div>
+      </div>
+    </div>
+  );
+}
+
+function GroupPage({ group, onPick, onBack }) {
+  const on = useAcronyms();
+  const { t, lang } = useLang();
+  const wrap = { minHeight: "calc(100vh - 44px)", background: T.bg, color: T.snow,
+    fontFamily: FONT, padding: "22px 16px 44px", boxSizing: "border-box" };
+  const inner = { maxWidth: 540, margin: "0 auto" };
+  const g = GROUPS.find((x) => x.key === group) || GROUPS[0];
+  const p = { margin: 0, fontSize: 13.5, color: T.dim, lineHeight: 1.5 };
+  return (
+    <div style={wrap}>
+      <div style={inner}>
+        <button onClick={onBack} style={{ background: "transparent", border: "none", color: T.ice, cursor: "pointer", fontSize: 13, padding: "2px 0 10px", fontWeight: 700 }}>&larr; {t("group.back")}</button>
+        <h1 style={{ fontSize: 24, fontWeight: 800, margin: "2px 0 2px", letterSpacing: "-0.3px" }}>{t("group." + g.key + ".name")}</h1>
+        <p style={{ ...p, margin: "0 0 4px" }}>{t("group." + g.key + ".desc")}</p>
+        {g.tools.map((k) => (
+          <Tile key={k} accent={TOOL_ACCENT[k]} onClick={() => onPick(k)}
+            name={t("tool." + k + ".name")}
+            desc={k === "ast2" && lang === "en" ? ax(t("tool.ast2.desc"), on) : t("tool." + k + ".desc")} />
+        ))}
       </div>
     </div>
   );
@@ -293,7 +321,8 @@ export default function Root() {
   const [session, setSession] = useState(null);
   const on = useAcronyms();
   const { t, lang } = useLang();
-  const [view, setView] = useState("home"); // home | ast1 | ast2 | slope | card | perf | admin | account
+  const [view, setView] = useState("home"); // home | group | <toolKey> | perf | admin | account
+  const [group, setGroup] = useState(null); // "ast1" | "ast2" | "practical" when view === "group"
   const [isAdmin, setIsAdmin] = useState(false);
   const [access, setAccess] = useState({ active: true, until: null, loaded: false });
   const [requireLogin, setRequireLogin] = useState(false);
@@ -349,7 +378,9 @@ export default function Root() {
     try { if (!localStorage.getItem("avy_onboarded")) setShowIntro(true); } catch (e) {}
   }, []);
 
-  const home = () => setView("home");
+  const home = () => { setGroup(null); setView("home"); };
+  const back = () => setView(group ? "group" : "home");
+  const openGroup = (g) => { setGroup(g); setView("group"); };
   const signedInNow = !!(session && session.user);
   const blocked = signedInNow && !isAdmin && access.loaded && !access.active;
   const needLogin = !signedInNow && requireLogin;
@@ -388,21 +419,22 @@ export default function Root() {
         <ExpiredScreen until={access.until} onSignOut={() => { try { supabase && supabase.auth.signOut(); } catch (e) {} }} />
       ) : (
         <React.Fragment>
-          {view === "home" && <Home onPick={setView} session={session} isAdmin={isAdmin} />}
+          {view === "home" && <Home onGroup={openGroup} onPick={setView} session={session} isAdmin={isAdmin} />}
+          {view === "group" && <GroupPage group={group} onPick={setView} onBack={home} />}
           <Suspense fallback={<ToolFallback />}>
-            {view === "ast1" && <Ast1App onHome={home} />}
-            {view === "ast2" && <Ast2App onHome={home} />}
-            {view === "slope" && <SlopeApp onHome={home} />}
-            {view === "card" && <CardApp onHome={home} />}
-            {view === "snowtest" && <SnowTestApp onHome={home} />}
-            {view === "danger" && <DangerApp onHome={home} />}
-            {view === "bulletin" && <BulletinApp onHome={home} />}
-            {view === "terrain" && <TerrainApp onHome={home} />}
-            {view === "ates" && <AtesApp onHome={home} />}
-            {view === "beacon" && <BeaconApp onHome={home} />}
-            {view === "scenario" && <ScenarioApp onHome={home} />}
-            {view === "checklist" && <ChecklistApp onHome={home} />}
-            {view === "trip" && <TripApp onHome={home} />}
+            {view === "ast1" && <Ast1App onHome={back} />}
+            {view === "ast2" && <Ast2App onHome={back} />}
+            {view === "slope" && <SlopeApp onHome={back} />}
+            {view === "card" && <CardApp onHome={back} />}
+            {view === "snowtest" && <SnowTestApp onHome={back} />}
+            {view === "danger" && <DangerApp onHome={back} />}
+            {view === "bulletin" && <BulletinApp onHome={back} />}
+            {view === "terrain" && <TerrainApp onHome={back} />}
+            {view === "ates" && <AtesApp onHome={back} />}
+            {view === "beacon" && <BeaconApp onHome={back} />}
+            {view === "scenario" && <ScenarioApp onHome={back} />}
+            {view === "checklist" && <ChecklistApp onHome={back} />}
+            {view === "trip" && <TripApp onHome={back} />}
             {view === "perf" && <Performance onHome={home} session={session} />}
             {view === "leaderboard" && <Leaderboard onHome={home} session={session} isAdmin={isAdmin} />}
             {view === "admin" && isAdmin && <SiteAnalytics onHome={home} session={session} />}
