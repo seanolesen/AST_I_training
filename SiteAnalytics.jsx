@@ -218,6 +218,7 @@ export function SiteAnalytics({ onHome, session }) {
     const DOCS = [
       { file: "/AST-Prep-Admin-Manual.pdf", title: t("docs.manual.title"), desc: t("docs.manual.desc") },
       { file: "/AST-Prep-Overview.pdf", title: t("docs.overview.title"), desc: t("docs.overview.desc") },
+      ...(isSuper(myEmail) ? [{ file: "/AST-Prep-Rebuild-Runbook-k3n9x7q2.pdf", title: t("docs.runbook.title"), desc: t("docs.runbook.desc"), owner: true }] : []),
     ];
     return (
       <div style={wrap}><div style={inner}>
@@ -229,7 +230,7 @@ export function SiteAnalytics({ onHome, session }) {
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {DOCS.map((d) => (
               <div key={d.file} style={{ background: T.panel, border: `1px solid ${T.line}`, borderRadius: 14, padding: "16px 18px" }}>
-                <div style={{ fontSize: 16.5, fontWeight: 800, marginBottom: 3 }}>{d.title}</div>
+                <div style={{ fontSize: 16.5, fontWeight: 800, marginBottom: 3 }}>{d.title}{d.owner && <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: "#e0a44a", background: "rgba(224,164,74,0.14)", border: "1px solid rgba(224,164,74,0.4)", borderRadius: 6, padding: "1px 7px", verticalAlign: "middle" }}>{t("docs.ownerOnly")}</span>}</div>
                 <p style={{ margin: "0 0 12px", fontSize: 13, color: T.dim, lineHeight: 1.5 }}>{d.desc}</p>
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                   <a href={d.file} target="_blank" rel="noopener noreferrer"

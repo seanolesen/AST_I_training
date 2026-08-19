@@ -4,6 +4,9 @@ export default {
     "common.cancel": "Annuler",
 
     "nav.allTools": "← Tous les outils",
+    "docs.runbook.title": "Guide de reconstruction — créer une nouvelle instance",
+    "docs.runbook.desc": "Étape par étape : dépôt GitHub, projet Supabase et déploiement Vercel, avec chaque réglage.",
+    "docs.ownerOnly": "Propriétaire seulement",
     "docs.title": "Documentation",
     "docs.cardDesc": "Manuel d'administration et aperçu du programme en PDF pour les instructeurs et les partenaires.",
     "docs.intro": "Guides pour utiliser AST Prep. Ouvrez ou téléchargez pour partager avec les instructeurs et les organisations partenaires.",

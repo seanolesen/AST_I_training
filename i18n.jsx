@@ -13,6 +13,9 @@ export const STRINGS = {
     "common.cancel": "Cancel",
 
     "nav.allTools": "← All tools",
+    "docs.runbook.title": "Rebuild Runbook — stand up a new instance",
+    "docs.runbook.desc": "Step-by-step: GitHub repo, Supabase project, and Vercel deploy, with every setting.",
+    "docs.ownerOnly": "Owner only",
     "docs.title": "Documentation",
     "docs.cardDesc": "Admin manual and program overview PDFs for instructors and partners.",
     "docs.intro": "Guides for running AST Prep. Open or download to share with instructors and partner organizations.",
